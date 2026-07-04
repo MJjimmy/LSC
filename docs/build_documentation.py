@@ -672,7 +672,7 @@ add_table(
         ["Audience", "Project owners, developers, testers, administrators and assessors"],
         ["Application stack", "PHP 8.2+, MySQL/MariaDB, responsive HTML/CSS/JavaScript"],
         ["Primary deployment", "Railway/Nixpacks with public as the web document root"],
-        ["Database migration", "public/database/2026_06_29_collaboration_features.sql"],
+        ["Database migration", "database/2026_06_29_collaboration_features.sql"],
     ],
     [2700, 6660],
 )
@@ -815,14 +815,14 @@ add_number("Group members can preview images and download the attachment from th
 
 add_heading("5. Technical architecture", 1)
 add_figure(ARCH_IMG, 6.5, "Figure 3. StudySync logical architecture.")
-add_body("The application uses page-level PHP controllers and shared helper modules. Sessions provide authentication state, PDO prepared statements provide database access, and the layout component supplies common navigation and responsive styling.")
+add_body("The application uses feature-based controllers, services and repositories. Sessions provide authentication state, PDO repositories provide database access, and views supply page-specific and shared layout rendering.")
 add_table(
     ["Layer", "Key files", "Responsibility"],
     [
-        ["Presentation", "public/*.php and layout.php", "Page rendering, forms, tabs, modals and responsive navigation"],
-        ["Authentication", "config/auth.php and csrf.php", "Session lifecycle, route guards, roles and CSRF verification"],
-        ["Business/data", "config/db_helpers.php", "Group, task, file, chat, profile, invitation, notification and reset operations"],
-        ["Upload service", "config/uploads.php", "Size/type checks, random filenames, image validation and cleanup"],
+        ["Public entry points", "public/*.php", "Thin HTTP endpoints that construct and call feature controllers"],
+        ["Application", "app/<Feature>/", "Controllers, business services and PDO repositories grouped by feature"],
+        ["Core", "app/Core/ and config/bootstrap.php", "Database, authentication, CSRF, session lifecycle, autoloading and upload storage"],
+        ["Presentation", "views/", "Forms, page content and shared responsive layouts"],
         ["Database", "database/init.sql and migration SQL", "Relational data, foreign keys, uniqueness and lifecycle constraints"],
         ["PWA", "manifest.json and service-worker.php", "Install metadata and offline shell behaviour"],
     ],
@@ -832,10 +832,10 @@ add_table(
 
 add_heading("5.1 Request path", 2)
 add_number("A browser requests a PHP route beneath the public document root.")
-add_number("The route loads shared database, authentication and helper modules.")
-add_number("Mutating routes validate the session, permissions and a CSRF token.")
-add_number("Prepared statements read or change MySQL data; uploads also pass through the upload service.")
-add_number("The page captures content and renders it through the shared layout.")
+add_number("The route loads the bootstrap and constructs the feature controller with its dependencies.")
+add_number("Mutating controller actions validate the session, permissions and a CSRF token.")
+add_number("Services enforce workflows while repositories read or change MySQL data.")
+add_number("The controller supplies data to a view, which renders through the shared layout.")
 
 page_break()
 
@@ -881,7 +881,7 @@ add_heading("7.1 Runtime requirements", 2)
 add_bullet("PHP 8.2 or newer with PDO MySQL and mbstring.")
 add_bullet("MySQL 8 or MariaDB 10.4 or newer.")
 add_bullet("A web server configured with public as its document root.")
-add_bullet("Write access to public/uploads for the PHP process.")
+add_bullet("Write access to storage/uploads for the PHP process.")
 
 add_heading("7.2 Environment variables", 2)
 add_table(
@@ -902,13 +902,13 @@ add_table(
 
 add_heading("7.3 Fresh database", 2)
 add_number("Create an empty database and a least-privilege database user.")
-add_number("Import public/database/init.sql.")
+add_number("Import database/init.sql.")
 add_number("Set the environment variables and verify the public document root.")
 add_number("Ensure the upload directory is writable, then start the application through the chosen server process.")
 
 add_heading("7.4 Existing database upgrade", 2)
 add_number("Take and verify a database backup.")
-add_number("Run public/database/2026_06_29_collaboration_features.sql exactly once.")
+add_number("Run database/2026_06_29_collaboration_features.sql exactly once.")
 add_number("Deploy the PHP changes after the migration completes.")
 add_number("Confirm that messages.file_id and the three new tables are present before opening the site to users.")
 add_callout("Ordering matters", "The updated code queries profile and notification columns during sign-in and layout rendering. Apply the migration before deploying the release to an existing database.", fill="FDF1F0", border=RED)
@@ -926,7 +926,7 @@ add_table(
         ["Cross-site request forgery", "CSRF tokens on new account, recovery, profile, invite, notification, file and chat attachment actions"],
         ["Unauthorised file access", "Download route verifies current membership before resolving and streaming a stored path"],
         ["Upload abuse", "Allowlisted extensions, byte-size limits, random stored names and image-content validation"],
-        ["Path traversal", "Stored paths must resolve inside public/uploads before reading or deletion"],
+        ["Path traversal", "Stored paths must resolve inside storage/uploads before reading or deletion"],
         ["Invite misuse", "Random 64-character token, seven-day expiry, pending state and recipient identity/email match"],
         ["Reset token disclosure", "Only a SHA-256 token hash is stored; tokens expire in 60 minutes and are single-use"],
         ["Account enumeration", "Forgot-password response is identical whether or not the address exists"],

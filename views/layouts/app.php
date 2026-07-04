@@ -1,8 +1,10 @@
 <?php
 // layout.php — Obsidian & Copper theme — fully responsive
 $current_page = basename($_SERVER['PHP_SELF'], '.php');
-$unreadNotificationCount = (isset($_SESSION['user_id']) && function_exists('getUnreadNotificationCount'))
-    ? getUnreadNotificationCount((int)$_SESSION['user_id'])
+$unreadNotificationCount = isset($_SESSION['user_id'])
+    ? (new \StudySync\Notifications\NotificationRepository(
+        \StudySync\Core\Database::connection()
+    ))->unreadCount((int)$_SESSION['user_id'])
     : 0;
 ?>
 <!DOCTYPE html>
@@ -798,7 +800,7 @@ if ('serviceWorker' in navigator) {
             <a href="profile.php" class="ss-user-row" style="text-decoration:none;">
                 <div class="ss-avatar">
                     <?php if (!empty($_SESSION['user_avatar'])): ?>
-                        <img src="<?= htmlspecialchars($_SESSION['user_avatar']) ?>" alt="">
+                        <img src="avatar.php?user_id=<?= (int)($_SESSION['user_id'] ?? 0) ?>" alt="">
                     <?php else: ?>
                         <?= strtoupper(substr($_SESSION['user_name'] ?? 'U', 0, 1)) ?>
                     <?php endif; ?>

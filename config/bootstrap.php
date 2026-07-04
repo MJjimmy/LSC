@@ -1,5 +1,35 @@
 <?php
 
+declare(strict_types=1);
+
+define('STUDYSYNC_ROOT', dirname(__DIR__));
+define('STUDYSYNC_STORAGE', STUDYSYNC_ROOT . DIRECTORY_SEPARATOR . 'storage');
+
+spl_autoload_register(static function (string $class): void {
+    $prefix = 'StudySync\\';
+    if (!str_starts_with($class, $prefix)) {
+        return;
+    }
+
+    $relativeClass = substr($class, strlen($prefix));
+    $path = STUDYSYNC_ROOT . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR
+        . str_replace('\\', DIRECTORY_SEPARATOR, $relativeClass) . '.php';
+
+    if (is_file($path)) {
+        require $path;
+    }
+});
+
+function csrfToken(): string
+{
+    return \StudySync\Core\Csrf::token();
+}
+
+function verifyCsrf(): void
+{
+    \StudySync\Core\Csrf::verify();
+}
+
 $isProduction = strtolower((string)getenv('APP_ENV')) === 'production';
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';

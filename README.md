@@ -22,7 +22,7 @@ StudySync is a responsive PHP and MySQL collaboration platform for student group
 - PHP 8.2 or newer with PDO MySQL and `mbstring`
 - MySQL 8 or MariaDB 10.4+
 - A web server whose document root is the `public` directory
-- Write permission for `public/uploads`
+- Write permission for `storage/uploads`
 
 ## Environment variables
 
@@ -43,22 +43,30 @@ StudySync is a responsive PHP and MySQL collaboration platform for student group
 For a new installation, create the database and import:
 
 ```text
-public/database/init.sql
+database/init.sql
 ```
 
 For an existing StudySync database, back it up and run this migration once:
 
 ```text
-public/database/2026_06_29_collaboration_features.sql
+database/2026_06_29_collaboration_features.sql
 ```
 
 The migration adds chat-file relationships, group invitations, notifications, password-reset tokens, and profile fields.
+
+## Application structure
+
+- `app/Core` contains database, authentication, CSRF and upload-storage infrastructure.
+- Feature folders under `app` contain controllers, services and PDO repositories.
+- `views` contains page templates and shared layouts.
+- `public` contains only web entry points and public assets.
+- `database` and `storage/uploads` remain outside the public document root.
 
 ## Local start
 
 1. Configure the environment variables above.
 2. Make `public` the web document root.
-3. Ensure `public/uploads` is writable by PHP.
+3. Ensure `storage/uploads` is writable by PHP and backed by persistent storage in production.
 4. Import the correct SQL file for a fresh or existing database.
 5. Start the PHP/web-server process of your choice.
 
@@ -91,7 +99,7 @@ The sign-in page links to **Forgot password?**. Reset tokens are random, stored 
 
 ## Production considerations
 
-Railway's local filesystem can be ephemeral. Use a persistent volume or object storage before relying on uploaded files in production. Configure a transactional email provider or SMTP bridge for dependable reset-email delivery. Back up the database before applying migrations.
+Railway's local filesystem can be ephemeral. Mount a persistent volume at `/app/storage/uploads` or use object storage before relying on uploaded files in production. Configure a transactional email provider or SMTP bridge for dependable reset-email delivery. Back up the database before applying migrations.
 
 Before opening the service to public traffic, replace the repository's `php -S` start command with Railway's supported PHP/Nginx runtime (or another production application server), and configure shared rate limiting for login and password-reset routes at the edge or through a shared store. The PHP built-in server and per-process session state are not suitable substitutes for those controls.
 
