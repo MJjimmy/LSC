@@ -6,13 +6,18 @@
 ob_start();
 require_once __DIR__ . '/config/db_helpers.php';
 require_once __DIR__ . '/config/auth.php';
+require_once __DIR__ . '/config/csrf.php';
 requireLogin();
 requireAdmin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrf();
     if (isset($_POST['deactivate'])) {
-        $pdo->prepare("UPDATE users SET is_active = 0 WHERE user_id = ?")
-            ->execute([(int)$_POST['deactivate']]);
+        $targetUserId = (int)$_POST['deactivate'];
+        if ($targetUserId !== (int)$_SESSION['user_id']) {
+            $pdo->prepare("UPDATE users SET is_active = 0 WHERE user_id = ?")
+                ->execute([$targetUserId]);
+        }
         header('Location: admin.php'); exit;
     }
     if (isset($_POST['activate'])) {
@@ -102,6 +107,7 @@ $users = $pdo->query("SELECT user_id, name, email, role, is_active FROM users OR
                     <td style="text-align:right;">
                         <?php if ($u['user_id'] != $_SESSION['user_id']): ?>
                         <form method="POST" style="display:inline-block;" onsubmit="return confirm('Are you sure?')">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
                             <?php if ($u['is_active']): ?>
                                 <input type="hidden" name="deactivate" value="<?= $u['user_id'] ?>">
                                 <button type="submit" style="padding:6px 12px;border-radius:6px;border:1px solid var(--red-border);

@@ -12,6 +12,21 @@ function requireLogin(): void {
         header('Location: login.php');
         exit;
     }
+
+    global $pdo;
+    $stmt = $pdo->prepare('SELECT name, role, avatar_path FROM users WHERE user_id = ? AND is_active = 1');
+    $stmt->execute([(int)$_SESSION['user_id']]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user) {
+        logoutUser();
+        header('Location: login.php?deactivated=1');
+        exit;
+    }
+
+    $_SESSION['user_name'] = $user['name'];
+    $_SESSION['user_role'] = $user['role'];
+    $_SESSION['user_avatar'] = $user['avatar_path'];
 }
 
 function requireAdmin(): void {
@@ -45,10 +60,14 @@ function logoutUser(): void {
     // Clear the session cookie properly
     if (ini_get('session.use_cookies')) {
         $p = session_get_cookie_params();
-        setcookie(
-            session_name(), '', time() - 42000,
-            $p['path'], $p['domain'], $p['secure'], $p['httponly']
-        );
+        setcookie(session_name(), '', [
+            'expires' => time() - 42000,
+            'path' => $p['path'],
+            'domain' => $p['domain'],
+            'secure' => $p['secure'],
+            'httponly' => $p['httponly'],
+            'samesite' => $p['samesite'] ?? 'Lax',
+        ]);
     }
     session_destroy();
 }

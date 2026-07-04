@@ -1,7 +1,5 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/bootstrap.php';
 
 $host     = getenv('MYSQLHOST');
 $port     = getenv('MYSQLPORT');
@@ -10,7 +8,9 @@ $username = getenv('MYSQLUSER');
 $password = getenv('MYSQLPASSWORD');
 
 if (!$host || !$port || !$dbname || !$username || !$password) {
-    die("Database environment variables are missing. Check Railway Variables.");
+    error_log('Database connection failed: required environment variables are missing.');
+    http_response_code(503);
+    exit('StudySync is temporarily unavailable. Please try again later.');
 }
 
 try {
@@ -24,5 +24,7 @@ try {
         ]
     );
 } catch (PDOException $e) {
-    die("Database connection failed: " . $e->getMessage());
+    error_log('Database connection failed: ' . $e->getMessage());
+    http_response_code(503);
+    exit('StudySync is temporarily unavailable. Please try again later.');
 }

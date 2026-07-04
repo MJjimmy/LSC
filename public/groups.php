@@ -2,9 +2,11 @@
 ob_start();
 require_once __DIR__ . '/config/db_helpers.php';
 require_once __DIR__ . '/config/auth.php';
+require_once __DIR__ . '/config/csrf.php';
 requireLogin();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrf();
     if (isset($_POST['create_group'])) {
         $group_name  = trim($_POST['group_name']  ?? '');
         $description = trim($_POST['description'] ?? '');
@@ -150,6 +152,7 @@ $publicGroups = getAllPublicGroups($_SESSION['user_id']);
             <span class="pill pill-pending" style="flex-shrink:0;">Request Pending</span>
         <?php else: ?>
             <form method="POST" style="flex-shrink:0;">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
                 <input type="hidden" name="request_join_group_id" value="<?= $g['group_id'] ?>">
                 <button type="submit" style="
                     font-size:12px;font-weight:600;padding:7px 16px;border-radius:8px;
@@ -176,6 +179,7 @@ $publicGroups = getAllPublicGroups($_SESSION['user_id']);
         </div>
         <div class="ss-modal-body">
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
 
                 <div style="margin-bottom:14px;">
                     <label class="ss-label">Group Name</label>

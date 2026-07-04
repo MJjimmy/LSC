@@ -216,6 +216,7 @@ $tabs = [
                     <td style="text-align:right;">
                         <?php if ($t['status'] !== 'done'): ?>
                         <form method="POST" action="tasks.php" style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
                             <input type="hidden" name="mark_done_id" value="<?= $t['task_id'] ?>">
                             <button type="submit" style="padding:5px 12px;border-radius:6px;border:1px solid var(--green-border);
                                     background:var(--green-bg);color:var(--green);font-size:12px;font-weight:600;

@@ -34,7 +34,8 @@ StudySync is a responsive PHP and MySQL collaboration platform for student group
 | `MYSQLUSER` | Yes | Database user |
 | `MYSQLPASSWORD` | Yes | Database password |
 | `APP_URL` | Recommended | Public base URL used in password-reset links |
-| `APP_ENV` | Recommended | Set to `production` in production |
+| `APP_ENV` | Required in production | Set to `production` to enforce production session and error settings |
+| `APP_DEBUG` | No | Set to `1` only during local debugging; never enable it in production |
 | `MAIL_FROM` | For email reset delivery | Sender address used by PHP `mail()` |
 
 ## Database setup
@@ -91,6 +92,8 @@ The sign-in page links to **Forgot password?**. Reset tokens are random, stored 
 ## Production considerations
 
 Railway's local filesystem can be ephemeral. Use a persistent volume or object storage before relying on uploaded files in production. Configure a transactional email provider or SMTP bridge for dependable reset-email delivery. Back up the database before applying migrations.
+
+Before opening the service to public traffic, replace the repository's `php -S` start command with Railway's supported PHP/Nginx runtime (or another production application server), and configure shared rate limiting for login and password-reset routes at the edge or through a shared store. The PHP built-in server and per-process session state are not suitable substitutes for those controls.
 
 ## Verification
 

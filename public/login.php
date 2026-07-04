@@ -49,6 +49,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="auth-alert auth-alert-success"><i class="bi bi-check-circle" style="margin-right:6px;"></i>Account created. Sign in to continue.</div>
 <?php endif; ?>
 
+<?php if (isset($_GET['deactivated'])): ?>
+    <div class="auth-alert auth-alert-error"><i class="bi bi-exclamation-circle" style="margin-right:6px;"></i>Your account is inactive. Contact an administrator.</div>
+<?php endif; ?>
+
 <?php if ($error): ?>
     <div class="auth-alert auth-alert-error">
         <i class="bi bi-exclamation-circle" style="margin-right:6px;"></i><?= htmlspecialchars($error) ?>

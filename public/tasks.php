@@ -2,7 +2,12 @@
 ob_start();
 require_once __DIR__ . '/config/db_helpers.php';
 require_once __DIR__ . '/config/auth.php';
+require_once __DIR__ . '/config/csrf.php';
 requireLogin();
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verifyCsrf();
+}
 
 if (isset($_POST['delete_task'])) {
 
@@ -19,10 +24,12 @@ if (isset($_POST['delete_task'])) {
     $task = $stmt->fetch();
 
     if (
+        $task && (
         $_SESSION['user_role'] === 'admin' ||
         isGroupCreator(
             $task['group_id'],
             $_SESSION['user_id']
+        )
         )
     ) {
         deleteTask($taskId);
@@ -194,6 +201,7 @@ $overdueCount = count(array_filter($tasks, fn($t) =>
                 </div>
                 <?php if ($t['status'] !== 'done' && $t['assigned_to'] == $_SESSION['user_id']): ?>
                 <form method="POST" style="flex-shrink:0;">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
                     <input type="hidden" name="mark_done_id" value="<?= $t['task_id'] ?>">
                     <input type="hidden" name="group_id"     value="<?= $selected_group ?>">
                     <input type="hidden" name="status"       value="<?= htmlspecialchars($selected_status) ?>">
@@ -217,6 +225,7 @@ $overdueCount = count(array_filter($tasks, fn($t) =>
         </div>
         <div class="ss-modal-body">
             <form method="POST" id="taskForm">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
 
                 <div style="margin-bottom:14px;">
                     <label class="ss-label">Group</label>
