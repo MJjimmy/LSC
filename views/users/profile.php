@@ -35,6 +35,9 @@
 
     <section class="card" style="padding:24px;">
         <?php if ($isOwnProfile): ?>
+            <div class="panel-title">About me</div>
+            <div style="font-size:13.5px;color:var(--text-secondary);line-height:1.7;margin-top:12px;white-space:pre-line;"><?= htmlspecialchars($profile['bio'] ?: 'Add a bio so other group members can learn more about you.') ?></div>
+            <div style="height:1px;background:var(--border-soft);margin:24px 0;"></div>
             <div class="panel-title" style="margin-bottom:3px;">Edit profile</div>
             <div class="panel-sub" style="margin-bottom:20px;">Add a photo and a little context for your study partners.</div>
             <form method="POST" enctype="multipart/form-data">
