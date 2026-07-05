@@ -1,7 +1,7 @@
 <?php // Variables are provided by AccountController::register(). ?>
 
 <div class="auth-card-title">Create Account</div>
-<div class="auth-card-sub">Join StudySync today</div>
+<div class="auth-card-sub">Join LSC today</div>
 
 <?php if ($error): ?>
     <div class="auth-alert auth-alert-error">
@@ -51,6 +51,6 @@
 
 <?php
 $auth_content = ob_get_clean();
-$pageTitle = 'Register — StudySync';
+$pageTitle = 'Register — LSC';
 require STUDYSYNC_ROOT . '/views/layouts/auth.php';
 ?>

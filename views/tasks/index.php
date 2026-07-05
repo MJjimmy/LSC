@@ -9,10 +9,10 @@
     <button onclick="openTaskModal()" style="
         position:absolute;right:30px;top:50%;transform:translateY(-50%);
         padding:9px 18px;border-radius:10px;background:transparent;
-        border:1px solid rgba(205,133,63,.28);color:#cd853f;
+        border:1px solid rgba(147,197,253,.55);color:#2563eb;
         font-size:13px;font-weight:600;cursor:pointer;z-index:1;
-        font-family:'DM Sans',sans-serif;transition:background .15s;
-    " onmouseover="this.style.background='rgba(205,133,63,.12)'"
+        font-family:'Inter',system-ui,sans-serif;transition:background .15s;
+    " onmouseover="this.style.background='rgba(37,99,235,.12)'"
        onmouseout="this.style.background='transparent'">
         <i class="bi bi-plus-lg" style="margin-right:5px;"></i>Create Task
     </button>

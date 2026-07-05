@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StudySync — Offline</title>
+<title>LSC — Offline</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 body {
-    font-family: 'DM Sans', sans-serif;
-    background: #161412;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #123b63;
     color: #fff;
     min-height: 100vh;
     display: flex;
@@ -26,8 +26,8 @@ body {
     width: 80px;
     height: 80px;
     border-radius: 24px;
-    background: rgba(205,133,63,.12);
-    border: 1px solid rgba(205,133,63,.28);
+    background: rgba(74,222,128,.14);
+    border: 1px solid rgba(134,239,172,.35);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -36,7 +36,7 @@ body {
 }
 
 h1 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Inter', system-ui, sans-serif;
     font-size: 28px;
     font-weight: 800;
     letter-spacing: -0.5px;
@@ -58,36 +58,36 @@ p {
     gap: 8px;
     padding: 12px 24px;
     border-radius: 10px;
-    background: #cd853f;
+    background: #2563eb;
     color: #fff;
     font-size: 14px;
     font-weight: 600;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     border: none;
     cursor: pointer;
     text-decoration: none;
     transition: background .15s;
 }
 
-.btn:hover { background: #a8642a; }
+.btn:hover { background: #1d4ed8; }
 
 .wordmark {
     position: absolute;
     top: 28px;
     left: 28px;
-    font-family: 'Playfair Display', serif;
+    font-family: 'Inter', system-ui, sans-serif;
     font-size: 20px;
     font-weight: 800;
     color: #fff;
     text-decoration: none;
 }
 
-.wordmark span { color: #cd853f; }
+.wordmark span { color: #4ade80; }
 </style>
 </head>
 <body>
 
-<a href="/" class="wordmark">Study<span>Sync</span></a>
+<a href="/" class="wordmark">LS<span>C</span></a>
 
 <div class="icon">📡</div>
 

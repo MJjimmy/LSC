@@ -63,6 +63,6 @@ function togglePassword() {
 
 <?php
 $auth_content = ob_get_clean();
-$pageTitle = 'Login — StudySync';
+$pageTitle = 'Login — LSC';
 require STUDYSYNC_ROOT . '/views/layouts/auth.php';
 ?>

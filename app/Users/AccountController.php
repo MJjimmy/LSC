@@ -84,7 +84,7 @@ final class AccountController
                 $from = (string)getenv('MAIL_FROM');
                 if ($from !== '') {
                     $headers = "From: {$from}\r\nContent-Type: text/plain; charset=UTF-8";
-                    @mail($email, 'Reset your StudySync password', "Use this link within 60 minutes to reset your password:\n\n{$resetUrl}\n", $headers);
+                    @mail($email, 'Reset your LSC password', "Use this link within 60 minutes to reset your password:\n\n{$resetUrl}\n", $headers);
                 }
                 if (strtolower((string)getenv('APP_ENV')) !== 'production') {
                     $developmentResetUrl = $resetUrl;

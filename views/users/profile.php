@@ -1,12 +1,12 @@
 <?php // Variables are provided by ProfileController::show(). ?>
 
 <style>
-.profile-grid{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start}.profile-avatar{width:116px;height:116px;border-radius:30px;background:var(--sidebar);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:38px;font-weight:800;margin:0 auto 16px;overflow:hidden;border:4px solid #fff;box-shadow:0 8px 28px rgba(22,20,18,.12)}.profile-avatar img{width:100%;height:100%;object-fit:cover}.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:22px}.profile-stat{background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:11px 6px;text-align:center}.profile-stat strong{display:block;font-size:18px}.profile-stat span{font-size:10px;color:var(--text-muted)}@media(max-width:780px){.profile-grid{grid-template-columns:1fr}.profile-avatar{width:96px;height:96px}.profile-stats{max-width:380px;margin:22px auto 0}}
+.profile-grid{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start}.profile-avatar{width:116px;height:116px;border-radius:20px;background:var(--sidebar);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;font-size:38px;font-weight:800;margin:0 auto 16px;overflow:hidden;border:4px solid #fff;box-shadow:0 8px 22px rgba(18,59,99,.14)}.profile-avatar img{width:100%;height:100%;object-fit:cover}.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:22px}.profile-stat{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:11px 6px;text-align:center}.profile-stat strong{display:block;font-size:18px}.profile-stat span{font-size:10px;color:var(--text-muted)}@media(max-width:780px){.profile-grid{grid-template-columns:1fr}.profile-avatar{width:96px;height:96px}.profile-stats{max-width:380px;margin:22px auto 0}}
 </style>
 
 <div style="margin-bottom:22px;">
-    <div style="font-family:'Playfair Display',serif;font-size:27px;font-weight:800;">Profile</div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-top:3px;"><?= $isOwnProfile ? 'Manage how you appear across StudySync.' : 'Student profile and collaboration activity.' ?></div>
+    <div style="font-family:'Inter',system-ui,sans-serif;font-size:27px;font-weight:800;">Profile</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-top:3px;"><?= $isOwnProfile ? 'Manage how you appear across LSC.' : 'Learner profile and collaboration activity.' ?></div>
 </div>
 
 <?php if ($error || $success): ?>
@@ -21,7 +21,7 @@
             <?php if (!empty($profile['avatar_path'])): ?><img src="avatar.php?user_id=<?= (int)$profile['user_id'] ?>" alt="<?= htmlspecialchars($profile['name']) ?>"><?php else: ?><?= strtoupper(substr($profile['name'], 0, 1)) ?><?php endif; ?>
         </div>
         <div style="font-size:20px;font-weight:700;"><?= htmlspecialchars($profile['name']) ?></div>
-        <div style="font-size:12px;color:var(--copper-dark);font-weight:600;margin-top:3px;"><?= ucfirst($profile['role']) ?></div>
+        <div style="font-size:12px;color:var(--copper-dark);font-weight:600;margin-top:3px;"><?= $profile['role'] === 'student' ? 'Learner' : ucfirst($profile['role']) ?></div>
         <?php if (!empty($profile['course'])): ?><div style="font-size:13px;color:var(--text-secondary);margin-top:11px;"><?= htmlspecialchars($profile['course']) ?></div><?php endif; ?>
         <?php if (!empty($profile['institution'])): ?><div style="font-size:12px;color:var(--text-muted);margin-top:2px;"><?= htmlspecialchars($profile['institution']) ?></div><?php endif; ?>
 

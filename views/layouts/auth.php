@@ -1,5 +1,5 @@
 <?php
-$pageTitle = $pageTitle ?? 'StudySync';
+$pageTitle = $pageTitle ?? 'LSC — Learn. Share. Connect.';
 
 
 ?>
@@ -12,24 +12,24 @@ $pageTitle = $pageTitle ?? 'StudySync';
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 body {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     min-height: 100vh;
     display: flex;
-    background: #161412;
-    color: #1e1810;
+    background: #123b63;
+    color: #172033;
 }
 
 /* Left decorative panel */
 .auth-left {
     width: 420px;
     flex-shrink: 0;
-    background: #161412;
+    background: linear-gradient(155deg, #123b63 0%, #175488 100%);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -38,14 +38,14 @@ body {
     overflow: hidden;
 }
 
-/* Copper radial glow */
+/* Subtle educational blue and green accents */
 .auth-left::before {
     content: '';
     position: absolute;
     top: -80px; left: -80px;
     width: 360px; height: 360px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(205,133,63,.14) 0%, transparent 65%);
+    background: radial-gradient(circle, rgba(74,222,128,.16) 0%, transparent 65%);
     pointer-events: none;
 }
 
@@ -55,7 +55,7 @@ body {
     bottom: -60px; right: -60px;
     width: 280px; height: 280px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(205,133,63,.08) 0%, transparent 65%);
+    background: radial-gradient(circle, rgba(96,165,250,.16) 0%, transparent 65%);
     pointer-events: none;
 }
 
@@ -65,7 +65,7 @@ body {
 }
 
 .auth-wordmark {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Inter', system-ui, sans-serif;
     font-size: 28px;
     font-weight: 800;
     color: #fff;
@@ -75,53 +75,58 @@ body {
     margin-bottom: 4px;
 }
 
-.auth-wordmark span { color: #cd853f; }
+.auth-wordmark span { color: #4ade80; }
 
 .auth-tagline {
     font-size: 12px;
-    color: rgba(255,255,255,.32);
+    color: rgba(255,255,255,.68);
     letter-spacing: 0.3px;
 }
 
-.auth-quote {
+.auth-highlights {
     position: relative;
     z-index: 1;
 }
 
-.auth-quote-text {
-    font-family: 'Playfair Display', serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: rgba(255,255,255,.75);
-    line-height: 1.4;
-    margin-bottom: 14px;
+.auth-highlights h2 {
+    max-width: 290px;
+    margin-bottom: 20px;
+    color: #fff;
+    font-size: 24px;
+    line-height: 1.3;
 }
 
-.auth-quote-attr {
-    font-size: 12px;
-    color: rgba(255,255,255,.3);
-    letter-spacing: 0.3px;
-}
-
-.auth-dots {
-    position: relative;
-    z-index: 1;
+.auth-highlight {
     display: flex;
-    gap: 6px;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    color: rgba(255,255,255,.78);
+    font-size: 13px;
 }
 
-.auth-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: rgba(255,255,255,.15);
+.auth-highlight i {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #86efac;
+    background: rgba(255,255,255,.09);
 }
 
-.auth-dot.active { background: #cd853f; }
+.auth-brand-note {
+    position: relative;
+    z-index: 1;
+    color: rgba(255,255,255,.48);
+    font-size: 11px;
+}
 
 /* Right form panel */
 .auth-right {
     flex: 1;
-    background: #faf8f6;
+    background: #f4f8fc;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -130,26 +135,26 @@ body {
 
 .auth-card {
     background: #ffffff;
-    border: 1px solid #ede8e2;
-    border-radius: 18px;
+    border: 1px solid #dce6f0;
+    border-radius: 12px;
     padding: 36px 40px;
     width: 100%;
     max-width: 420px;
-    box-shadow: 0 4px 24px rgba(0,0,0,.05);
+    box-shadow: 0 12px 32px rgba(15,47,82,.08);
 }
 
 .auth-card-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Inter', system-ui, sans-serif;
     font-size: 26px;
     font-weight: 800;
-    color: #1e1810;
+    color: #172033;
     margin-bottom: 4px;
     letter-spacing: -0.3px;
 }
 
 .auth-card-sub {
     font-size: 13px;
-    color: #a09080;
+    color: #7b8ba0;
     margin-bottom: 28px;
 }
 
@@ -160,21 +165,22 @@ body {
     width: 100%;
     padding: 11px 14px;
     border-radius: 8px;
-    border: 1px solid #ede8e2;
-    background: #faf8f6;
-    font-family: 'DM Sans', sans-serif;
+    border: 1px solid #dce6f0;
+    background: #f8fbfe;
+    font-family: 'Inter', system-ui, sans-serif;
     font-size: 13.5px;
-    color: #1e1810;
+    color: #172033;
     outline: none;
     transition: border-color .15s, background .15s;
 }
 
 .auth-input:focus {
-    border-color: #cd853f;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.1);
     background: #fff;
 }
 
-.auth-input::placeholder { color: #b0a090; }
+.auth-input::placeholder { color: #94a3b8; }
 
 /* Password wrapper */
 .auth-pw-wrap { position: relative; }
@@ -188,7 +194,7 @@ body {
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: #a09080;
+    color: #7b8ba0;
     cursor: pointer;
     font-size: 15px;
     line-height: 1;
@@ -199,10 +205,10 @@ body {
     width: 100%;
     padding: 12px;
     border-radius: 8px;
-    background: #1e1810;
+    background: #2563eb;
     color: #fff;
     border: none;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -210,7 +216,7 @@ body {
     margin-top: 4px;
 }
 
-.auth-btn:hover { background: #2c211a; }
+.auth-btn:hover { background: #1d4ed8; }
 
 /* Error / success alerts */
 .auth-alert {
@@ -238,16 +244,16 @@ body {
     text-align: center;
     margin-top: 20px;
     font-size: 13px;
-    color: #a09080;
+    color: #7b8ba0;
 }
 
 .auth-footer a {
-    color: #a8642a;
+    color: #1d4ed8;
     font-weight: 600;
     text-decoration: none;
 }
 
-.auth-footer a:hover { color: #cd853f; }
+.auth-footer a:hover { color: #15803d; }
 
 @media (max-width: 760px) {
     .auth-left { display: none; }
@@ -264,20 +270,20 @@ body {
 <link rel="manifest" href="/manifest.json">
 
 <!-- Theme colour (browser chrome on Android) -->
-<meta name="theme-color" content="#161412">
+<meta name="theme-color" content="#123b63">
 
 <!-- iOS home screen support -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="StudySync">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="apple-mobile-web-app-title" content="LSC">
+<link rel="apple-touch-icon" href="/icons/lsc-icon.svg">
 
 <!-- Windows tile -->
-<meta name="msapplication-TileImage" content="/icons/icon-144.png">
-<meta name="msapplication-TileColor" content="#161412">
+<meta name="msapplication-TileImage" content="/icons/lsc-icon.svg">
+<meta name="msapplication-TileColor" content="#123b63">
 
 <!-- Favicon -->
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-96.png">
+<link rel="icon" type="image/svg+xml" href="/icons/lsc-icon.svg">
 
 <!-- Register service worker -->
 <script>
@@ -298,20 +304,18 @@ if ('serviceWorker' in navigator) {
     <!-- Left branding panel -->
     <div class="auth-left">
         <div class="auth-brand">
-            <a href="login.php" class="auth-wordmark">Study<span>Sync</span></a>
-            <div class="auth-tagline">Smart Student Collaboration</div>
+            <a href="login.php" class="auth-wordmark">LS<span>C</span></a>
+            <div class="auth-tagline">Learn · Share · Connect</div>
         </div>
 
-        <div class="auth-quote">
-            <div class="auth-quote-text">"Education is not the filling of a pail, but the lighting of a fire."</div>
-            <div class="auth-quote-attr">— W.B. Yeats</div>
+        <div class="auth-highlights">
+            <h2>Keep learning organised and connected.</h2>
+            <div class="auth-highlight"><i class="bi bi-people"></i><span>Work together in focused groups</span></div>
+            <div class="auth-highlight"><i class="bi bi-check2-square"></i><span>Track tasks and deadlines clearly</span></div>
+            <div class="auth-highlight"><i class="bi bi-folder2-open"></i><span>Keep resources easy to find</span></div>
         </div>
 
-        <div class="auth-dots">
-            <div class="auth-dot active"></div>
-            <div class="auth-dot"></div>
-            <div class="auth-dot"></div>
-        </div>
+        <div class="auth-brand-note">Built for students and lifelong learners.</div>
     </div>
 
     <!-- Right form panel -->

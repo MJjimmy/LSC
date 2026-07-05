@@ -102,7 +102,7 @@
                             <input type="hidden" name="mark_done_id" value="<?= $t['task_id'] ?>">
                             <button type="submit" style="padding:5px 12px;border-radius:6px;border:1px solid var(--green-border);
                                     background:var(--green-bg);color:var(--green);font-size:12px;font-weight:600;
-                                    cursor:pointer;font-family:'DM Sans',sans-serif;">Mark Done</button>
+                                    cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Mark Done</button>
                         </form>
                         <?php endif; ?>
                     </td>
@@ -136,7 +136,7 @@
     <div class="panel-header">
         <div>
             <div class="panel-title">Join Requests</div>
-            <div class="panel-sub">Review students who want to join this group.</div>
+            <div class="panel-sub">Review learners who want to join this group.</div>
         </div>
         <span class="pill pill-pending"><?= count($pendingJoinRequests) ?> pending</span>
     </div>
@@ -161,14 +161,14 @@
                 <input type="hidden" name="approve_request_id" value="<?= $request['request_id'] ?>">
                 <button type="submit" style="padding:6px 12px;border-radius:7px;border:1px solid var(--green-border);
                         background:var(--green-bg);color:var(--green);font-size:12px;font-weight:600;
-                        cursor:pointer;font-family:'DM Sans',sans-serif;">Approve</button>
+                        cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Approve</button>
             </form>
             <form method="POST" action="?id=<?= $groupId ?>&tab=members">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
                 <input type="hidden" name="reject_request_id" value="<?= $request['request_id'] ?>">
                 <button type="submit" style="padding:6px 12px;border-radius:7px;border:1px solid var(--red-border);
                         background:var(--red-bg);color:var(--red);font-size:12px;font-weight:600;
-                        cursor:pointer;font-family:'DM Sans',sans-serif;">Decline</button>
+                        cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Decline</button>
             </form>
         </div>
     </div>
@@ -194,7 +194,7 @@
                     <?= htmlspecialchars($m['name']) ?>
                 </div>
                 <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px;">
-                    <?= ucfirst($m['role']) ?> &middot; Joined <?= date('d M Y', strtotime($m['joined_at'])) ?>
+                    <?= $m['role'] === 'student' ? 'Learner' : ucfirst($m['role']) ?> &middot; Joined <?= date('d M Y', strtotime($m['joined_at'])) ?>
                 </div>
             </div>
         </a>
@@ -207,7 +207,7 @@
                 <input type="hidden" name="remove_member_user_id" value="<?= $m['user_id'] ?>">
                 <button type="submit" style="padding:5px 11px;border-radius:7px;border:1px solid var(--red-border);
                         background:var(--red-bg);color:var(--red);font-size:12px;font-weight:600;
-                        cursor:pointer;font-family:'DM Sans',sans-serif;">Remove</button>
+                        cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Remove</button>
             </form>
         <?php endif; ?>
     </div>
@@ -277,7 +277,7 @@
                             <input type="hidden" name="group_id"       value="<?= $groupId ?>">
                             <button type="submit" style="padding:5px 12px;border-radius:6px;border:1px solid var(--red-border);
                                     background:var(--red-bg);color:var(--red);font-size:12px;font-weight:600;
-                                    cursor:pointer;font-family:'DM Sans',sans-serif;">Delete</button>
+                                    cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Delete</button>
                         </form>
                         <?php endif; ?>
                     </td>
@@ -295,7 +295,7 @@
 <?php elseif ($tab === 'chat'): ?>
 
 <style>
-.chat-layout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start}.chat-message{display:flex;gap:10px;margin-bottom:18px}.chat-avatar{width:34px;height:34px;border-radius:50%;background:var(--sidebar);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;overflow:hidden;flex-shrink:0}.chat-avatar img{width:100%;height:100%;object-fit:cover}.chat-attachment{margin-top:8px;border:1px solid var(--border);border-radius:10px;background:#fff;overflow:hidden;max-width:360px}.chat-attachment img{display:block;width:100%;max-height:260px;object-fit:cover;background:var(--cream)}.chat-file-link{display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--text-primary);text-decoration:none}.chat-file-link:hover{background:#fdf8f2}.chat-composer{display:flex;gap:9px;align-items:center}.chat-plus{width:42px;height:42px;border-radius:50%;border:1px solid var(--copper-border);background:var(--copper-dim);color:var(--copper);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0}.chat-plus:hover{background:rgba(205,133,63,.2)}@media(max-width:900px){.chat-layout{grid-template-columns:1fr}.chat-files-panel{order:-1}.chat-files-list{display:flex;overflow-x:auto}.chat-files-list>a{min-width:220px}}@media(max-width:600px){.chat-composer{align-items:flex-end}.chat-composer .btn-primary span{display:none}.chat-attachment{max-width:100%}}
+.chat-layout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start}.chat-message{display:flex;gap:10px;margin-bottom:18px}.chat-avatar{width:34px;height:34px;border-radius:50%;background:var(--sidebar);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;overflow:hidden;flex-shrink:0}.chat-avatar img{width:100%;height:100%;object-fit:cover}.chat-attachment{margin-top:8px;border:1px solid var(--border);border-radius:8px;background:#fff;overflow:hidden;max-width:360px}.chat-attachment img{display:block;width:100%;max-height:260px;object-fit:cover;background:var(--cream)}.chat-file-link{display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--text-primary);text-decoration:none}.chat-file-link:hover{background:#eff6ff}.chat-composer{display:flex;gap:9px;align-items:center}.chat-plus{width:42px;height:42px;border-radius:50%;border:1px solid var(--copper-border);background:var(--copper-dim);color:var(--copper);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0}.chat-plus:hover{background:rgba(37,99,235,.2)}@media(max-width:900px){.chat-layout{grid-template-columns:1fr}.chat-files-panel{order:-1}.chat-files-list{display:flex;overflow-x:auto}.chat-files-list>a{min-width:220px}}@media(max-width:600px){.chat-composer{align-items:flex-end}.chat-composer .btn-primary span{display:none}.chat-attachment{max-width:100%}}
 </style>
 
 <div class="chat-layout">

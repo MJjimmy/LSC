@@ -22,6 +22,6 @@
 
 <?php
 $auth_content = ob_get_clean();
-$pageTitle = 'Forgot Password - StudySync';
+$pageTitle = 'Forgot Password — LSC';
 require STUDYSYNC_ROOT . '/views/layouts/auth.php';
 ?>

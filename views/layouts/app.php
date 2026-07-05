@@ -1,5 +1,5 @@
 <?php
-// layout.php — Obsidian & Copper theme — fully responsive
+// Shared LSC application layout.
 $current_page = basename($_SERVER['PHP_SELF'], '.php');
 $unreadNotificationCount = isset($_SESSION['user_id'])
     ? (new \StudySync\Notifications\NotificationRepository(
@@ -13,33 +13,38 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudySync</title>
+    <title>LSC — Learn. Share. Connect.</title>
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <!-- Fonts: Playfair Display (headings) + DM Sans (body) -->
+    <!-- Clean, readable interface typeface -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
     /* ── TOKENS ─────────────────────────────────────────────── */
     :root {
-        --sidebar:        #161412;
-        --sidebar-border: #2a2420;
-        --sidebar-hover:  rgba(255,255,255,.05);
-        --copper:         #cd853f;
-        --copper-dark:    #a8642a;
-        --copper-dim:     rgba(205,133,63,.12);
-        --copper-border:  rgba(205,133,63,.28);
-        --cream:          #faf8f6;
+        --sidebar:        #123b63;
+        --sidebar-border: rgba(255,255,255,.12);
+        --sidebar-hover:  rgba(255,255,255,.09);
+        --primary:        #2563eb;
+        --primary-dark:   #1d4ed8;
+        --primary-soft:   #eff6ff;
+        --primary-border: #bfdbfe;
+        /* Compatibility aliases for existing components. */
+        --copper:         var(--primary);
+        --copper-dark:    var(--primary-dark);
+        --copper-dim:     rgba(37,99,235,.12);
+        --copper-border:  rgba(147,197,253,.45);
+        --cream:          #f4f8fc;
         --card:           #ffffff;
-        --border:         #ede8e2;
-        --border-soft:    #f3efe9;
-        --text-primary:   #1e1810;
-        --text-secondary: #6b5d50;
-        --text-muted:     #a09080;
-        --text-sidebar:   #b0a090;
+        --border:         #dce6f0;
+        --border-soft:    #edf2f7;
+        --text-primary:   #172033;
+        --text-secondary: #526277;
+        --text-muted:     #7b8ba0;
+        --text-sidebar:   #d8e6f3;
         /* status */
         --red:            #c0392b;
         --red-bg:         #fdf1f0;
@@ -47,9 +52,9 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         --amber:          #b7610a;
         --amber-bg:       #fdf6ec;
         --amber-border:   #f5d9b0;
-        --green:          #1a7a40;
-        --green-bg:       #edf8f2;
-        --green-border:   #b8e8cd;
+        --green:          #15803d;
+        --green-bg:       #ecfdf3;
+        --green-border:   #bbf7d0;
     }
 
     /* ── RESET ──────────────────────────────────────────────── */
@@ -57,7 +62,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     html, body { height:100%; }
 
     body {
-        font-family: 'DM Sans', sans-serif;
+        font-family: 'Inter', system-ui, sans-serif;
         background: var(--cream);
         color: var(--text-primary);
         font-size: 14px;
@@ -68,7 +73,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #d8cfc5; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: #b8c7d9; border-radius: 10px; }
 
     /* ── MOBILE OVERLAY ─────────────────────────────────────── */
     .ss-overlay {
@@ -100,7 +105,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
 
     .ss-logo {
-        padding: 22px 20px 18px;
+        padding: 20px 18px 17px;
         border-bottom: 1px solid var(--sidebar-border);
         display: flex;
         align-items: flex-start;
@@ -108,7 +113,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
 
     .ss-logo-mark {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Inter', system-ui, sans-serif;
         font-size: 21px;
         font-weight: 800;
         color: #fff;
@@ -117,11 +122,11 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         display: block;
     }
 
-    .ss-logo-mark span { color: var(--copper); }
+    .ss-logo-mark span { color: #4ade80; }
 
     .ss-logo-sub {
         font-size: 10.5px;
-        color: rgba(255,255,255,.28);
+        color: rgba(255,255,255,.65);
         margin-top: 2px;
         letter-spacing: 0.3px;
     }
@@ -162,7 +167,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         align-items: center;
         gap: 10px;
         padding: 10px 10px;
-        border-radius: 6px;
+        border-radius: 8px;
         color: var(--text-sidebar);
         font-size: 13.5px;
         font-weight: 500;
@@ -179,12 +184,12 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
 
     .ss-nav a.active {
-        background: var(--copper-dim);
-        color: var(--copper);
-        border-color: var(--copper-border);
+        background: rgba(255,255,255,.13);
+        color: #fff;
+        border-color: rgba(255,255,255,.16);
     }
 
-    .ss-nav a.active .bi { color: var(--copper); }
+    .ss-nav a.active .bi { color: #4ade80; }
 
     /* ── SIDEBAR BOTTOM ─────────────────────────────────────── */
     .ss-user {
@@ -231,7 +236,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         border: 1px solid rgba(255,255,255,.07);
         color: rgba(255,255,255,.38);
         font-size: 12.5px;
-        font-family: 'DM Sans', sans-serif;
+        font-family: 'Inter', system-ui, sans-serif;
         cursor: pointer;
         text-decoration: none;
         transition: background .15s, color .15s;
@@ -277,7 +282,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
 
     .ss-topbar-title {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Inter', system-ui, sans-serif;
         font-size: 17px;
         font-weight: 700;
         color: var(--text-primary);
@@ -323,13 +328,14 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     .card-modern {
         background: var(--card);
         border: 1px solid var(--border);
-        border-radius: 14px;
+        border-radius: 10px;
         overflow: hidden;
+        box-shadow: 0 1px 2px rgba(18,59,99,.04);
     }
 
     .page-hero {
-        background: var(--sidebar);
-        border-radius: 18px;
+        background: linear-gradient(120deg, #123b63, #175488);
+        border-radius: 12px;
         padding: 28px 30px;
         margin-bottom: 24px;
         position: relative;
@@ -343,7 +349,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         top: -60px; right: -60px;
         width: 220px; height: 220px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(205,133,63,.18) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(74,222,128,.18) 0%, transparent 70%);
         pointer-events: none;
     }
 
@@ -351,13 +357,13 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         font-size: 10px;
         letter-spacing: 1.4px;
         text-transform: uppercase;
-        color: var(--copper);
+        color: #86efac;
         margin-bottom: 7px;
         font-weight: 500;
     }
 
     .page-hero-title {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Inter', system-ui, sans-serif;
         font-size: 32px;
         font-weight: 800;
         letter-spacing: -0.5px;
@@ -378,7 +384,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         background: transparent;
         border: 1px solid var(--copper-border);
         color: var(--copper);
-        font-family: 'DM Sans', sans-serif;
+        font-family: 'Inter', system-ui, sans-serif;
         font-size: 13px;
         font-weight: 600;
         text-decoration: none;
@@ -393,7 +399,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     .stat-card {
         background: var(--card);
         border: 1px solid var(--border);
-        border-radius: 14px;
+        border-radius: 10px;
         padding: 18px 20px;
     }
 
@@ -405,7 +411,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
 
     .stat-card-value {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Inter', system-ui, sans-serif;
         font-size: 30px;
         font-weight: 800;
         letter-spacing: -1px;
@@ -413,8 +419,8 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         color: var(--text-primary);
     }
 
-    .stat-card.copper-tint { background: #fdf8f2; border-color: #eed8b8; }
-    .stat-card.copper-tint .stat-card-label { color: #9a6030; }
+    .stat-card.copper-tint { background: var(--primary-soft); border-color: var(--primary-border); }
+    .stat-card.copper-tint .stat-card-label { color: #1e40af; }
     .stat-card.copper-tint .stat-card-value { color: var(--copper-dark); }
 
     .stat-card.red-tint { background: var(--red-bg); border-color: var(--red-border); }
@@ -432,13 +438,13 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         padding: 9px 16px;
         font-size: 13px;
         font-weight: 600;
-        font-family: 'DM Sans', sans-serif;
+        font-family: 'Inter', system-ui, sans-serif;
         cursor: pointer;
         transition: background .15s;
         text-decoration: none;
     }
 
-    .btn-primary:hover { background: #2c211a; }
+    .btn-primary:hover { background: var(--primary-dark); }
     .btn-copper  { background: var(--copper) !important; color: #fff !important; }
     .btn-copper:hover { background: var(--copper-dark) !important; }
 
@@ -456,7 +462,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     .pill-pending { background: var(--amber-bg);  color: var(--amber);  border: 1px solid var(--amber-border); }
     .pill-active  { background: var(--green-bg);  color: var(--green);  border: 1px solid var(--green-border); }
     .pill-inactive{ background: var(--red-bg);    color: var(--red);    border: 1px solid var(--red-border); }
-    .pill-admin   { background: #fdf3e4; color: #7a4a10; border: 1px solid #f0d0a0; }
+    .pill-admin   { background: #eef2ff; color: #3730a3; border: 1px solid #c7d2fe; }
     .pill-member  { background: #e8f0fd; color: #1a3a80; border: 1px solid #b8cef5; }
     .pill-private { background: var(--amber-bg);  color: var(--amber);  border: 1px solid var(--amber-border); }
     .pill-public  { background: var(--green-bg);  color: var(--green);  border: 1px solid var(--green-border); }
@@ -468,12 +474,12 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         border: 1px solid var(--border);
         background: var(--card);
         color: var(--text-primary);
-        font-family: 'DM Sans', sans-serif;
+        font-family: 'Inter', system-ui, sans-serif;
         font-size: 13.5px;
         outline: none;
         transition: border-color .15s;
     }
-    .ss-input:focus { border-color: var(--copper); }
+    .ss-input:focus { border-color: var(--copper); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
 
     .ss-label {
         display: block;
@@ -484,7 +490,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
 
     .section-heading {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Inter', system-ui, sans-serif;
         font-size: 20px;
         font-weight: 800;
         letter-spacing: -0.3px;
@@ -555,7 +561,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 
     .ss-modal {
         background: var(--card);
-        border-radius: 18px;
+        border-radius: 12px;
         width: 100%;
         max-width: 480px;
         box-shadow: 0 20px 60px rgba(0,0,0,.18);
@@ -570,7 +576,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
 
     .ss-modal-title {
-        font-family: 'Playfair Display', serif;
+        font-family: 'Inter', system-ui, sans-serif;
         font-size: 20px;
         font-weight: 800;
     }
@@ -593,11 +599,11 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         border: 1px solid var(--border);
         color: var(--text-secondary);
         font-size: 13px;
-        font-family: 'DM Sans', sans-serif;
+        font-family: 'Inter', system-ui, sans-serif;
         cursor: pointer;
         transition: background .15s;
     }
-    .btn-ghost:hover { background: #ede8e2; }
+    .btn-ghost:hover { background: #e7eef6; }
 
     .empty-state {
         padding: 52px 20px;
@@ -642,7 +648,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
 
     .ss-bnav-item .bi { font-size: 19px; }
-    .ss-bnav-item.active { color: var(--copper); }
+    .ss-bnav-item.active { color: #4ade80; }
     .ss-bnav-item:hover  { color: rgba(255,255,255,.75); }
 
     /* ══════════════════════════════════════════════════════════
@@ -717,20 +723,20 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 <link rel="manifest" href="/manifest.json">
 
 <!-- Theme colour (browser chrome on Android) -->
-<meta name="theme-color" content="#161412">
+<meta name="theme-color" content="#123b63">
 
 <!-- iOS home screen support -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="StudySync">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="apple-mobile-web-app-title" content="LSC">
+<link rel="apple-touch-icon" href="/icons/lsc-icon.svg">
 
 <!-- Windows tile -->
-<meta name="msapplication-TileImage" content="/icons/icon-144.png">
-<meta name="msapplication-TileColor" content="#161412">
+<meta name="msapplication-TileImage" content="/icons/lsc-icon.svg">
+<meta name="msapplication-TileColor" content="#123b63">
 
 <!-- Favicon -->
-<link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-96.png">
+<link rel="icon" type="image/svg+xml" href="/icons/lsc-icon.svg">
 
 <!-- Register service worker -->
 <script>
@@ -755,8 +761,8 @@ if ('serviceWorker' in navigator) {
 
         <div class="ss-logo">
             <div>
-                <a href="dashboard.php" class="ss-logo-mark">Study<span>Sync</span></a>
-                <div class="ss-logo-sub">Smart Student Collaboration</div>
+                <a href="dashboard.php" class="ss-logo-mark">LS<span>C</span></a>
+                <div class="ss-logo-sub">Learn · Share · Connect</div>
             </div>
             <button class="ss-close-btn" onclick="closeSidebar()" aria-label="Close menu">
                 <i class="bi bi-x-lg"></i>
@@ -807,7 +813,7 @@ if ('serviceWorker' in navigator) {
                 </div>
                 <div>
                     <div class="ss-user-name"><?= htmlspecialchars($_SESSION['user_name'] ?? '') ?></div>
-                    <div class="ss-user-role"><?= ucfirst($_SESSION['user_role'] ?? '') ?></div>
+                    <div class="ss-user-role"><?= ($_SESSION['user_role'] ?? '') === 'student' ? 'Learner' : ucfirst($_SESSION['user_role'] ?? '') ?></div>
                 </div>
             </a>
             <a href="logout.php" class="ss-signout">
@@ -894,7 +900,7 @@ if ('serviceWorker' in navigator) {
     /**
      * Keep server-rendered pages current without interrupting work in progress.
      * Native form submissions already reload their own page; the storage event
-     * refreshes other open StudySync tabs after the same action.
+     * refreshes other open LSC tabs after the same action.
      */
     (function setupSafeAutoRefresh() {
         const actionKey = 'studysync:last-user-action';

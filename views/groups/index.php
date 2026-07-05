@@ -3,9 +3,9 @@
 <!-- ── PAGE HEADER ───────────────────────────────────────── -->
 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
     <div>
-        <div style="font-family:'Playfair Display',serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;">Study Groups</div>
+        <div style="font-family:'Inter',system-ui,sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;">Study Groups</div>
         <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">
-            Collaborate with classmates, share resources and manage projects.
+            Collaborate with peers, share resources and manage projects.
         </div>
     </div>
     <button onclick="document.getElementById('createModal').style.display='flex'" class="btn-primary">
@@ -23,10 +23,10 @@
         <div class="stat-card-label">Public Groups</div>
         <div class="stat-card-value"><?= count($publicGroups) ?></div>
     </div>
-    <div class="stat-card" style="background:#fdf8f2;border-color:#eed8b8;cursor:pointer;"
+    <div class="stat-card" style="background:#eff6ff;border-color:#bfdbfe;cursor:pointer;"
          onclick="document.getElementById('createModal').style.display='flex'"
-         onmouseover="this.style.borderColor='rgba(205,133,63,.5)'" onmouseout="this.style.borderColor='#eed8b8'">
-        <div class="stat-card-label" style="color:#9a6030;">
+         onmouseover="this.style.borderColor='rgba(37,99,235,.5)'" onmouseout="this.style.borderColor='#bfdbfe'">
+        <div class="stat-card-label" style="color:#1e40af;">
             <i class="bi bi-plus-circle-fill" style="margin-right:5px;"></i>Start a Group
         </div>
         <div style="font-size:13px;color:var(--copper-dark);margin-top:8px;font-weight:500;">
@@ -46,7 +46,7 @@
             background:var(--card);border:1px solid var(--border);border-radius:14px;
             padding:18px 20px;text-decoration:none;color:inherit;display:block;
             transition:border-color .15s,background .15s;
-        " onmouseover="this.style.borderColor='rgba(205,133,63,.28)';this.style.background='#fdf9f4'"
+        " onmouseover="this.style.borderColor='rgba(37,99,235,.3)';this.style.background='#f8fbff'"
            onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--card)'">
 
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
@@ -128,9 +128,9 @@
                 <button type="submit" style="
                     font-size:12px;font-weight:600;padding:7px 16px;border-radius:8px;
                     border:1px solid var(--copper-border);color:var(--copper-dark);
-                    background:#fdf3e4;cursor:pointer;font-family:'DM Sans',sans-serif;
+                    background:#eff6ff;cursor:pointer;font-family:'Inter',system-ui,sans-serif;
                     transition:background .15s;
-                " onmouseover="this.style.background='#f7e4c4'" onmouseout="this.style.background='#fdf3e4'">
+                " onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
                     Request to Join
                 </button>
             </form>
@@ -146,7 +146,7 @@
     <div class="ss-modal">
         <div class="ss-modal-head">
             <div class="ss-modal-title">Create New Group</div>
-            <div class="ss-modal-sub">Start collaborating with classmates.</div>
+            <div class="ss-modal-sub">Start collaborating with other learners.</div>
         </div>
         <div class="ss-modal-body">
             <form method="POST">

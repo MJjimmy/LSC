@@ -6,7 +6,7 @@ if (isset($_SESSION['user_id'])) {
     exit;
 }
 
-$pageTitle = 'StudySync | Smart Academic Collaboration';
+$pageTitle = 'LSC | Learn. Share. Connect.';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -18,22 +18,23 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
     <!-- Bootstrap Icons + Fonts -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         /* ── TOKENS (copied from auth-layout + layout) ── */
         :root {
-            --bg-dark:       #161412;
-            --copper:        #cd853f;
-            --copper-dark:   #a8642a;
-            --copper-dim:    rgba(205,133,63,.12);
-            --copper-border: rgba(205,133,63,.28);
-            --cream:         #faf8f6;
+            --bg-dark:       #123b63;
+            --copper:        #2563eb;
+            --copper-dark:   #1d4ed8;
+            --copper-dim:    rgba(37,99,235,.12);
+            --copper-border: rgba(147,197,253,.45);
+            --green:         #16a34a;
+            --cream:         #f4f8fc;
             --card-bg:       #ffffff;
-            --border-light:  #ede8e2;
-            --text-primary:  #1e1810;
-            --text-secondary:#6b5d50;
-            --text-muted:    #a09080;
+            --border-light:  #dce6f0;
+            --text-primary:  #172033;
+            --text-secondary:#526277;
+            --text-muted:    #7b8ba0;
         }
 
         * {
@@ -43,13 +44,13 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
         }
 
         body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg-dark);
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(160deg, #0f2f52 0%, var(--bg-dark) 58%, #175488 100%);
             color: #fff;
             line-height: 1.5;
         }
 
-        /* radial glows (like auth-left) */
+        /* Restrained brand accents */
         body::before {
             content: '';
             position: fixed;
@@ -58,7 +59,7 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
             width: 500px;
             height: 500px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(205,133,63,.12) 0%, transparent 65%);
+            background: radial-gradient(circle, rgba(74,222,128,.13) 0%, transparent 65%);
             pointer-events: none;
             z-index: 0;
         }
@@ -71,7 +72,7 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
             width: 400px;
             height: 400px;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(205,133,63,.08) 0%, transparent 65%);
+            background: radial-gradient(circle, rgba(96,165,250,.13) 0%, transparent 65%);
             pointer-events: none;
             z-index: 0;
         }
@@ -104,7 +105,7 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
             height: 44px;
             background: var(--copper-dim);
             border: 1px solid var(--copper-border);
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -113,14 +114,14 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
         }
 
         .logo-text h1 {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Inter', system-ui, sans-serif;
             font-size: 24px;
             font-weight: 800;
             letter-spacing: -0.3px;
             color: #fff;
         }
 
-        .logo-text span { color: var(--copper); }
+        .logo-text span { color: #4ade80; }
         .logo-text p {
             font-size: 11px;
             color: rgba(255,255,255,.35);
@@ -134,7 +135,7 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
 
         .nav-btn {
             padding: 8px 20px;
-            border-radius: 30px;
+            border-radius: 8px;
             font-size: 14px;
             font-weight: 500;
             text-decoration: none;
@@ -182,16 +183,13 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
         }
 
         .hero h1 {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Inter', system-ui, sans-serif;
             font-size: 58px;
             font-weight: 800;
             letter-spacing: -1.5px;
             line-height: 1.2;
             margin-bottom: 20px;
-            background: linear-gradient(135deg, #fff 0%, var(--copper) 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            color: #fff;
         }
 
         .hero p {
@@ -215,7 +213,7 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
             background: var(--copper);
             color: #fff;
             padding: 12px 28px;
-            border-radius: 40px;
+            border-radius: 8px;
             font-weight: 600;
             text-decoration: none;
             transition: background .2s;
@@ -231,7 +229,7 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
             border: 1px solid rgba(255,255,255,.2);
             color: #fff;
             padding: 12px 28px;
-            border-radius: 40px;
+            border-radius: 8px;
             font-weight: 500;
             text-decoration: none;
             transition: all .2s;
@@ -239,7 +237,7 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
 
         .btn-secondary:hover {
             border-color: var(--copper);
-            background: rgba(205,133,63,.1);
+            background: rgba(37,99,235,.14);
         }
 
         /* Feature cards grid */
@@ -248,7 +246,7 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
         }
 
         .section-title {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Inter', system-ui, sans-serif;
             font-size: 32px;
             font-weight: 800;
             text-align: center;
@@ -266,13 +264,13 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
             background: rgba(255,255,255,.04);
             backdrop-filter: blur(8px);
             border: 1px solid rgba(255,255,255,.08);
-            border-radius: 24px;
+            border-radius: 12px;
             padding: 28px 24px;
             transition: transform .2s, border-color .2s;
         }
 
         .feature-card:hover {
-            transform: translateY(-6px);
+            transform: translateY(-2px);
             border-color: var(--copper-border);
             background: rgba(255,255,255,.06);
         }
@@ -281,7 +279,7 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
             width: 56px;
             height: 56px;
             background: var(--copper-dim);
-            border-radius: 18px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -291,7 +289,7 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
         }
 
         .feature-card h3 {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Inter', system-ui, sans-serif;
             font-size: 22px;
             font-weight: 700;
             margin-bottom: 12px;
@@ -308,14 +306,14 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
         .cta {
             background: rgba(255,255,255,.03);
             border: 1px solid rgba(255,255,255,.08);
-            border-radius: 32px;
+            border-radius: 14px;
             padding: 56px 40px;
             text-align: center;
             margin: 40px 0 60px;
         }
 
         .cta h2 {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Inter', system-ui, sans-serif;
             font-size: 34px;
             font-weight: 800;
             margin-bottom: 16px;
@@ -342,6 +340,33 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
             .navbar { flex-direction: column; gap: 16px; }
             .cta { padding: 40px 24px; }
         }
+
+        /* LSC light educational theme */
+        body { background: #f4f8fc; color: var(--text-primary); }
+        body::before, body::after { display: none; }
+        .navbar { border-bottom-color: var(--border-light); }
+        .logo-icon { background: #eff6ff; border-color: #bfdbfe; color: var(--copper); }
+        .logo-text h1 { color: var(--text-primary); }
+        .logo-text span { color: var(--green); }
+        .logo-text p { color: var(--text-muted); }
+        .nav-btn-outline { border-color: #bfdbfe; color: var(--copper-dark); }
+        .nav-btn-outline:hover { background: #eff6ff; border-color: var(--copper); }
+        .nav-btn-solid { background: var(--copper); color: #fff; }
+        .nav-btn-solid:hover { background: var(--copper-dark); }
+        .hero { margin-top: 24px; padding: 72px 32px; border-radius: 14px; background: linear-gradient(120deg, #123b63, #175488); }
+        .hero-badge { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.16); color: #86efac; }
+        .hero .btn-primary { background: var(--green); }
+        .hero .btn-primary:hover { background: #15803d; }
+        .section-title { color: var(--text-primary); }
+        .feature-card { background: #fff; backdrop-filter: none; border-color: var(--border-light); box-shadow: 0 1px 2px rgba(18,59,99,.04); }
+        .feature-card:hover { background: #fff; border-color: #bfdbfe; }
+        .feature-card h3 { color: var(--text-primary); }
+        .feature-card p { color: var(--text-secondary); }
+        .cta { background: #ecfdf3; border-color: #bbf7d0; }
+        .cta h2 { color: var(--text-primary); }
+        .cta p { color: var(--text-secondary); }
+        .cta .btn-primary { background: var(--copper) !important; color: #fff !important; }
+        .footer { border-top-color: var(--border-light); color: var(--text-muted); }
     </style>
 </head>
 <body>
@@ -352,8 +377,8 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
         <div class="logo">
             <div class="logo-icon"><i class="bi bi-mortarboard-fill"></i></div>
             <div class="logo-text">
-                <h1>Study<span>Sync</span></h1>
-                <p>Collaborate · Share · Succeed</p>
+                <h1>LS<span>C</span></h1>
+                <p>Learn · Share · Connect</p>
             </div>
         </div>
         <div class="nav-links">
@@ -365,10 +390,10 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
     <!-- Hero -->
     <section class="hero">
         <div class="hero-badge">
-            <i class="bi bi-stars" style="margin-right: 6px;"></i> Smart Collaboration Platform
+            <i class="bi bi-mortarboard-fill" style="margin-right: 6px;"></i> Learning and collaboration workspace
         </div>
-        <h1>Study Smarter.<br>Together.</h1>
-        <p>Organize study groups, manage assignments, share resources, track deadlines, and collaborate with classmates in one powerful workspace.</p>
+        <h1>Learn, share and move forward together.</h1>
+        <p>One clear workspace for study groups, shared resources, tasks, deadlines and practical collaboration—for students and lifelong learners.</p>
         <div class="hero-buttons">
             <a href="register.php" class="btn-primary"><i class="bi bi-person-plus-fill"></i> Create Free Account</a>
             <a href="login.php" class="btn-secondary"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
@@ -407,7 +432,7 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
             <div class="feature-card">
                 <div class="feature-icon"><i class="bi bi-bell-fill"></i></div>
                 <h3>Profiles & Notifications</h3>
-                <p>Invite classmates, build a profile and never miss a group update.</p>
+                <p>Invite peers, build a profile and never miss a group update.</p>
             </div>
         </div>
     </section>
@@ -415,13 +440,13 @@ $pageTitle = 'StudySync | Smart Academic Collaboration';
     <!-- CTA -->
     <section class="cta">
         <h2>Ready to boost your productivity?</h2>
-        <p>Join StudySync today and streamline the way your study groups work.</p>
+        <p>Join LSC and bring your learning, resources and group work into one place.</p>
         <a href="register.php" class="btn-primary" style="background: #fff; color: var(--bg-dark);">Start Free Today <i class="bi bi-arrow-right"></i></a>
     </section>
 
     <!-- Footer -->
     <footer class="footer">
-        © <?= date('Y') ?> StudySync · HatchSoft Group 6
+        © <?= date('Y') ?> LSC — Learn. Share. Connect. · HatchSoft Group 6
     </footer>
 </div>
 

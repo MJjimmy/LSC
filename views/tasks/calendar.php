@@ -184,7 +184,7 @@
     <div class="page-hero-sub">Keep track of assignments, due dates and group activities.</div>
     <div class="cal-hero-month">
         <div style="font-size:11px;color:rgba(255,255,255,.45);margin-bottom:3px;">Current Month</div>
-        <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:800;color:#fff;">
+        <div style="font-family:'Inter',system-ui,sans-serif;font-size:18px;font-weight:800;color:#fff;">
             <?= date('F Y', $firstDay) ?>
         </div>
     </div>

@@ -17,7 +17,7 @@ function fileIcon(string $ext): array {
 <!-- ── PAGE HEADER ───────────────────────────────────────── -->
 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
     <div>
-        <div style="font-family:'Playfair Display',serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;">File Library</div>
+        <div style="font-family:'Inter',system-ui,sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;">File Library</div>
         <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">
             Share study materials, notes and resources with your group.
         </div>
@@ -51,7 +51,7 @@ function fileIcon(string $ext): array {
     </div>
     <div class="stat-card">
         <div class="stat-card-label">Storage Used</div>
-        <div class="stat-card-value"><?= $totalSize ?> <span style="font-size:16px;font-family:'DM Sans',sans-serif;font-weight:500;">MB</span></div>
+        <div class="stat-card-value"><?= $totalSize ?> <span style="font-size:16px;font-family:'Inter',system-ui,sans-serif;font-weight:500;">MB</span></div>
     </div>
 </div>
 
@@ -114,7 +114,7 @@ function fileIcon(string $ext): array {
                             <input type="hidden" name="group_id"       value="<?= $selectedGroup ?>">
                             <button type="submit" style="padding:5px 12px;border-radius:6px;border:1px solid var(--red-border);
                                     background:var(--red-bg);color:var(--red);font-size:12px;font-weight:600;
-                                    cursor:pointer;font-family:'DM Sans',sans-serif;">Delete</button>
+                                    cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Delete</button>
                         </form>
                         <?php endif; ?>
                     </td>

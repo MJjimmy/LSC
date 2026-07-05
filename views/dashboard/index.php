@@ -71,9 +71,9 @@
         background:var(--card); border:1px solid var(--border); border-radius:14px;
         padding:16px 18px; display:flex; align-items:center; gap:12px;
         text-decoration:none; color:inherit; transition:border-color .15s, background .15s;
-    " onmouseover="this.style.borderColor='rgba(205,133,63,.28)';this.style.background='#fdf9f4'"
+    " onmouseover="this.style.borderColor='rgba(37,99,235,.3)';this.style.background='#f8fbff'"
        onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--card)'">
-        <div style="width:38px;height:38px;border-radius:6px;background:#f2ece5;color:#a8642a;
+        <div style="width:38px;height:38px;border-radius:6px;background:#eff6ff;color:#1d4ed8;
                     display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;">
             <i class="bi <?= $qa['icon'] ?>"></i>
         </div>
@@ -93,11 +93,11 @@
             padding:20px 24px;margin-bottom:22px;">
     <div class="dash-admin">
         <div>
-            <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:#fff;
+            <div style="font-family:'Inter',system-ui,sans-serif;font-size:15px;font-weight:700;color:#fff;
                         display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
                 System Overview
-                <span style="font-family:'DM Sans',sans-serif;font-size:10px;padding:2px 8px;border-radius:20px;
-                             background:rgba(205,133,63,.12);color:#cd853f;border:1px solid rgba(205,133,63,.28);
+                <span style="font-family:'Inter',system-ui,sans-serif;font-size:10px;padding:2px 8px;border-radius:20px;
+                             background:rgba(74,222,128,.12);color:#86efac;border:1px solid rgba(134,239,172,.28);
                              font-weight:500;letter-spacing:.3px;">Administrator</span>
             </div>
             <div class="dash-admin-stats">
@@ -109,7 +109,7 @@
                 ] as [$lbl,$val]): ?>
                 <div>
                     <div style="font-size:11px;color:rgba(255,255,255,.35);margin-bottom:4px;"><?= $lbl ?></div>
-                    <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.5px;"><?= $val ?></div>
+                    <div style="font-family:'Inter',system-ui,sans-serif;font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.5px;"><?= $val ?></div>
                 </div>
                 <?php endforeach; ?>
             </div>
@@ -187,7 +187,7 @@
                     display:flex;align-items:center;gap:11px;padding:9px 14px;
                     margin:0 10px 7px;border-radius:10px;border:1px solid var(--border);
                     text-decoration:none;color:inherit;transition:border-color .15s,background .1s;
-                " onmouseover="this.style.borderColor='rgba(205,133,63,.28)';this.style.background='#fdf9f4'"
+                " onmouseover="this.style.borderColor='rgba(37,99,235,.3)';this.style.background='#f8fbff'"
                    onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
                     <div style="width:36px;height:36px;border-radius:6px;background:var(--sidebar);
                                 color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;

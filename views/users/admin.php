@@ -11,7 +11,7 @@
 <div class="page-hero" style="margin-bottom:24px;">
     <div class="page-hero-eyebrow">Administration</div>
     <div class="page-hero-title">Admin Panel</div>
-    <div class="page-hero-sub">Manage users, monitor activity and oversee the StudySync platform.</div>
+    <div class="page-hero-sub">Manage users, monitor activity and oversee the LSC platform.</div>
 </div>
 
 <!-- ── STATS ──────────────────────────────────────────────── -->
@@ -23,7 +23,7 @@
         ['bi-folder-fill',     'Total Files',  $stats['total_files']],
     ] as [$icon, $lbl, $val]): ?>
     <div class="stat-card">
-        <div style="width:32px;height:32px;border-radius:6px;background:#f2ece5;color:var(--copper-dark);
+        <div style="width:32px;height:32px;border-radius:6px;background:#eff6ff;color:var(--copper-dark);
                     display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:12px;">
             <i class="bi <?= $icon ?>"></i>
         </div>
@@ -88,12 +88,12 @@
                                 <input type="hidden" name="deactivate" value="<?= $u['user_id'] ?>">
                                 <button type="submit" style="padding:6px 12px;border-radius:6px;border:1px solid var(--red-border);
                                         background:var(--red-bg);color:var(--red);font-size:12px;font-weight:600;
-                                        cursor:pointer;font-family:'DM Sans',sans-serif;">Deactivate</button>
+                                        cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Deactivate</button>
                             <?php else: ?>
                                 <input type="hidden" name="activate" value="<?= $u['user_id'] ?>">
                                 <button type="submit" style="padding:6px 12px;border-radius:6px;border:1px solid var(--green-border);
                                         background:var(--green-bg);color:var(--green);font-size:12px;font-weight:600;
-                                        cursor:pointer;font-family:'DM Sans',sans-serif;">Activate</button>
+                                        cursor:pointer;font-family:'Inter',system-ui,sans-serif;">Activate</button>
                             <?php endif; ?>
                         </form>
                         <?php else: ?>

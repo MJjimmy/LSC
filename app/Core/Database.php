@@ -48,6 +48,6 @@ final class Database
     {
         error_log('Database connection failed: ' . $reason);
         http_response_code(503);
-        exit('StudySync is temporarily unavailable. Please try again later.');
+        exit('LSC is temporarily unavailable. Please try again later.');
     }
 }
