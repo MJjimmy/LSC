@@ -11,7 +11,7 @@
 <div class="page-hero" style="margin-bottom:24px;">
     <div class="page-hero-eyebrow">Administration</div>
     <div class="page-hero-title">Admin Panel</div>
-    <div class="page-hero-sub">Manage users, monitor activity and oversee the LSC platform.</div>
+    <div class="page-hero-sub">Manage users, monitor activity and oversee StudySync.</div>
 </div>
 
 <!-- ── STATS ──────────────────────────────────────────────── -->

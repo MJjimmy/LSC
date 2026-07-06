@@ -6,7 +6,7 @@
 
 <div style="margin-bottom:22px;">
     <div style="font-family:'Inter',system-ui,sans-serif;font-size:27px;font-weight:800;">Profile</div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-top:3px;"><?= $isOwnProfile ? 'Manage how you appear across LSC.' : 'Learner profile and collaboration activity.' ?></div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-top:3px;"><?= $isOwnProfile ? 'Manage how you appear across StudySync.' : 'Learner profile and collaboration activity.' ?></div>
 </div>
 
 <?php if ($error || $success): ?>
