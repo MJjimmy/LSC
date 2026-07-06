@@ -39,15 +39,4 @@ final class MessageRepository
         )->execute([$groupId, $userId, $message, $fileId]);
     }
 
-    public function deleteOwned(int $messageId, int $userId): bool
-    {
-        return $this->database->prepare(
-            'DELETE FROM messages WHERE id = ? AND user_id = ?'
-        )->execute([$messageId, $userId]);
-    }
-
-    public function clearGroup(int $groupId): bool
-    {
-        return $this->database->prepare('DELETE FROM messages WHERE group_id = ?')->execute([$groupId]);
-    }
 }

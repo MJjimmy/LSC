@@ -324,8 +324,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 
     /* ── SHARED COMPONENTS ──────────────────────────────────── */
 
-    .card,
-    .card-modern {
+    .card {
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: 10px;
@@ -489,14 +488,6 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         margin-bottom: 6px;
     }
 
-    .section-heading {
-        font-family: 'Inter', system-ui, sans-serif;
-        font-size: 20px;
-        font-weight: 800;
-        letter-spacing: -0.3px;
-        color: var(--text-primary);
-    }
-
     .panel-header {
         padding: 15px 20px;
         border-bottom: 1px solid var(--border-soft);
@@ -540,12 +531,6 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 
     .ss-table tbody tr:last-child td { border-bottom: none; }
     .ss-table tbody tr:hover td { background: var(--cream); }
-
-    /* Scrollable table wrapper */
-    .ss-table-wrap {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
 
     .ss-modal-bg {
         position: fixed;
@@ -691,8 +676,6 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         /* Show bottom nav */
         .ss-bottom-nav { display: block; }
 
-        /* Tables scroll on touch */
-        .ss-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     }
 
     @media (max-width: 540px) {
@@ -714,40 +697,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
     </style>
 
-<!-- ── PWA ──────────────────────────────────────────────────
-     Paste this block inside <head> in layout.php AND auth-layout.php
-     just before the closing </head> tag
-─────────────────────────────────────────────────────────── -->
-
-<!-- PWA manifest -->
-<link rel="manifest" href="/manifest.json">
-
-<!-- Theme colour (browser chrome on Android) -->
-<meta name="theme-color" content="#123b63">
-
-<!-- iOS home screen support -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="LSC">
-<link rel="apple-touch-icon" href="/icons/lsc-icon.svg">
-
-<!-- Windows tile -->
-<meta name="msapplication-TileImage" content="/icons/lsc-icon.svg">
-<meta name="msapplication-TileColor" content="#123b63">
-
-<!-- Favicon -->
-<link rel="icon" type="image/svg+xml" href="/icons/lsc-icon.svg">
-
-<!-- Register service worker -->
-<script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-       navigator.serviceWorker.register('/service-worker.php')
-            .then(reg => console.log('SW registered:', reg.scope))
-            .catch(err => console.log('SW error:', err));
-    });
-}
-</script>
+<?php require STUDYSYNC_ROOT . '/views/layouts/pwa.php'; ?>
 
 
 </head>

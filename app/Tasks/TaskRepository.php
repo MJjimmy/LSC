@@ -84,18 +84,6 @@ final class TaskRepository
             ->execute([$status, $taskId]);
     }
 
-    public function overdue(): array
-    {
-        return $this->database->query(<<<'SQL'
-            SELECT t.*, sg.group_name, u.name AS assigned_to_name
-            FROM tasks t
-            JOIN study_groups sg ON t.group_id = sg.group_id
-            JOIN users u ON t.assigned_to = u.user_id
-            WHERE t.due_date < CURDATE() AND t.status = 'pending'
-            ORDER BY t.due_date ASC
-            SQL)->fetchAll();
-    }
-
     public function forCalendar(array $groupIds, int $month, int $year): array
     {
         if (!$groupIds) {

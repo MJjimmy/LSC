@@ -25,11 +25,6 @@ function csrfToken(): string
     return \StudySync\Core\Csrf::token();
 }
 
-function verifyCsrf(): void
-{
-    \StudySync\Core\Csrf::verify();
-}
-
 $isProduction = strtolower((string)getenv('APP_ENV')) === 'production';
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
     || strtolower((string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '')) === 'https';

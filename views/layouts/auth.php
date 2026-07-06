@@ -261,40 +261,7 @@ body {
 </style>
 
 
-<!-- ── PWA ──────────────────────────────────────────────────
-     Paste this block inside <head> in layout.php AND auth-layout.php
-     just before the closing </head> tag
-─────────────────────────────────────────────────────────── -->
-
-<!-- PWA manifest -->
-<link rel="manifest" href="/manifest.json">
-
-<!-- Theme colour (browser chrome on Android) -->
-<meta name="theme-color" content="#123b63">
-
-<!-- iOS home screen support -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="LSC">
-<link rel="apple-touch-icon" href="/icons/lsc-icon.svg">
-
-<!-- Windows tile -->
-<meta name="msapplication-TileImage" content="/icons/lsc-icon.svg">
-<meta name="msapplication-TileColor" content="#123b63">
-
-<!-- Favicon -->
-<link rel="icon" type="image/svg+xml" href="/icons/lsc-icon.svg">
-
-<!-- Register service worker -->
-<script>
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/service-worker.php')
-            .then(reg => console.log('SW registered:', reg.scope))
-            .catch(err => console.log('SW error:', err));
-    });
-}
-</script>
+<?php require STUDYSYNC_ROOT . '/views/layouts/pwa.php'; ?>
 
 
 </head>
