@@ -1,12 +1,12 @@
 {
-  "name": "StudySync — Learn. Share. Connect.",
-  "short_name": "StudySync",
-  "description": "A shared desk for study groups, tasks, deadlines and resources",
+  "name": "LSC — Learn. Share. Connect.",
+  "short_name": "LSC",
+  "description": "Learning and collaboration for students and lifelong learners",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f4f0e6",
-  "theme_color": "#102a43",
+  "background_color": "#f4f8fc",
+  "theme_color": "#123b63",
   "scope": "/",
   "lang": "en",
   "icons": [

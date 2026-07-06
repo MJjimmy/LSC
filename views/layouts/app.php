@@ -13,14 +13,14 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudySync — Learn. Share. Connect.</title>
+    <title>LSC — Learn. Share. Connect.</title>
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Clean, readable interface typeface -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
     /* ── TOKENS ─────────────────────────────────────────────── */
@@ -713,7 +713,6 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         .btn-primary { font-size: 12px; padding: 8px 14px; }
     }
     </style>
-    <link rel="stylesheet" href="campus-field-guide.css?v=20260706">
 
 <!-- ── PWA ──────────────────────────────────────────────────
      Paste this block inside <head> in layout.php AND auth-layout.php
@@ -724,17 +723,17 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 <link rel="manifest" href="/manifest.json">
 
 <!-- Theme colour (browser chrome on Android) -->
-<meta name="theme-color" content="#102a43">
+<meta name="theme-color" content="#123b63">
 
 <!-- iOS home screen support -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="StudySync">
+<meta name="apple-mobile-web-app-title" content="LSC">
 <link rel="apple-touch-icon" href="/icons/lsc-icon.svg">
 
 <!-- Windows tile -->
 <meta name="msapplication-TileImage" content="/icons/lsc-icon.svg">
-<meta name="msapplication-TileColor" content="#102a43">
+<meta name="msapplication-TileColor" content="#123b63">
 
 <!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="/icons/lsc-icon.svg">
@@ -762,7 +761,7 @@ if ('serviceWorker' in navigator) {
 
         <div class="ss-logo">
             <div>
-                <a href="dashboard.php" class="ss-logo-mark">Study<span>Sync</span></a>
+                <a href="dashboard.php" class="ss-logo-mark">LS<span>C</span></a>
                 <div class="ss-logo-sub">Learn · Share · Connect</div>
             </div>
             <button class="ss-close-btn" onclick="closeSidebar()" aria-label="Close menu">
@@ -834,7 +833,6 @@ if ('serviceWorker' in navigator) {
             </button>
             <div class="ss-topbar-title"><?= ucwords(str_replace('-', ' ', $current_page)) ?></div>
             <div class="ss-topbar-right">
-                <span class="ss-topbar-date"><?= date('d M Y') ?></span>
                 <a href="profile.php" class="ss-icon-btn" title="Profile" aria-label="Profile">
                     <i class="bi bi-person"></i>
                 </a>

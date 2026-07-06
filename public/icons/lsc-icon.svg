@@ -1,7 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-  <title id="title">StudySync</title>
-  <rect width="512" height="512" rx="72" fill="#102a43"/>
-  <rect x="82" y="86" width="348" height="62" fill="#efb84c"/>
-  <text x="256" y="128" text-anchor="middle" fill="#102a43" font-family="Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="4">STUDY</text>
-  <text x="256" y="336" text-anchor="middle" fill="#fffdf7" font-family="Georgia, serif" font-size="166" font-weight="700" letter-spacing="-8">SYNC</text>
+  <title id="title">LSC</title>
+  <rect width="512" height="512" rx="96" fill="#123b63"/>
+  <path d="M88 116h336" stroke="#4ade80" stroke-width="20" stroke-linecap="round"/>
+  <circle cx="112" cy="116" r="18" fill="#86efac"/>
+  <circle cx="400" cy="116" r="18" fill="#86efac"/>
+  <text x="256" y="326" text-anchor="middle" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-size="164" font-weight="800" letter-spacing="-10">LSC</text>
 </svg>
