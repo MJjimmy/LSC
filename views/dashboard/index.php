@@ -14,10 +14,10 @@ foreach ($pendingTasks as $task) {
 <section class="field-hero" aria-labelledby="dashboard-greeting">
     <div class="field-hero-main">
         <div>
-            <div class="field-kicker">Midnight briefing</div>
+            <div class="field-kicker">Your study field guide</div>
             <h1 id="dashboard-greeting">Hello, <?= htmlspecialchars($firstName) ?>.</h1>
             <p class="field-hero-copy">
-                Settle in, clear the nearest deadline, then check in with your people. Everything else can wait.
+                Start with the nearest deadline, then check in with your people. Everything else can wait.
             </p>
         </div>
         <div class="field-hero-actions">
@@ -32,7 +32,7 @@ foreach ($pendingTasks as $task) {
             <span class="field-focus-month"><?= date('F · l') ?></span>
         </div>
         <div>
-            <div class="field-focus-label">Next before lights out</div>
+            <div class="field-focus-label">Next on your desk</div>
             <?php if ($focusTask): ?>
                 <div class="field-focus-title"><?= htmlspecialchars($focusTask['title']) ?></div>
                 <div class="field-focus-meta">Due <?= date('d M Y', strtotime($focusTask['due_date'])) ?></div>
@@ -54,8 +54,8 @@ foreach ($pendingTasks as $task) {
 <section class="field-routes" aria-labelledby="field-routes-title">
     <div class="field-section-head">
         <div>
-            <div class="field-section-kicker">Night session</div>
-            <h2 id="field-routes-title">Choose your next move.</h2>
+            <div class="field-section-kicker">Choose your route</div>
+            <h2 id="field-routes-title">What needs moving?</h2>
         </div>
     </div>
     <div class="field-route-grid">

@@ -1,5 +1,5 @@
 <?php
-$pageTitle = $pageTitle ?? 'Midnight Campus';
+$pageTitle = $pageTitle ?? 'StudySync — Learn. Share. Connect.';
 
 
 ?>
@@ -12,7 +12,7 @@ $pageTitle = $pageTitle ?? 'Midnight Campus';
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
 
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -259,7 +259,7 @@ body {
     .auth-left { display: none; }
 }
 </style>
-<link rel="stylesheet" href="campus-field-guide.css?v=20260707">
+<link rel="stylesheet" href="campus-field-guide.css?v=20260706">
 
 
 <!-- ── PWA ──────────────────────────────────────────────────
@@ -271,20 +271,20 @@ body {
 <link rel="manifest" href="/manifest.json">
 
 <!-- Theme colour (browser chrome on Android) -->
-<meta name="theme-color" content="#070b14">
+<meta name="theme-color" content="#102a43">
 
 <!-- iOS home screen support -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Midnight Campus">
-<link rel="apple-touch-icon" href="/icons/midnight-campus-icon.svg">
+<meta name="apple-mobile-web-app-title" content="StudySync">
+<link rel="apple-touch-icon" href="/icons/lsc-icon.svg">
 
 <!-- Windows tile -->
-<meta name="msapplication-TileImage" content="/icons/midnight-campus-icon.svg">
-<meta name="msapplication-TileColor" content="#070b14">
+<meta name="msapplication-TileImage" content="/icons/lsc-icon.svg">
+<meta name="msapplication-TileColor" content="#102a43">
 
 <!-- Favicon -->
-<link rel="icon" type="image/svg+xml" href="/icons/midnight-campus-icon.svg">
+<link rel="icon" type="image/svg+xml" href="/icons/lsc-icon.svg">
 
 <!-- Register service worker -->
 <script>
@@ -305,8 +305,8 @@ if ('serviceWorker' in navigator) {
     <!-- Left branding panel -->
     <div class="auth-left">
         <div class="auth-brand">
-            <a href="login.php" class="auth-wordmark">Midnight<span>Campus</span></a>
-            <div class="auth-tagline">Plan · Focus · Finish</div>
+            <a href="login.php" class="auth-wordmark">Study<span>Sync</span></a>
+            <div class="auth-tagline">Learn · Share · Connect</div>
         </div>
 
         <div class="auth-highlights">
@@ -316,7 +316,7 @@ if ('serviceWorker' in navigator) {
             <div class="auth-highlight"><i class="bi bi-folder2-open"></i><span>Keep the right notes within reach</span></div>
         </div>
 
-        <div class="auth-brand-note">Built for late nights and clear deadlines.</div>
+        <div class="auth-brand-note">A shared desk for serious study.</div>
     </div>
 
     <!-- Right form panel -->

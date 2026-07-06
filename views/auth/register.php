@@ -51,6 +51,6 @@
 
 <?php
 $auth_content = ob_get_clean();
-$pageTitle = 'Create account — Midnight Campus';
+$pageTitle = 'Create account — StudySync';
 require STUDYSYNC_ROOT . '/views/layouts/auth.php';
 ?>

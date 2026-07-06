@@ -1,5 +1,5 @@
 <?php
-// Shared Midnight Campus application layout.
+// Shared LSC application layout.
 $current_page = basename($_SERVER['PHP_SELF'], '.php');
 $unreadNotificationCount = isset($_SESSION['user_id'])
     ? (new \StudySync\Notifications\NotificationRepository(
@@ -13,14 +13,14 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Midnight Campus</title>
+    <title>StudySync — Learn. Share. Connect.</title>
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Clean, readable interface typeface -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
 
     <style>
     /* ── TOKENS ─────────────────────────────────────────────── */
@@ -713,7 +713,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         .btn-primary { font-size: 12px; padding: 8px 14px; }
     }
     </style>
-    <link rel="stylesheet" href="campus-field-guide.css?v=20260707">
+    <link rel="stylesheet" href="campus-field-guide.css?v=20260706">
 
 <!-- ── PWA ──────────────────────────────────────────────────
      Paste this block inside <head> in layout.php AND auth-layout.php
@@ -724,20 +724,20 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 <link rel="manifest" href="/manifest.json">
 
 <!-- Theme colour (browser chrome on Android) -->
-<meta name="theme-color" content="#070b14">
+<meta name="theme-color" content="#102a43">
 
 <!-- iOS home screen support -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Midnight Campus">
-<link rel="apple-touch-icon" href="/icons/midnight-campus-icon.svg">
+<meta name="apple-mobile-web-app-title" content="StudySync">
+<link rel="apple-touch-icon" href="/icons/lsc-icon.svg">
 
 <!-- Windows tile -->
-<meta name="msapplication-TileImage" content="/icons/midnight-campus-icon.svg">
-<meta name="msapplication-TileColor" content="#070b14">
+<meta name="msapplication-TileImage" content="/icons/lsc-icon.svg">
+<meta name="msapplication-TileColor" content="#102a43">
 
 <!-- Favicon -->
-<link rel="icon" type="image/svg+xml" href="/icons/midnight-campus-icon.svg">
+<link rel="icon" type="image/svg+xml" href="/icons/lsc-icon.svg">
 
 <!-- Register service worker -->
 <script>
@@ -762,7 +762,7 @@ if ('serviceWorker' in navigator) {
 
         <div class="ss-logo">
             <div>
-                <a href="dashboard.php" class="ss-logo-mark">Midnight<span>Campus</span></a>
+                <a href="dashboard.php" class="ss-logo-mark">Study<span>Sync</span></a>
                 <div class="ss-logo-sub">Learn · Share · Connect</div>
             </div>
             <button class="ss-close-btn" onclick="closeSidebar()" aria-label="Close menu">
@@ -902,10 +902,10 @@ if ('serviceWorker' in navigator) {
     /**
      * Keep server-rendered pages current without interrupting work in progress.
      * Native form submissions already reload their own page; the storage event
-     * refreshes other open Midnight Campus tabs after the same action.
+     * refreshes other open LSC tabs after the same action.
      */
     (function setupSafeAutoRefresh() {
-        const actionKey = 'midnight-campus:last-user-action';
+        const actionKey = 'studysync:last-user-action';
         const refreshIntervalMs = 30000;
         const loadedAt = Date.now();
         let formIsDirty = false;

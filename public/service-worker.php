@@ -2,14 +2,14 @@
 header('Content-Type: application/javascript');
 header('Service-Worker-Allowed: /');
 ?>
-const CACHE_NAME = 'midnight-campus-v3';
+const CACHE_NAME = 'studysync-v2';
 const OFFLINE_URL = '/offline.php';
 
 const PRECACHE_ASSETS = [
     '/',
     '/offline.php',
     '/login.php',
-    '/campus-field-guide.css?v=20260707',
+    '/campus-field-guide.css?v=20260706',
 ];
 
 self.addEventListener('install', event => {

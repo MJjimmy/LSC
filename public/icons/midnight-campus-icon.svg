@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-  <title id="title">Midnight Campus</title>
-  <rect width="512" height="512" rx="76" fill="#070b14"/>
-  <path d="M86 178 256 86l170 92-170 92L86 178Z" fill="#4dd7ff"/>
-  <path d="M142 223v91c0 48 51 86 114 86s114-38 114-86v-91l-114 61-114-61Z" fill="#8b5cf6"/>
-  <path d="M426 179v112" stroke="#4dd7ff" stroke-width="18" stroke-linecap="round"/>
-  <circle cx="426" cy="316" r="22" fill="#4dd7ff"/>
-  <text x="256" y="362" text-anchor="middle" fill="#f2f7ff" font-family="Arial, sans-serif" font-size="74" font-weight="800" letter-spacing="4">MC</text>
-</svg>

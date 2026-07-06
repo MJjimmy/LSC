@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">StudySync</title>
+  <rect width="512" height="512" rx="72" fill="#102a43"/>
+  <rect x="82" y="86" width="348" height="62" fill="#efb84c"/>
+  <text x="256" y="128" text-anchor="middle" fill="#102a43" font-family="Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="4">STUDY</text>
+  <text x="256" y="336" text-anchor="middle" fill="#fffdf7" font-family="Georgia, serif" font-size="166" font-weight="700" letter-spacing="-8">SYNC</text>
+</svg>

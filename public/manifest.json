@@ -1,17 +1,17 @@
 {
-  "name": "Midnight Campus",
-  "short_name": "Midnight",
-  "description": "A focused workspace for study groups, tasks, deadlines and resources",
+  "name": "StudySync — Learn. Share. Connect.",
+  "short_name": "StudySync",
+  "description": "A shared desk for study groups, tasks, deadlines and resources",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#070b14",
-  "theme_color": "#070b14",
+  "background_color": "#f4f0e6",
+  "theme_color": "#102a43",
   "scope": "/",
   "lang": "en",
   "icons": [
     {
-      "src": "/icons/midnight-campus-icon.svg",
+      "src": "/icons/lsc-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
@@ -22,19 +22,19 @@
       "name": "Dashboard",
       "short_name": "Home",
       "url": "/dashboard.php",
-      "icons": [{ "src": "/icons/midnight-campus-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+      "icons": [{ "src": "/icons/lsc-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {
       "name": "My Tasks",
       "short_name": "Tasks",
       "url": "/tasks.php",
-      "icons": [{ "src": "/icons/midnight-campus-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+      "icons": [{ "src": "/icons/lsc-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     },
     {
       "name": "Study Groups",
       "short_name": "Groups",
       "url": "/groups.php",
-      "icons": [{ "src": "/icons/midnight-campus-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+      "icons": [{ "src": "/icons/lsc-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
     }
   ],
   "categories": ["education", "productivity"],
