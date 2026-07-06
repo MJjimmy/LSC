@@ -20,6 +20,6 @@
 
 <?php
 $auth_content = ob_get_clean();
-$pageTitle = 'Reset password — StudySync';
+$pageTitle = 'Reset password — Midnight Campus';
 require STUDYSYNC_ROOT . '/views/layouts/auth.php';
 ?>

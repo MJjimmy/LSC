@@ -11,20 +11,20 @@ if (isset($_SESSION['user_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudySync — A shared desk for serious study</title>
+    <title>Midnight Campus — Focus after dark</title>
     <meta name="description" content="Keep study groups, tasks, deadlines and shared resources together in one clear workspace.">
-    <meta name="theme-color" content="#102a43">
+    <meta name="theme-color" content="#070b14">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="campus-field-guide.css?v=20260706">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="campus-field-guide.css?v=20260707">
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/svg+xml" href="/icons/lsc-icon.svg">
+    <link rel="icon" type="image/svg+xml" href="/icons/midnight-campus-icon.svg">
 </head>
 <body class="landing-page">
     <div class="landing-shell">
         <nav class="landing-nav" aria-label="Main navigation">
-            <a href="index.php" class="landing-brand">Study<span>Sync</span><small>Learn · Share · Connect</small></a>
+            <a href="index.php" class="landing-brand">Midnight<span>Campus</span><small>Plan · Focus · Finish</small></a>
             <div class="landing-nav-links">
                 <a href="login.php" class="landing-link">Sign in</a>
                 <a href="register.php" class="landing-button">Create your desk</a>
@@ -34,10 +34,10 @@ if (isset($_SESSION['user_id'])) {
         <main>
             <section class="landing-hero" aria-labelledby="landing-title">
                 <div class="landing-hero-copy">
-                    <div class="landing-eyebrow">A shared desk for serious study</div>
-                    <h1 id="landing-title">Do the work. Keep the people.</h1>
+                    <div class="landing-eyebrow">Focus mode for ambitious students</div>
+                    <h1 id="landing-title">Own the night. Finish the work.</h1>
                     <p>
-                        StudySync gives your group one dependable place for the assignment, the deadline,
+                        Midnight Campus gives your group one focused place for the assignment, the deadline,
                         the notes and the conversation around them.
                     </p>
                     <div class="landing-hero-actions">
@@ -46,7 +46,7 @@ if (isset($_SESSION['user_id'])) {
                     </div>
                 </div>
 
-                <aside class="landing-desk" aria-label="Example StudySync desk">
+                <aside class="landing-desk" aria-label="Example Midnight Campus dashboard">
                     <div class="landing-desk-head">
                         <strong>Today’s desk</strong>
                         <span>Live example</span>
@@ -78,7 +78,7 @@ if (isset($_SESSION['user_id'])) {
             <section class="landing-proof" aria-labelledby="proof-title">
                 <div class="landing-proof-head">
                     <div><div class="landing-eyebrow">Built around actual group work</div><h2 id="proof-title">Less hunting. More finishing.</h2></div>
-                    <p>StudySync keeps the essential tools close without turning your coursework into another complicated system to manage.</p>
+                    <p>Midnight Campus keeps the essential tools close without turning your coursework into another complicated system to manage.</p>
                 </div>
                 <div class="landing-proof-row">
                     <article class="landing-proof-item"><i class="bi bi-people"></i><h3>Focused groups</h3><p>Request access, organise members and keep every subject in its own working space.</p></article>
@@ -94,8 +94,8 @@ if (isset($_SESSION['user_id'])) {
         </main>
 
         <footer class="landing-footer">
-            <span>© <?= date('Y') ?> StudySync · HatchSoft Group 6</span>
-            <span>Learn · Share · Connect</span>
+            <span>© <?= date('Y') ?> Midnight Campus · HatchSoft Group 6</span>
+            <span>Plan · Focus · Finish</span>
         </footer>
     </div>
 
