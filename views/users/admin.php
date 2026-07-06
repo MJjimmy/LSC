@@ -72,7 +72,7 @@
                     <td style="color:var(--text-secondary);"><?= htmlspecialchars($u['email']) ?></td>
                     <td>
                         <span class="pill <?= $u['role']==='admin' ? 'pill-admin':'pill-member' ?>">
-                            <?= $u['role']==='admin' ? 'Administrator':'Member' ?>
+                            <?= $u['role'] === 'admin' ? 'Administrator' : ($u['role'] === 'lecturer' ? 'Lecturer' : 'Student') ?>
                         </span>
                     </td>
                     <td>

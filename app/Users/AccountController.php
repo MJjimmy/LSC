@@ -55,7 +55,8 @@ final class AccountController
                 (string)($_POST['name'] ?? ''),
                 (string)($_POST['email'] ?? ''),
                 (string)($_POST['password'] ?? ''),
-                (string)($_POST['confirm_password'] ?? '')
+                (string)($_POST['confirm_password'] ?? ''),
+                (string)($_POST['role'] ?? '')
             );
             if ($result['ok']) {
                 $next = $this->auth->safeLocalRedirect($_POST['next'] ?? $_GET['next'] ?? null);

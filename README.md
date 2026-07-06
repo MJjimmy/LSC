@@ -17,6 +17,7 @@ StudySync is a responsive PHP and MySQL collaboration platform for student group
 - Safe automatic page refreshes that pause while forms or uploads are in progress
 - Responsive desktop/mobile navigation and installable PWA metadata
 - Admin dashboard for platform-level oversight
+- Registration role selection for students and lecturers; administrator access remains database-controlled
 
 ## Requirements
 
@@ -54,6 +55,12 @@ database/2026_06_29_collaboration_features.sql
 ```
 
 The migration adds chat-file relationships, group invitations, notifications, password-reset tokens, and profile fields.
+
+To enable lecturer registration on an existing database, also run:
+
+```text
+database/2026_07_07_add_lecturer_role.sql
+```
 
 ## Application structure
 

@@ -32,6 +32,15 @@
     </div>
 
     <div class="auth-field">
+        <label for="role" style="display:block;font-size:12px;font-weight:600;color:#526277;margin-bottom:6px;">Register as</label>
+        <select id="role" name="role" class="auth-input" required>
+            <option value="">Select your role</option>
+            <option value="student" <?= ($_POST['role'] ?? '') === 'student' ? 'selected' : '' ?>>Student</option>
+            <option value="lecturer" <?= ($_POST['role'] ?? '') === 'lecturer' ? 'selected' : '' ?>>Lecturer</option>
+        </select>
+    </div>
+
+    <div class="auth-field">
         <input type="password" name="password" placeholder="Password (min 8 chars)"
                class="auth-input" required>
     </div>

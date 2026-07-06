@@ -172,7 +172,7 @@ CREATE TABLE `users` (
   `name` varchar(100) NOT NULL,
   `email` varchar(150) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
-  `role` enum('student','admin') NOT NULL DEFAULT 'student',
+  `role` enum('student','lecturer','admin') NOT NULL DEFAULT 'student',
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `bio` text DEFAULT NULL,
   `institution` varchar(150) DEFAULT NULL,

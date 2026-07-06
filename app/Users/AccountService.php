@@ -25,12 +25,22 @@ final class AccountService
         return ['ok' => true, 'user' => $user];
     }
 
-    public function register(string $name, string $email, string $password, string $confirmation): array
+    public function register(
+        string $name,
+        string $email,
+        string $password,
+        string $confirmation,
+        string $role
+    ): array
     {
         $name = trim($name);
         $email = trim($email);
+        $role = strtolower(trim($role));
         if ($name === '' || $email === '' || $password === '') {
             return ['ok' => false, 'error' => 'All fields are required.'];
+        }
+        if (!in_array($role, ['student', 'lecturer'], true)) {
+            return ['ok' => false, 'error' => 'Please select Student or Lecturer.'];
         }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ['ok' => false, 'error' => 'Please enter a valid email address.'];
@@ -44,7 +54,7 @@ final class AccountService
         if ($this->users->findByEmail($email)) {
             return ['ok' => false, 'error' => 'This email is already registered.'];
         }
-        return $this->users->create($name, $email, password_hash($password, PASSWORD_DEFAULT))
+        return $this->users->create($name, $email, password_hash($password, PASSWORD_DEFAULT), $role)
             ? ['ok' => true]
             : ['ok' => false, 'error' => 'Something went wrong. Please try again.'];
     }
