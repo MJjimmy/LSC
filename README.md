@@ -62,6 +62,16 @@ To enable lecturer registration on an existing database, also run:
 database/2026_07_07_add_lecturer_role.sql
 ```
 
+To promote the designated administrator, first register `jimmyadmin@gmail.com`
+with a password you control, then run:
+
+```text
+database/2026_07_07_promote_jimmy_admin.sql
+```
+
+Use that email and the same registration password to sign in. Admin remains
+unavailable as a public registration role.
+
 ## Application structure
 
 - `app/Core` contains database, authentication, CSRF and upload-storage infrastructure.

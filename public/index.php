@@ -393,7 +393,7 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
             <i class="bi bi-mortarboard-fill" style="margin-right: 6px;"></i> Learning and collaboration workspace
         </div>
         <h1>Learn, share and move forward together.</h1>
-        <p>One clear workspace for study groups, shared resources, tasks, deadlines and practical collaboration—for students and lifelong learners.</p>
+        <p>One clear workspace for study groups, shared resources, tasks, deadlines and practical collaboration for students and lifelong learners.</p>
         <div class="hero-buttons">
             <a href="register.php" class="btn-primary"><i class="bi bi-person-plus-fill"></i> Create Free Account</a>
             <a href="login.php" class="btn-secondary"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
