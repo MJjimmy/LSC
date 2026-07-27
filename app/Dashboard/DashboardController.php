@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Dashboard;
+namespace LSC\Dashboard;
 
-use StudySync\Core\Auth;
-use StudySync\Groups\GroupRepository;
-use StudySync\Tasks\TaskRepository;
+use LSC\Core\Auth;
+use LSC\Groups\GroupRepository;
+use LSC\Tasks\TaskRepository;
 
 final class DashboardController
 {
@@ -30,6 +30,6 @@ final class DashboardController
         );
         $stats = $_SESSION['user_role'] === 'admin' ? $this->dashboard->adminStats() : null;
         ob_start();
-        require STUDYSYNC_ROOT . '/views/dashboard/index.php';
+        require LSC_ROOT . '/views/dashboard/index.php';
     }
 }

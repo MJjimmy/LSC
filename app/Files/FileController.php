@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Files;
+namespace LSC\Files;
 
-use StudySync\Core\Auth;
-use StudySync\Core\Csrf;
-use StudySync\Groups\GroupRepository;
+use LSC\Core\Auth;
+use LSC\Core\Csrf;
+use LSC\Groups\GroupRepository;
 
 final class FileController
 {
@@ -60,6 +60,6 @@ final class FileController
         }
 
         ob_start();
-        require STUDYSYNC_ROOT . '/views/files/index.php';
+        require LSC_ROOT . '/views/files/index.php';
     }
 }

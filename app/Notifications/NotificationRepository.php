@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Notifications;
+namespace LSC\Notifications;
 
 use PDO;
 

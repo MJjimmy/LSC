@@ -446,7 +446,7 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
 
     <!-- Footer -->
     <footer class="footer">
-        © <?= date('Y') ?> LSC — Learn. Share. Connect. · HatchSoft Group 6
+        © <?= date('2026') ?> LSC — Learn. Share. Connect. 
     </footer>
 </div>
 

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Users;
+namespace LSC\Users;
 
-use StudySync\Core\Auth;
-use StudySync\Core\Csrf;
-use StudySync\Dashboard\DashboardRepository;
+use LSC\Core\Auth;
+use LSC\Core\Csrf;
+use LSC\Dashboard\DashboardRepository;
 
 final class AdminController
 {
@@ -32,6 +32,6 @@ final class AdminController
         $stats = $this->dashboard->adminStats();
         $users = $this->users->all();
         ob_start();
-        require STUDYSYNC_ROOT . '/views/users/admin.php';
+        require LSC_ROOT . '/views/users/admin.php';
     }
 }

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Files;
+namespace LSC\Files;
 
-use StudySync\Core\UploadStorage;
-use StudySync\Groups\GroupRepository;
+use LSC\Core\UploadStorage;
+use LSC\Groups\GroupRepository;
 
 final class FileService
 {

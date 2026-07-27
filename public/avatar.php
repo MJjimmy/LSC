@@ -2,15 +2,15 @@
 
 require_once dirname(__DIR__) . '/config/bootstrap.php';
 
-use StudySync\Core\Auth;
-use StudySync\Core\Database;
-use StudySync\Core\UploadStorage;
-use StudySync\Users\UserRepository;
+use LSC\Core\Auth;
+use LSC\Core\Database;
+use LSC\Core\UploadStorage;
+use LSC\Users\UserRepository;
 
 $database = Database::connection();
 (new Auth($database))->requireLogin();
 $users = new UserRepository($database);
-$uploadStorage = new UploadStorage(STUDYSYNC_STORAGE . DIRECTORY_SEPARATOR . 'uploads');
+$uploadStorage = new UploadStorage(LSC_STORAGE . DIRECTORY_SEPARATOR . 'uploads');
 
 $userId = (int)($_GET['user_id'] ?? 0);
 $profile = $userId > 0 ? $users->findActive($userId) : false;

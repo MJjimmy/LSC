@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Invitations;
+namespace LSC\Invitations;
 
 use PDO;
-use StudySync\Groups\GroupRepository;
-use StudySync\Groups\GroupService;
-use StudySync\Notifications\NotificationRepository;
+use LSC\Groups\GroupRepository;
+use LSC\Groups\GroupService;
+use LSC\Notifications\NotificationRepository;
 use Throwable;
 
 final class InvitationService

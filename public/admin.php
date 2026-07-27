@@ -2,11 +2,11 @@
 
 require_once dirname(__DIR__) . '/config/bootstrap.php';
 
-use StudySync\Core\Auth;
-use StudySync\Core\Database;
-use StudySync\Dashboard\DashboardRepository;
-use StudySync\Users\AdminController;
-use StudySync\Users\UserRepository;
+use LSC\Core\Auth;
+use LSC\Core\Database;
+use LSC\Dashboard\DashboardRepository;
+use LSC\Users\AdminController;
+use LSC\Users\UserRepository;
 
 $database = Database::connection();
 (new AdminController(

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Core;
+namespace LSC\Core;
 
 final class UploadStorage
 {

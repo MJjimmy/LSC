@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Invitations;
+namespace LSC\Invitations;
 
-use StudySync\Core\Auth;
-use StudySync\Core\Csrf;
+use LSC\Core\Auth;
+use LSC\Core\Csrf;
 
 final class InvitationController
 {
@@ -43,6 +43,6 @@ final class InvitationController
         $invite = $this->invitations->findByToken($token);
         $isAvailable = $invite && $invite['status'] === 'pending' && strtotime($invite['expires_at']) >= time();
         ob_start();
-        require STUDYSYNC_ROOT . '/views/invitations/show.php';
+        require LSC_ROOT . '/views/invitations/show.php';
     }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Files;
+namespace LSC\Files;
 
 use PDO;
 

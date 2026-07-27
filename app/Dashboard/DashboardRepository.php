@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Dashboard;
+namespace LSC\Dashboard;
 
 use PDO;
 

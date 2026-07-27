@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Users;
+namespace LSC\Users;
 
-use StudySync\Core\Auth;
-use StudySync\Core\Csrf;
-use StudySync\Core\UploadStorage;
+use LSC\Core\Auth;
+use LSC\Core\Csrf;
+use LSC\Core\UploadStorage;
 
 final class ProfileController
 {
@@ -41,7 +41,7 @@ final class ProfileController
         }
 
         ob_start();
-        require STUDYSYNC_ROOT . '/views/users/profile.php';
+        require LSC_ROOT . '/views/users/profile.php';
     }
 
     private function update(int $userId): array

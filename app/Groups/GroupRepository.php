@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Groups;
+namespace LSC\Groups;
 
 use PDO;
 use Throwable;

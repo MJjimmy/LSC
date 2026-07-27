@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Tasks;
+namespace LSC\Tasks;
 
-use StudySync\Core\Auth;
-use StudySync\Groups\GroupRepository;
+use LSC\Core\Auth;
+use LSC\Groups\GroupRepository;
 
 final class CalendarController
 {
@@ -38,6 +38,6 @@ final class CalendarController
         $nextMonth = $month + 1; $nextYear = $year;
         if ($nextMonth > 12) { $nextMonth = 1; $nextYear++; }
         ob_start();
-        require STUDYSYNC_ROOT . '/views/tasks/calendar.php';
+        require LSC_ROOT . '/views/tasks/calendar.php';
     }
 }

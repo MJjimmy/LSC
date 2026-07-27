@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Invitations;
+namespace LSC\Invitations;
 
 use PDO;
 

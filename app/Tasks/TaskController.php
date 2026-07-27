@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Tasks;
+namespace LSC\Tasks;
 
-use StudySync\Core\Auth;
-use StudySync\Core\Csrf;
-use StudySync\Groups\GroupRepository;
+use LSC\Core\Auth;
+use LSC\Core\Csrf;
+use LSC\Groups\GroupRepository;
 
 final class TaskController
 {
@@ -66,7 +66,7 @@ final class TaskController
         ));
 
         ob_start();
-        require STUDYSYNC_ROOT . '/views/tasks/index.php';
+        require LSC_ROOT . '/views/tasks/index.php';
     }
 
     private function redirectAfterPost(): never

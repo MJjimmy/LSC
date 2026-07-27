@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-define('STUDYSYNC_ROOT', dirname(__DIR__));
-define('STUDYSYNC_STORAGE', STUDYSYNC_ROOT . DIRECTORY_SEPARATOR . 'storage');
+define('LSC_ROOT', dirname(__DIR__));
+define('LSC_STORAGE', LSC_ROOT . DIRECTORY_SEPARATOR . 'storage');
 
 spl_autoload_register(static function (string $class): void {
-    $prefix = 'StudySync\\';
+    $prefix = 'LSC\\';
     if (!str_starts_with($class, $prefix)) {
         return;
     }
 
     $relativeClass = substr($class, strlen($prefix));
-    $path = STUDYSYNC_ROOT . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR
+    $path = LSC_ROOT . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR
         . str_replace('\\', DIRECTORY_SEPARATOR, $relativeClass) . '.php';
 
     if (is_file($path)) {
@@ -22,7 +22,7 @@ spl_autoload_register(static function (string $class): void {
 
 function csrfToken(): string
 {
-    return \StudySync\Core\Csrf::token();
+    return \LSC\Core\Csrf::token();
 }
 
 $isProduction = strtolower((string)getenv('APP_ENV')) === 'production';
@@ -35,7 +35,7 @@ ini_set('display_errors', (!$isProduction && getenv('APP_DEBUG') === '1') ? '1' 
 ini_set('session.use_strict_mode', '1');
 
 if (session_status() === PHP_SESSION_NONE) {
-    session_name('studysync_session');
+    session_name('LSC_session');
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => '/',

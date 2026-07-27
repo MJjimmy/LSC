@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Groups;
+namespace LSC\Groups;
 
-use StudySync\Chat\MessageRepository;
-use StudySync\Core\Auth;
-use StudySync\Core\Csrf;
-use StudySync\Core\UploadStorage;
-use StudySync\Files\FileRepository;
-use StudySync\Invitations\InvitationService;
-use StudySync\Tasks\TaskRepository;
+use LSC\Chat\MessageRepository;
+use LSC\Core\Auth;
+use LSC\Core\Csrf;
+use LSC\Core\UploadStorage;
+use LSC\Files\FileRepository;
+use LSC\Invitations\InvitationService;
+use LSC\Tasks\TaskRepository;
 
 final class GroupController
 {
@@ -51,7 +51,7 @@ final class GroupController
         $myGroups = $this->groups->forUser($userId);
         $publicGroups = $this->groups->publicGroupsAvailableTo($userId);
         ob_start();
-        require STUDYSYNC_ROOT . '/views/groups/index.php';
+        require LSC_ROOT . '/views/groups/index.php';
     }
 
     public function show(): void
@@ -95,7 +95,7 @@ final class GroupController
         ];
 
         ob_start();
-        require STUDYSYNC_ROOT . '/views/groups/show.php';
+        require LSC_ROOT . '/views/groups/show.php';
     }
 
     private function handleShowAction(

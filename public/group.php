@@ -2,18 +2,18 @@
 
 require_once dirname(__DIR__) . '/config/bootstrap.php';
 
-use StudySync\Core\Auth;
-use StudySync\Core\Database;
-use StudySync\Core\UploadStorage;
-use StudySync\Chat\MessageRepository;
-use StudySync\Files\FileRepository;
-use StudySync\Groups\GroupController;
-use StudySync\Groups\GroupRepository;
-use StudySync\Groups\GroupService;
-use StudySync\Invitations\InvitationRepository;
-use StudySync\Invitations\InvitationService;
-use StudySync\Notifications\NotificationRepository;
-use StudySync\Tasks\TaskRepository;
+use LSC\Core\Auth;
+use LSC\Core\Database;
+use LSC\Core\UploadStorage;
+use LSC\Chat\MessageRepository;
+use LSC\Files\FileRepository;
+use LSC\Groups\GroupController;
+use LSC\Groups\GroupRepository;
+use LSC\Groups\GroupService;
+use LSC\Invitations\InvitationRepository;
+use LSC\Invitations\InvitationService;
+use LSC\Notifications\NotificationRepository;
+use LSC\Tasks\TaskRepository;
 
 $database = Database::connection();
 $groups = new GroupRepository($database);
@@ -24,7 +24,7 @@ $controller = new GroupController(
     new Auth($database),
     $groups,
     $groupService,
-    new UploadStorage(STUDYSYNC_STORAGE . DIRECTORY_SEPARATOR . 'uploads'),
+    new UploadStorage(LSC_STORAGE . DIRECTORY_SEPARATOR . 'uploads'),
     new TaskRepository($database),
     new FileRepository($database),
     new MessageRepository($database),

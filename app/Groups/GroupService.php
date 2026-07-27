@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Groups;
+namespace LSC\Groups;
 
 use PDO;
-use StudySync\Notifications\NotificationRepository;
+use LSC\Notifications\NotificationRepository;
 use Throwable;
 
 final class GroupService

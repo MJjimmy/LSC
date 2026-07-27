@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Users;
+namespace LSC\Users;
 
 use PDO;
 use PDOException;

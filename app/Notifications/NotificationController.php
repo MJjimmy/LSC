@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Notifications;
+namespace LSC\Notifications;
 
-use StudySync\Core\Auth;
-use StudySync\Core\Csrf;
+use LSC\Core\Auth;
+use LSC\Core\Csrf;
 
 final class NotificationController
 {
@@ -44,6 +44,6 @@ final class NotificationController
             'task' => 'bi-check2-square',
         ];
         ob_start();
-        require STUDYSYNC_ROOT . '/views/notifications/index.php';
+        require LSC_ROOT . '/views/notifications/index.php';
     }
 }

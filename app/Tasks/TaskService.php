@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Tasks;
+namespace LSC\Tasks;
 
-use StudySync\Groups\GroupRepository;
+use LSC\Groups\GroupRepository;
 
 final class TaskService
 {

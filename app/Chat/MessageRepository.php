@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace StudySync\Chat;
+namespace LSC\Chat;
 
 use PDO;
 
