@@ -60,6 +60,6 @@ final class FileController
         }
 
         ob_start();
-        require LSC_ROOT . '/views/files/index.php';
+        require \LSC_ROOT . '/views/files/index.php';
     }
 }

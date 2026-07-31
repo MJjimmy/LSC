@@ -32,6 +32,6 @@ final class AdminController
         $stats = $this->dashboard->adminStats();
         $users = $this->users->all();
         ob_start();
-        require LSC_ROOT . '/views/users/admin.php';
+        require \LSC_ROOT . '/views/users/admin.php';
     }
 }

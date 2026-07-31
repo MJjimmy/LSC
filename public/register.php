@@ -2,12 +2,12 @@
 
 require_once dirname(__DIR__) . '/config/bootstrap.php';
 
-use StudySync\Core\Auth;
-use StudySync\Core\Database;
-use StudySync\Users\AccountController;
-use StudySync\Users\AccountService;
-use StudySync\Users\PasswordResetService;
-use StudySync\Users\UserRepository;
+use LSC\Core\Auth;
+use LSC\Core\Database;
+use LSC\Users\AccountController;
+use LSC\Users\AccountService;
+use LSC\Users\PasswordResetService;
+use LSC\Users\UserRepository;
 
 $database = Database::connection();
 $users = new UserRepository($database);

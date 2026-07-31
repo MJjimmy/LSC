@@ -38,6 +38,6 @@ final class CalendarController
         $nextMonth = $month + 1; $nextYear = $year;
         if ($nextMonth > 12) { $nextMonth = 1; $nextYear++; }
         ob_start();
-        require LSC_ROOT . '/views/tasks/calendar.php';
+        require \LSC_ROOT . '/views/tasks/calendar.php';
     }
 }

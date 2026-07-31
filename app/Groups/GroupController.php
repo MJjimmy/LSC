@@ -51,7 +51,7 @@ final class GroupController
         $myGroups = $this->groups->forUser($userId);
         $publicGroups = $this->groups->publicGroupsAvailableTo($userId);
         ob_start();
-        require LSC_ROOT . '/views/groups/index.php';
+        require \LSC_ROOT . '/views/groups/index.php';
     }
 
     public function show(): void
@@ -95,7 +95,7 @@ final class GroupController
         ];
 
         ob_start();
-        require LSC_ROOT . '/views/groups/show.php';
+        require \LSC_ROOT . '/views/groups/show.php';
     }
 
     private function handleShowAction(

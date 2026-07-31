@@ -41,7 +41,7 @@ final class ProfileController
         }
 
         ob_start();
-        require LSC_ROOT . '/views/users/profile.php';
+        require \LSC_ROOT . '/views/users/profile.php';
     }
 
     private function update(int $userId): array

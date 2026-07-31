@@ -2,18 +2,18 @@
 
 require_once dirname(__DIR__) . '/config/bootstrap.php';
 
-use StudySync\Core\Auth;
-use StudySync\Core\Database;
-use StudySync\Core\UploadStorage;
-use StudySync\Files\FileController;
-use StudySync\Files\FileRepository;
-use StudySync\Files\FileService;
-use StudySync\Groups\GroupRepository;
+use LSC\Core\Auth;
+use LSC\Core\Database;
+use LSC\Core\UploadStorage;
+use LSC\Files\FileController;
+use LSC\Files\FileRepository;
+use LSC\Files\FileService;
+use LSC\Groups\GroupRepository;
 
 $database = Database::connection();
 $groups = new GroupRepository($database);
 $files = new FileRepository($database);
-$storage = new UploadStorage(STUDYSYNC_STORAGE . DIRECTORY_SEPARATOR . 'uploads');
+$storage = new UploadStorage(LSC_STORAGE . DIRECTORY_SEPARATOR . 'uploads');
 (new FileController(
     new Auth($database),
     $files,

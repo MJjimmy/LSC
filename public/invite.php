@@ -2,14 +2,14 @@
 
 require_once dirname(__DIR__) . '/config/bootstrap.php';
 
-use StudySync\Core\Auth;
-use StudySync\Core\Database;
-use StudySync\Groups\GroupRepository;
-use StudySync\Groups\GroupService;
-use StudySync\Invitations\InvitationController;
-use StudySync\Invitations\InvitationRepository;
-use StudySync\Invitations\InvitationService;
-use StudySync\Notifications\NotificationRepository;
+use LSC\Core\Auth;
+use LSC\Core\Database;
+use LSC\Groups\GroupRepository;
+use LSC\Groups\GroupService;
+use LSC\Invitations\InvitationController;
+use LSC\Invitations\InvitationRepository;
+use LSC\Invitations\InvitationService;
+use LSC\Notifications\NotificationRepository;
 
 $database = Database::connection();
 $groups = new GroupRepository($database);

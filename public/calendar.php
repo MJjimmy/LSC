@@ -2,11 +2,11 @@
 
 require_once dirname(__DIR__) . '/config/bootstrap.php';
 
-use StudySync\Core\Auth;
-use StudySync\Core\Database;
-use StudySync\Groups\GroupRepository;
-use StudySync\Tasks\CalendarController;
-use StudySync\Tasks\TaskRepository;
+use LSC\Core\Auth;
+use LSC\Core\Database;
+use LSC\Groups\GroupRepository;
+use LSC\Tasks\CalendarController;
+use LSC\Tasks\TaskRepository;
 
 $database = Database::connection();
 (new CalendarController(

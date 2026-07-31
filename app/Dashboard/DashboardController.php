@@ -30,6 +30,6 @@ final class DashboardController
         );
         $stats = $_SESSION['user_role'] === 'admin' ? $this->dashboard->adminStats() : null;
         ob_start();
-        require LSC_ROOT . '/views/dashboard/index.php';
+        require \LSC_ROOT . '/views/dashboard/index.php';
     }
 }

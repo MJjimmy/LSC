@@ -64,5 +64,5 @@ function togglePassword() {
 <?php
 $auth_content = ob_get_clean();
 $pageTitle = 'Login — LSC';
-require STUDYSYNC_ROOT . '/views/layouts/auth.php';
+require LSC_ROOT . '/views/layouts/auth.php';
 ?>

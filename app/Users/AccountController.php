@@ -38,7 +38,7 @@ final class AccountController
             $error = $result['error'];
         }
         ob_start();
-        require LSC_ROOT . '/views/auth/login.php';
+        require \LSC_ROOT . '/views/auth/login.php';
     }
 
     public function register(): void
@@ -66,7 +66,7 @@ final class AccountController
             $error = $result['error'];
         }
         ob_start();
-        require LSC_ROOT . '/views/auth/register.php';
+        require \LSC_ROOT . '/views/auth/register.php';
     }
 
     public function forgotPassword(): void
@@ -94,7 +94,7 @@ final class AccountController
             $submitted = true;
         }
         ob_start();
-        require LSC_ROOT . '/views/auth/forgot-password.php';
+        require \LSC_ROOT . '/views/auth/forgot-password.php';
     }
 
     public function resetPassword(): void
@@ -117,7 +117,7 @@ final class AccountController
             }
         }
         ob_start();
-        require LSC_ROOT . '/views/auth/reset-password.php';
+        require \LSC_ROOT . '/views/auth/reset-password.php';
     }
 
     public function logout(): never

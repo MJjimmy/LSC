@@ -44,6 +44,6 @@ final class NotificationController
             'task' => 'bi-check2-square',
         ];
         ob_start();
-        require LSC_ROOT . '/views/notifications/index.php';
+        require \LSC_ROOT . '/views/notifications/index.php';
     }
 }

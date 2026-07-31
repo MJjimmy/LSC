@@ -43,6 +43,6 @@ final class InvitationController
         $invite = $this->invitations->findByToken($token);
         $isAvailable = $invite && $invite['status'] === 'pending' && strtotime($invite['expires_at']) >= time();
         ob_start();
-        require LSC_ROOT . '/views/invitations/show.php';
+        require \LSC_ROOT . '/views/invitations/show.php';
     }
 }
