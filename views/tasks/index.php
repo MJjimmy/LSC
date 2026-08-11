@@ -174,4 +174,4 @@ document.getElementById('createTaskModal').addEventListener('click', function(e)
 });
 </script>
 
-<?php $page_content = ob_get_clean(); require STUDYSYNC_ROOT . '/views/layouts/app.php'; ?>
+<?php $page_content = ob_get_clean(); require LSC_ROOT . '/views/layouts/app.php'; ?>

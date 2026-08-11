@@ -261,7 +261,7 @@ body {
 </style>
 
 
-<?php require STUDYSYNC_ROOT . '/views/layouts/pwa.php'; ?>
+<?php require LSC_ROOT . '/views/layouts/pwa.php'; ?>
 
 
 </head>
