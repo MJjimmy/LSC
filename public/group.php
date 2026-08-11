@@ -12,12 +12,14 @@ use LSC\Groups\GroupRepository;
 use LSC\Groups\GroupService;
 use LSC\Invitations\InvitationRepository;
 use LSC\Invitations\InvitationService;
+use LSC\Notifications\NotificationDispatcher;
 use LSC\Notifications\NotificationRepository;
 use LSC\Tasks\TaskRepository;
 
 $database = Database::connection();
 $groups = new GroupRepository($database);
 $notifications = new NotificationRepository($database);
+$dispatcher = new NotificationDispatcher($database);
 $groupService = new GroupService($database, $groups, $notifications);
 $invitations = new InvitationRepository($database);
 $controller = new GroupController(
@@ -28,6 +30,6 @@ $controller = new GroupController(
     new TaskRepository($database),
     new FileRepository($database),
     new MessageRepository($database),
-    new InvitationService($database, $invitations, $groups, $groupService, $notifications)
+    new InvitationService($database, $invitations, $groups, $groupService, $notifications, $dispatcher)
 );
 $controller->show();

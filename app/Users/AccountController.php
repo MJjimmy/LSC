@@ -6,13 +6,15 @@ namespace LSC\Users;
 
 use LSC\Core\Auth;
 use LSC\Core\Csrf;
+use LSC\Core\RateLimiter;
 
 final class AccountController
 {
     public function __construct(
         private readonly Auth $auth,
         private readonly AccountService $accounts,
-        private readonly PasswordResetService $passwordResets
+        private readonly PasswordResetService $passwordResets,
+        private readonly RateLimiter $limiter
     ) {
     }
 
@@ -25,17 +27,27 @@ final class AccountController
         $error = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Csrf::verify();
-            $result = $this->accounts->authenticate(
-                (string)($_POST['email'] ?? ''),
-                (string)($_POST['password'] ?? '')
-            );
-            if ($result['ok']) {
-                $user = $result['user'];
-                $this->auth->login((int)$user['user_id'], $user['name'], $user['role'], $user['avatar_path']);
-                header('Location: ' . $this->auth->safeLocalRedirect($_POST['next'] ?? $_GET['next'] ?? null));
-                exit;
+            $email = (string)($_POST['email'] ?? '');
+            $ipKey = 'login:ip:' . RateLimiter::clientIp();
+            $emailKey = 'login:email:' . strtolower(trim($email));
+
+            if ($this->limiter->tooManyAttempts($ipKey, 8) || $this->limiter->tooManyAttempts($emailKey, 5)) {
+                $wait = max($this->limiter->availableInSeconds($ipKey), $this->limiter->availableInSeconds($emailKey));
+                $error = 'Too many login attempts. Try again in ' . RateLimiter::humanDuration($wait) . '.';
+            } else {
+                $result = $this->accounts->authenticate($email, (string)($_POST['password'] ?? ''));
+                if ($result['ok']) {
+                    $this->limiter->clear($ipKey);
+                    $this->limiter->clear($emailKey);
+                    $user = $result['user'];
+                    $this->auth->login((int)$user['user_id'], $user['name'], $user['role'], $user['avatar_path']);
+                    header('Location: ' . $this->auth->safeLocalRedirect($_POST['next'] ?? $_GET['next'] ?? null));
+                    exit;
+                }
+                $this->limiter->hit($ipKey, 900);
+                $this->limiter->hit($emailKey, 900);
+                $error = $result['error'];
             }
-            $error = $result['error'];
         }
         ob_start();
         require \LSC_ROOT . '/views/auth/login.php';
@@ -51,19 +63,28 @@ final class AccountController
         $success = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Csrf::verify();
-            $result = $this->accounts->register(
-                (string)($_POST['name'] ?? ''),
-                (string)($_POST['email'] ?? ''),
-                (string)($_POST['password'] ?? ''),
-                (string)($_POST['confirm_password'] ?? ''),
-                (string)($_POST['role'] ?? '')
-            );
-            if ($result['ok']) {
-                $next = $this->auth->safeLocalRedirect($_POST['next'] ?? $_GET['next'] ?? null);
-                header('Location: login.php?registered=1&next=' . rawurlencode($next));
-                exit;
+            $ipKey = 'register:ip:' . RateLimiter::clientIp();
+
+            if ($this->limiter->tooManyAttempts($ipKey, 6)) {
+                $wait = $this->limiter->availableInSeconds($ipKey);
+                $error = 'Too many signup attempts from this connection. Try again in ' . RateLimiter::humanDuration($wait) . '.';
+            } else {
+                $this->limiter->hit($ipKey, 3600);
+                $result = $this->accounts->register(
+                    (string)($_POST['name'] ?? ''),
+                    (string)($_POST['email'] ?? ''),
+                    (string)($_POST['password'] ?? ''),
+                    (string)($_POST['confirm_password'] ?? ''),
+                    (string)($_POST['role'] ?? '')
+                );
+                if ($result['ok']) {
+                    $this->limiter->clear($ipKey);
+                    $next = $this->auth->safeLocalRedirect($_POST['next'] ?? $_GET['next'] ?? null);
+                    header('Location: login.php?registered=1&next=' . rawurlencode($next));
+                    exit;
+                }
+                $error = $result['error'];
             }
-            $error = $result['error'];
         }
         ob_start();
         require \LSC_ROOT . '/views/auth/register.php';
@@ -77,21 +98,32 @@ final class AccountController
         }
         $submitted = false;
         $developmentResetUrl = null;
+        $error = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Csrf::verify();
             $email = trim((string)($_POST['email'] ?? ''));
-            if (filter_var($email, FILTER_VALIDATE_EMAIL) && ($token = $this->passwordResets->createToken($email))) {
-                $resetUrl = $this->resetUrl($token);
-                $from = (string)getenv('MAIL_FROM');
-                if ($from !== '') {
-                    $headers = "From: {$from}\r\nContent-Type: text/plain; charset=UTF-8";
-                    @mail($email, 'Reset your LSC password', "Use this link within 60 minutes to reset your password:\n\n{$resetUrl}\n", $headers);
+            $ipKey = 'forgot:ip:' . RateLimiter::clientIp();
+            $emailKey = 'forgot:email:' . strtolower($email);
+
+            if ($this->limiter->tooManyAttempts($ipKey, 6) || $this->limiter->tooManyAttempts($emailKey, 3)) {
+                $wait = max($this->limiter->availableInSeconds($ipKey), $this->limiter->availableInSeconds($emailKey));
+                $error = 'Too many reset requests. Try again in ' . RateLimiter::humanDuration($wait) . '.';
+            } else {
+                $this->limiter->hit($ipKey, 3600);
+                $this->limiter->hit($emailKey, 3600);
+                if (filter_var($email, FILTER_VALIDATE_EMAIL) && ($token = $this->passwordResets->createToken($email))) {
+                    $resetUrl = $this->resetUrl($token);
+                    $from = (string)getenv('MAIL_FROM');
+                    if ($from !== '') {
+                        $headers = "From: {$from}\r\nContent-Type: text/plain; charset=UTF-8";
+                        @mail($email, 'Reset your LSC password', "Use this link within 60 minutes to reset your password:\n\n{$resetUrl}\n", $headers);
+                    }
+                    if (strtolower((string)getenv('APP_ENV')) !== 'production') {
+                        $developmentResetUrl = $resetUrl;
+                    }
                 }
-                if (strtolower((string)getenv('APP_ENV')) !== 'production') {
-                    $developmentResetUrl = $resetUrl;
-                }
+                $submitted = true;
             }
-            $submitted = true;
         }
         ob_start();
         require \LSC_ROOT . '/views/auth/forgot-password.php';
@@ -104,16 +136,25 @@ final class AccountController
         $success = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '') {
             Csrf::verify();
-            $password = (string)($_POST['password'] ?? '');
-            $confirmation = (string)($_POST['confirm_password'] ?? '');
-            if (strlen($password) < 8) {
-                $error = 'Password must be at least 8 characters.';
-            } elseif ($password !== $confirmation) {
-                $error = 'Passwords do not match.';
-            } elseif ($this->passwordResets->reset($token, $password)) {
-                $success = 'Password updated. You can now sign in.';
+            $ipKey = 'reset:ip:' . RateLimiter::clientIp();
+
+            if ($this->limiter->tooManyAttempts($ipKey, 10)) {
+                $wait = $this->limiter->availableInSeconds($ipKey);
+                $error = 'Too many attempts. Try again in ' . RateLimiter::humanDuration($wait) . '.';
             } else {
-                $error = 'This reset link has expired or has already been used.';
+                $password = (string)($_POST['password'] ?? '');
+                $confirmation = (string)($_POST['confirm_password'] ?? '');
+                if (strlen($password) < 8) {
+                    $error = 'Password must be at least 8 characters.';
+                } elseif ($password !== $confirmation) {
+                    $error = 'Passwords do not match.';
+                } elseif ($this->passwordResets->reset($token, $password)) {
+                    $this->limiter->clear($ipKey);
+                    $success = 'Password updated. You can now sign in.';
+                } else {
+                    $this->limiter->hit($ipKey, 3600);
+                    $error = 'This reset link has expired or has already been used.';
+                }
             }
         }
         ob_start();
