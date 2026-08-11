@@ -1,0 +1,9 @@
+﻿# StudySync .gitignore
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+/vendor/
+.env
+*.log
+.DS_Store
+Thumbs.db
+~$*.docx

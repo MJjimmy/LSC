@@ -1,0 +1,41 @@
+﻿version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: studysync_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: studysync_db
+      MYSQL_USER: studysync_user
+      MYSQL_PASSWORD: studysync_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql   # ← only one SQL file
+    networks:
+      - studysync_net
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: studysync_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    networks:
+      - studysync_net
+
+volumes:
+  mysql_data:
+
+networks:
+  studysync_net:
+    driver: bridge

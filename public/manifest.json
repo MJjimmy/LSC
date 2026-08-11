@@ -1,0 +1,42 @@
+{
+  "name": "LSC — Learn. Share. Connect.",
+  "short_name": "LSC",
+  "description": "Learning and collaboration for students and lifelong learners",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f8fc",
+  "theme_color": "#123b63",
+  "scope": "/",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/icons/lsc-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Home",
+      "url": "/dashboard.php",
+      "icons": [{ "src": "/icons/lsc-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "My Tasks",
+      "short_name": "Tasks",
+      "url": "/tasks.php",
+      "icons": [{ "src": "/icons/lsc-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Study Groups",
+      "short_name": "Groups",
+      "url": "/groups.php",
+      "icons": [{ "src": "/icons/lsc-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "screenshots": []
+}
