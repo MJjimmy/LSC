@@ -2,8 +2,8 @@
 // Shared LSC application layout.
 $current_page = basename($_SERVER['PHP_SELF'], '.php');
 $unreadNotificationCount = isset($_SESSION['user_id'])
-    ? (new \StudySync\Notifications\NotificationRepository(
-        \StudySync\Core\Database::connection()
+    ? (new \LSC\Notifications\NotificationRepository(
+        \LSC\Core\Database::connection()
     ))->unreadCount((int)$_SESSION['user_id'])
     : 0;
 ?>
