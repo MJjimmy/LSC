@@ -98,13 +98,13 @@ The dashboard brings active groups, open tasks and recent activity into one view
 
 The group workspace combines discussion, tasks, members and files. The current chat concept includes a recent-files panel so students do not have to search through messages to find shared resources.
 
-[View the group chat and files wireframe](assets/chat_attachments_illustration.png)
+The Word document includes the group chat and files wireframe in its appendix.
 
 ### Invitation and onboarding flow
 
 The invitation flow is designed to make group membership explicit: a group owner creates an invite, the recipient receives a notification or link, the recipient accepts before expiry, and membership is recorded before collaboration begins.
 
-[View the invitation workflow wireframe](assets/invitation_workflow.png)
+The Word document includes the invitation workflow wireframe in its appendix.
 
 ## Value to an institution
 
