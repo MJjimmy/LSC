@@ -85,8 +85,8 @@ unavailable as a public registration role.
 
 - `app/Core` contains database, authentication, CSRF and upload-storage infrastructure.
 - Feature folders under `app` contain controllers, services and PDO repositories.
-- `views` contains page templates and shared layouts.
-- `public` contains only web entry points and public assets.
+- `views` contains page templates and shared layouts; `views/partials` holds the shared theme-toggle and cookie-disclosure snippets.
+- `public` contains only web entry points and public assets, including the standalone public pages (`404.php`, `privacy.php`, `terms.php`, `offline.php`) and `router.php`, which gives the PHP built-in server the application 404 page.
 - `database` and `storage/uploads` remain outside the public document root.
 
 ## Local start
@@ -97,7 +97,9 @@ unavailable as a public registration role.
 4. Import the correct SQL file for a fresh or existing database — `docker compose -f database/docker-compose.yml up -d` gives you MySQL 8 + phpMyAdmin with the consolidated schema already imported.
 5. Start the PHP/web-server process of your choice, e.g. `php -S 0.0.0.0:8000 -t public`.
 
-The repository includes Railway/Nixpacks configuration that serves `/app/public`.
+The repository includes Railway/Nixpacks configuration that serves `/app/public` (through `public/router.php` so missing URLs render the application 404 page; Apache uses `ErrorDocument`, nginx uses `error_page`).
+
+For a custom domain: Railway → service → **Networking → Add Domain**, then point a `CNAME` (apex domains use Railway's NS or an `A` record per Railway's dialog) at the target shown there, and set `APP_URL=https://yourdomain` so links in emails and invitations use it.
 
 ## New collaboration workflows
 

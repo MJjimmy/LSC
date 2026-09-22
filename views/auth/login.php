@@ -63,6 +63,6 @@ function togglePassword() {
 
 <?php
 $auth_content = ob_get_clean();
-$pageTitle = 'Login — LSC';
+$pageTitle = 'Login | LSC';
 require LSC_ROOT . '/views/layouts/auth.php';
 ?>

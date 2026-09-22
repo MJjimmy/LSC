@@ -36,4 +36,5 @@
     </div>
 </div>
 
-<?php $page_content = ob_get_clean(); require LSC_ROOT . '/views/layouts/app.php'; ?>
+<?php $pageTitle = 'Group Invitation | LSC';
+$page_content = ob_get_clean(); require LSC_ROOT . '/views/layouts/app.php'; ?>

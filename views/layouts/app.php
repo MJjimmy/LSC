@@ -13,7 +13,9 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LSC — Learn. Share. Connect.</title>
+    <title><?= htmlspecialchars($pageTitle ?? 'LSC | Learn. Share. Connect.') ?></title>
+
+<?php require LSC_ROOT . '/views/partials/theme-init.php'; ?>
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -56,6 +58,31 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         --green-bg:       #ecfdf3;
         --green-border:   #bbf7d0;
     }
+
+    /* Dark theme overrides */
+    html[data-theme="dark"] {
+        --sidebar:        #10263c;
+        --sidebar-border: rgba(255,255,255,.08);
+        --primary-soft:   rgba(37,99,235,.18);
+        --primary-border: rgba(147,197,253,.30);
+        --brand-dim:      rgba(59,130,246,.18);
+        --brand-border:   rgba(147,197,253,.35);
+        --cream:          #0e1a28;
+        --card:           #152636;
+        --border:         #25394c;
+        --border-soft:    #1c2e3f;
+        --text-primary:   #e7eff7;
+        --text-secondary: #a9bcca;
+        --text-muted:     #7e93a6;
+        --red-bg:         rgba(192,57,43,.16);
+        --red-border:     rgba(192,57,43,.45);
+        --amber-bg:       rgba(183,97,10,.16);
+        --amber-border:   rgba(183,97,10,.45);
+        --green-bg:       rgba(21,128,61,.20);
+        --green-border:   rgba(21,128,61,.50);
+    }
+
+    html[data-theme="dark"] .card { box-shadow: 0 1px 3px rgba(0,0,0,.35); }
 
     /* ── RESET ──────────────────────────────────────────────── */
     *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
@@ -131,7 +158,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         letter-spacing: 0.3px;
     }
 
-    /* Close button — mobile only */
+    /* Close button: mobile only */
     .lsc-close-btn {
         display: none;
         background: none;
@@ -268,7 +295,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         flex-shrink: 0;
     }
 
-    /* Hamburger — hidden on desktop */
+    /* Hamburger: hidden on desktop */
     .lsc-hamburger {
         display: none;
         background: none;
@@ -333,23 +360,13 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
 
     .page-hero {
-        background: linear-gradient(120deg, #123b63, #175488);
+        background: #123b63;
         border-radius: 12px;
         padding: 28px 30px;
         margin-bottom: 24px;
         position: relative;
         overflow: hidden;
         color: #fff;
-    }
-
-    .page-hero::after {
-        content: '';
-        position: absolute;
-        top: -60px; right: -60px;
-        width: 220px; height: 220px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(74,222,128,.18) 0%, transparent 70%);
-        pointer-events: none;
     }
 
     .page-hero-eyebrow {
@@ -372,7 +389,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 
     .page-hero-sub { font-size: 13px; color: rgba(255,255,255,.5); }
 
-    /* Hero action button — goes absolute on desktop, inline on mobile */
+    /* Hero action button: goes absolute on desktop, inline on mobile */
     .hero-action-btn {
         position: absolute;
         right: 30px;
@@ -704,10 +721,10 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 <body>
 
     <!-- Dark overlay (mobile) -->
-    <div class="lsc-overlay" id="ssOverlay" onclick="closeSidebar()"></div>
+    <div class="lsc-overlay" id="lscOverlay" onclick="closeSidebar()"></div>
 
     <!-- ── SIDEBAR ─────────────────────────────────────────── -->
-    <aside class="lsc-sidebar" id="ssSidebar">
+    <aside class="lsc-sidebar" id="lscSidebar">
 
         <div class="lsc-logo">
             <div>
@@ -783,6 +800,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
             </button>
             <div class="lsc-topbar-title"><?= ucwords(str_replace('-', ' ', $current_page)) ?></div>
             <div class="lsc-topbar-right">
+                <?php require LSC_ROOT . '/views/partials/theme-toggle.php'; ?>
                 <a href="profile.php" class="lsc-icon-btn" title="Profile" aria-label="Profile">
                     <i class="bi bi-person"></i>
                 </a>
@@ -831,14 +849,14 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 
     <script>
     function openSidebar() {
-        document.getElementById('ssSidebar').classList.add('open');
-        document.getElementById('ssOverlay').classList.add('open');
+        document.getElementById('lscSidebar').classList.add('open');
+        document.getElementById('lscOverlay').classList.add('open');
         document.body.style.overflow = 'hidden';
     }
 
     function closeSidebar() {
-        document.getElementById('ssSidebar').classList.remove('open');
-        document.getElementById('ssOverlay').classList.remove('open');
+        document.getElementById('lscSidebar').classList.remove('open');
+        document.getElementById('lscOverlay').classList.remove('open');
         document.body.style.overflow = '';
     }
 
@@ -916,6 +934,8 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         window.setInterval(refreshIfSafe, refreshIntervalMs);
     })();
     </script>
+
+<?php require LSC_ROOT . '/views/partials/consent.php'; ?>
 
 </body>
 </html>

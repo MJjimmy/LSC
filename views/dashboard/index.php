@@ -212,6 +212,7 @@
 </div>
 
 <?php
+$pageTitle = 'Dashboard | LSC';
 $page_content = ob_get_clean();
 require LSC_ROOT . '/views/layouts/app.php';
 ?>

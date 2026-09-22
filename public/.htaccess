@@ -1,2 +1,5 @@
 php_value upload_max_filesize 100M
 php_value post_max_size 110M
+
+# Application 404 page (Apache/Hostinger)
+ErrorDocument 404 /404.php

@@ -20,6 +20,6 @@
 
 <?php
 $auth_content = ob_get_clean();
-$pageTitle = 'Reset Password — LSC';
+$pageTitle = 'Reset Password | LSC';
 require LSC_ROOT . '/views/layouts/auth.php';
 ?>

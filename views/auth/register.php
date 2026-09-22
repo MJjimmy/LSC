@@ -60,6 +60,6 @@
 
 <?php
 $auth_content = ob_get_clean();
-$pageTitle = 'Register — LSC';
+$pageTitle = 'Register | LSC';
 require LSC_ROOT . '/views/layouts/auth.php';
 ?>

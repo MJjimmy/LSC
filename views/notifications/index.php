@@ -40,4 +40,5 @@
     <?php endif; ?>
 </div>
 
-<?php $page_content = ob_get_clean(); require LSC_ROOT . '/views/layouts/app.php'; ?>
+<?php $pageTitle = 'Notifications | LSC';
+$page_content = ob_get_clean(); require LSC_ROOT . '/views/layouts/app.php'; ?>

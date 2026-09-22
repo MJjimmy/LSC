@@ -156,7 +156,7 @@
         font-size: 10px;
     }
 
-    /* Hide task titles on mobile — just show dot indicators */
+    /* Hide task titles on mobile: just show dot indicators */
     .cal-task-label { display: none; }
 
     .cal-task-item { justify-content: center; }
@@ -335,6 +335,7 @@
 </div>
 
 <?php
+$pageTitle = 'Calendar | LSC';
 $page_content = ob_get_clean();
 require LSC_ROOT . '/views/layouts/app.php';
 ?>

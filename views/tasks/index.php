@@ -125,7 +125,7 @@
                 <div style="margin-bottom:14px;">
                     <label class="lsc-label">Group</label>
                     <select name="group_id" required class="lsc-input">
-                        <option value="">— Select group —</option>
+                        <option value="">Select a group</option>
                         <?php foreach ($myGroups as $g): ?>
                             <option value="<?= $g['group_id'] ?>"><?= htmlspecialchars($g['group_name']) ?></option>
                         <?php endforeach; ?>
@@ -174,4 +174,5 @@ document.getElementById('createTaskModal').addEventListener('click', function(e)
 });
 </script>
 
-<?php $page_content = ob_get_clean(); require LSC_ROOT . '/views/layouts/app.php'; ?>
+<?php $pageTitle = 'Tasks | LSC';
+$page_content = ob_get_clean(); require LSC_ROOT . '/views/layouts/app.php'; ?>

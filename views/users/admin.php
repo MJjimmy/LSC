@@ -1,7 +1,7 @@
 <?php
 // Variables are provided by AdminController::index().
 /* ═══════════════════════════════════════════════════════════════════
-   admin.php — LSC admin dashboard
+   admin.php: LSC admin dashboard
    All PHP logic is identical to the original.
 ═══════════════════════════════════════════════════════════════════ */
 
@@ -108,6 +108,7 @@
 </div>
 
 <?php
+$pageTitle = 'Admin Panel | LSC';
 $page_content = ob_get_clean();
 require LSC_ROOT . '/views/layouts/app.php';
 ?>
