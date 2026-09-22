@@ -78,6 +78,34 @@ Institutions need a platform that is:
 - Theme preference support, including dark mode
 - Public privacy, terms, offline and not-found pages
 
+## Concept wireframes
+
+The following low-fidelity wireframes show the intended institutional experience and the main rollout touchpoints. They are discussion aids for requirements and stakeholder feedback, not final visual specifications.
+
+### Sign-in and identity
+
+The sign-in experience keeps local account access available while making room for institution-approved Google and Microsoft identity providers. The provider buttons should only be enabled after the corresponding OpenID Connect integration, callback validation and account-linking workflow have been completed.
+
+[View the sign-in and SSO wireframe](assets/wireframe-auth.svg)
+
+### Student dashboard
+
+The dashboard brings active groups, open tasks and recent activity into one view. The institution can use this screen to orient students without replacing the institution's learning-management system.
+
+[View the student dashboard wireframe](assets/wireframe-dashboard.svg)
+
+### Group workspace
+
+The group workspace combines discussion, tasks, members and files. The current chat concept includes a recent-files panel so students do not have to search through messages to find shared resources.
+
+[View the group chat and files wireframe](assets/chat_attachments_illustration.png)
+
+### Invitation and onboarding flow
+
+The invitation flow is designed to make group membership explicit: a group owner creates an invite, the recipient receives a notification or link, the recipient accepts before expiry, and membership is recorded before collaboration begins.
+
+[View the invitation workflow wireframe](assets/invitation_workflow.png)
+
 ## Value to an institution
 
 ### For students

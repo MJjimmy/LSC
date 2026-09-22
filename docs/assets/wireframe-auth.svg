@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#f7fafb"/>
+  <rect x="64" y="64" width="1472" height="772" rx="28" fill="#ffffff" stroke="#d9e3e8" stroke-width="3"/>
+  <rect x="64" y="64" width="650" height="772" rx="28" fill="#123b63"/>
+  <path d="M714 64h0v772h0" stroke="#123b63" stroke-width="4"/>
+  <text x="130" y="150" fill="#ffffff" font-family="Arial, sans-serif" font-weight="700" font-size="58">LSC</text>
+  <text x="130" y="207" fill="#61d895" font-family="Arial, sans-serif" font-weight="700" font-size="25">LEARN  ·  SHARE  ·  CONNECT</text>
+  <text x="130" y="335" fill="#ffffff" font-family="Arial, sans-serif" font-weight="700" font-size="38">Your study group,</text>
+  <text x="130" y="386" fill="#ffffff" font-family="Arial, sans-serif" font-weight="700" font-size="38">in one place.</text>
+  <text x="130" y="465" fill="#dcecf2" font-family="Arial, sans-serif" font-size="22">Connect with classmates, coordinate</text>
+  <text x="130" y="500" fill="#dcecf2" font-family="Arial, sans-serif" font-size="22">tasks and keep resources together.</text>
+  <circle cx="148" cy="610" r="8" fill="#61d895"/><text x="175" y="618" fill="#dcecf2" font-family="Arial, sans-serif" font-size="20">Secure institution-ready workspace</text>
+  <circle cx="148" cy="660" r="8" fill="#61d895"/><text x="175" y="668" fill="#dcecf2" font-family="Arial, sans-serif" font-size="20">Works on desktop and mobile</text>
+  <circle cx="148" cy="710" r="8" fill="#61d895"/><text x="175" y="718" fill="#dcecf2" font-family="Arial, sans-serif" font-size="20">Groups, files, tasks and chat</text>
+  <text x="850" y="180" fill="#172a3a" font-family="Arial, sans-serif" font-weight="700" font-size="34">Sign in to LSC</text>
+  <text x="850" y="225" fill="#607181" font-family="Arial, sans-serif" font-size="19">Use your account or an approved institution identity.</text>
+  <text x="850" y="295" fill="#243746" font-family="Arial, sans-serif" font-weight="700" font-size="18">Email address</text>
+  <rect x="850" y="315" width="560" height="60" rx="8" fill="#ffffff" stroke="#b8c8d0" stroke-width="2"/>
+  <text x="875" y="353" fill="#91a1aa" font-family="Arial, sans-serif" font-size="18">student@institution.ac.za</text>
+  <text x="850" y="420" fill="#243746" font-family="Arial, sans-serif" font-weight="700" font-size="18">Password</text>
+  <rect x="850" y="440" width="560" height="60" rx="8" fill="#ffffff" stroke="#b8c8d0" stroke-width="2"/>
+  <text x="875" y="478" fill="#91a1aa" font-family="Arial, sans-serif" font-size="18">••••••••••</text>
+  <rect x="850" y="535" width="560" height="62" rx="8" fill="#123b63"/>
+  <text x="1080" y="575" fill="#ffffff" font-family="Arial, sans-serif" font-weight="700" font-size="19" text-anchor="middle">Sign in</text>
+  <text x="1130" y="635" fill="#123b63" font-family="Arial, sans-serif" font-size="17" text-anchor="middle">Forgot password?</text>
+  <line x1="850" y1="675" x2="1080" y2="675" stroke="#d9e3e8" stroke-width="2"/><text x="1130" y="682" fill="#607181" font-family="Arial, sans-serif" font-size="16" text-anchor="middle">or continue with</text><line x1="1180" y1="675" x2="1410" y2="675" stroke="#d9e3e8" stroke-width="2"/>
+  <rect x="850" y="710" width="270" height="58" rx="8" fill="#ffffff" stroke="#b8c8d0" stroke-width="2"/><text x="985" y="747" fill="#243746" font-family="Arial, sans-serif" font-weight="700" font-size="17" text-anchor="middle">Google</text>
+  <rect x="1140" y="710" width="270" height="58" rx="8" fill="#ffffff" stroke="#b8c8d0" stroke-width="2"/><text x="1275" y="747" fill="#243746" font-family="Arial, sans-serif" font-weight="700" font-size="17" text-anchor="middle">Microsoft</text>
+</svg>
