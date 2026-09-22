@@ -162,3 +162,11 @@ The full architecture, user guide, deployment procedure, security model, and rel
 ```text
 docs/LSC_Project_Documentation.docx
 ```
+
+For an institution-facing product overview, implementation plan, security posture,
+compliance considerations, and current integration status, see:
+
+```text
+docs/LSC_Institutional_Overview.docx
+docs/LSC_Institutional_Overview.md
+```
