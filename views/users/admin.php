@@ -61,7 +61,7 @@
                             <div style="width:34px;height:34px;border-radius:50%;background:var(--brand-dim);
                                         border:1px solid var(--brand-border);display:flex;align-items:center;
                                         justify-content:center;font-weight:700;font-size:13px;color:var(--brand);flex-shrink:0;">
-                                <?= strtoupper(substr($u['name'], 0, 1)) ?>
+                                <?= htmlspecialchars(strtoupper(mb_substr($u['name'], 0, 1))) ?>
                             </div>
                             <div>
                                 <div style="font-weight:600;"><?= htmlspecialchars($u['name']) ?></div>

@@ -11,6 +11,10 @@
     <div class="auth-alert auth-alert-error"><i class="bi bi-exclamation-circle" style="margin-right:6px;"></i>Your account is inactive. Contact an administrator.</div>
 <?php endif; ?>
 
+<?php if (isset($_GET['expired'])): ?>
+    <div class="auth-alert auth-alert-error"><i class="bi bi-exclamation-circle" style="margin-right:6px;"></i>Your session expired. Please sign in again.</div>
+<?php endif; ?>
+
 <?php if ($error): ?>
     <div class="auth-alert auth-alert-error">
         <i class="bi bi-exclamation-circle" style="margin-right:6px;"></i><?= htmlspecialchars($error) ?>

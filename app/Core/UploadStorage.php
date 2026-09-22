@@ -56,6 +56,28 @@ final class UploadStorage
             return ['ok' => false, 'error' => 'The selected image is not valid.'];
         }
 
+        // Content sniffing: the file's bytes must match its extension. This
+        // stops a PHP or executable file renamed to .txt/.pdf from being
+        // stored, even though stored files live outside the document root
+        // and are only served as downloads.
+        $magicSignatures = [
+            'pdf' => ["%PDF"],
+            'docx' => ["PK\x03\x04"],
+            'pptx' => ["PK\x03\x04"],
+            'xlsx' => ["PK\x03\x04"],
+            'zip' => ["PK\x03\x04"],
+        ];
+        if (isset($magicSignatures[$extension])) {
+            $handle = @fopen($file['tmp_name'], 'rb');
+            $head = $handle ? (string)fread($handle, 8) : '';
+            if ($handle) {
+                fclose($handle);
+            }
+            if (!in_array(substr($head, 0, 4), $magicSignatures[$extension], true)) {
+                return ['ok' => false, 'error' => 'The file does not match its file type. Please upload the correct file.'];
+            }
+        }
+
         $uploadDirectory = $this->root . DIRECTORY_SEPARATOR . $category;
         if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0755, true) && !is_dir($uploadDirectory)) {
             return ['ok' => false, 'error' => 'Upload storage is unavailable.'];

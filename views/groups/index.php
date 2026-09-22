@@ -53,7 +53,7 @@
                 <div style="width:44px;height:44px;border-radius:10px;background:var(--sidebar);
                             color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;
                             font-weight:700;font-size:15px;flex-shrink:0;">
-                    <?= strtoupper(substr($g['group_name'], 0, 2)) ?>
+                    <?= htmlspecialchars(strtoupper(mb_substr($g['group_name'], 0, 2))) ?>
                 </div>
                 <div style="flex:1;min-width:0;">
                     <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
@@ -108,7 +108,7 @@
         <div style="width:40px;height:40px;border-radius:8px;background:var(--sidebar);
                     color:rgba(255,255,255,.65);display:flex;align-items:center;justify-content:center;
                     font-weight:700;font-size:14px;flex-shrink:0;">
-            <?= strtoupper(substr($g['group_name'], 0, 2)) ?>
+            <?= htmlspecialchars(strtoupper(mb_substr($g['group_name'], 0, 2))) ?>
         </div>
 
         <div style="flex:1;min-width:0;">

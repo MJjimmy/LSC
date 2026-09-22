@@ -4,6 +4,7 @@ require_once dirname(__DIR__) . '/config/bootstrap.php';
 
 use LSC\Core\Auth;
 use LSC\Core\Database;
+use LSC\Core\RateLimiter;
 use LSC\Groups\GroupRepository;
 use LSC\Tasks\TaskController;
 use LSC\Tasks\TaskRepository;
@@ -16,5 +17,6 @@ $tasks = new TaskRepository($database);
     new Auth($database),
     $tasks,
     new TaskService($tasks, $groups),
-    $groups
+    $groups,
+    new RateLimiter($database)
 ))->index();

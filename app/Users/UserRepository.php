@@ -72,6 +72,12 @@ final class UserRepository
             SQL)->execute([$phoneNumber, $notifyEmail, $notifySms, $userId]);
     }
 
+    public function updatePasswordHash(int $userId, string $passwordHash): bool
+    {
+        return $this->database->prepare('UPDATE users SET password_hash = ? WHERE user_id = ?')
+            ->execute([$passwordHash, $userId]);
+    }
+
     public function all(): array
     {
         return $this->database->query(

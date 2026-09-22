@@ -7,6 +7,7 @@ namespace LSC\Groups;
 use LSC\Chat\MessageRepository;
 use LSC\Core\Auth;
 use LSC\Core\Csrf;
+use LSC\Core\RateLimiter;
 use LSC\Core\UploadStorage;
 use LSC\Files\FileRepository;
 use LSC\Invitations\InvitationService;
@@ -22,7 +23,8 @@ final class GroupController
         private readonly TaskRepository $tasks,
         private readonly FileRepository $files,
         private readonly MessageRepository $messages,
-        private readonly InvitationService $invitations
+        private readonly InvitationService $invitations,
+        private readonly RateLimiter $rateLimiter
     ) {
     }
 
@@ -37,10 +39,14 @@ final class GroupController
             if (isset($_POST['create_group'])) {
                 $name = trim((string)($_POST['group_name'] ?? ''));
                 $description = trim((string)($_POST['description'] ?? ''));
-                if ($name !== '' && mb_strlen($name) <= 100) {
+                if ($name !== '' && mb_strlen($name) <= 100
+                    && !$this->rateLimiter->tooManyAttempts('group:user:' . $userId, 5)) {
+                    $this->rateLimiter->hit('group:user:' . $userId, 3600);
                     $this->groups->create($name, $description, isset($_POST['is_private']) ? 1 : 0, $userId);
                 }
-            } elseif (($groupId = (int)($_POST['request_join_group_id'] ?? 0)) > 0) {
+            } elseif (($groupId = (int)($_POST['request_join_group_id'] ?? 0)) > 0
+                && !$this->rateLimiter->tooManyAttempts('joinreq:user:' . $userId, 20)) {
+                $this->rateLimiter->hit('joinreq:user:' . $userId, 3600);
                 $this->service->requestJoin($groupId, $userId);
             }
 
@@ -106,6 +112,11 @@ final class GroupController
         bool $isMember
     ): void {
         if (isset($_POST['delete_group']) && $canManageGroup) {
+            // Remove the stored files before the database rows disappear,
+            // so a deleted group does not leave orphan files on disk.
+            foreach ($this->files->forGroup($groupId) as $fileRow) {
+                $this->storage->remove($fileRow['file_path']);
+            }
             $this->groups->delete($groupId);
             $this->redirect('groups.php');
         }
@@ -131,26 +142,36 @@ final class GroupController
         }
 
         if (isset($_POST['invite_email']) && $canManageGroup) {
-            $result = $this->invitations->create(
-                $groupId,
-                $userId,
-                $role,
-                (string)$_POST['invite_email']
-            );
-            $_SESSION['group_flash'] = $result['ok']
-                ? [
-                    'type' => 'success',
-                    'message' => $result['registered']
-                        ? 'Invitation created and added to the user\'s notifications.'
-                        : 'Invitation created. Copy the link below and share it securely.',
-                    'invite_path' => 'invite.php?token=' . $result['token'],
-                ]
-                : ['type' => 'error', 'message' => $result['error']];
+            if ($this->rateLimiter->tooManyAttempts('invite:user:' . $userId, 10)) {
+                $_SESSION['group_flash'] = ['type' => 'error', 'message' => 'Too many invitations from your account. Try again later.'];
+            } else {
+                $this->rateLimiter->hit('invite:user:' . $userId, 3600);
+                $result = $this->invitations->create(
+                    $groupId,
+                    $userId,
+                    $role,
+                    (string)$_POST['invite_email']
+                );
+                $_SESSION['group_flash'] = $result['ok']
+                    ? [
+                        'type' => 'success',
+                        'message' => $result['registered']
+                            ? 'Invitation created and added to the user\'s notifications.'
+                            : 'Invitation created. Copy the link below and share it securely.',
+                        'invite_path' => 'invite.php?token=' . $result['token'],
+                    ]
+                    : ['type' => 'error', 'message' => $result['error']];
+            }
             $this->redirect("group.php?id={$groupId}&tab=members");
         }
 
         if (isset($_POST['send_message']) && $isMember) {
-            $this->sendMessage($groupId, $userId);
+            if ($this->rateLimiter->tooManyAttempts('chat:user:' . $userId, 30)) {
+                $_SESSION['group_flash'] = ['type' => 'error', 'message' => 'You are sending messages too quickly. Please slow down.'];
+            } else {
+                $this->rateLimiter->hit('chat:user:' . $userId, 300);
+                $this->sendMessage($groupId, $userId);
+            }
             $this->redirect("group.php?id={$groupId}&tab=chat");
         }
     }
@@ -158,6 +179,10 @@ final class GroupController
     private function sendMessage(int $groupId, int $userId): void
     {
         $message = trim((string)($_POST['message'] ?? ''));
+        if (mb_strlen($message) > 4000) {
+            $message = '';
+            $_SESSION['group_flash'] = ['type' => 'error', 'message' => 'Messages are limited to 4000 characters.'];
+        }
         $attachmentId = null;
 
         if (isset($_FILES['attachment']) && ($_FILES['attachment']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {

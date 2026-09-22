@@ -192,7 +192,7 @@
                     <div style="width:36px;height:36px;border-radius:6px;background:var(--sidebar);
                                 color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;
                                 font-weight:700;font-size:13px;flex-shrink:0;">
-                        <?= strtoupper(substr($g['group_name'], 0, 2)) ?>
+                        <?= htmlspecialchars(strtoupper(mb_substr($g['group_name'], 0, 2))) ?>
                     </div>
                     <div style="flex:1;min-width:0;">
                         <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">

@@ -123,12 +123,27 @@ The sign-in page links to **Forgot password?**. Reset tokens are random, stored 
 
 ## Security notes
 
-- New account, profile, invite, notification, chat attachment, file, and recovery actions use CSRF tokens.
-- Downloads verify that the requester belongs to the file's group.
-- Uploads use random stored names, extension allowlists, size limits, and image validation.
+- All database queries use prepared statements; every page renders user content through `htmlspecialchars`.
+- CSRF tokens protect all mutating actions (accounts, profile, invites, notifications, tasks, files, chat, admin).
+- Downloads verify that the requester belongs to the file's group; redirects are restricted to local paths.
+- Uploads use random stored names, extension allowlists, size limits, image-header validation, and container-signature checks for PDF/Office/ZIP files. Uploaded files are stored outside the web root.
 - Group management actions are limited to group creators or administrators.
-- Password-reset responses do not reveal whether an email address exists.
+- Passwords are hashed with `password_hash` (bcrypt) and transparently rehashed when PHP's default changes; reset tokens are stored only as SHA-256 hashes, expire after 60 minutes, and are single-use. Password-reset responses do not reveal whether an email address exists.
+- Signed-in sessions expire after 30 minutes idle or 24 hours, whichever comes first.
+- In production (`APP_ENV=production`) HTTP requests are redirected to HTTPS (301) and HSTS is enabled; the session cookie is Secure/HttpOnly/SameSite=Lax.
+- Security headers on all pages: Content-Security-Policy, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, and `Cache-Control: no-store` for HTML (avatars set their own short-lived private cache).
+- Rate limiting (database-backed fixed windows): login, registration, password recovery, plus per-user limits on group creation, join requests, invitations, chat messages, task creation, and file uploads.
 - New registrations can only receive the student or lecturer role; administrator access must be granted deliberately in the database or through a future secured admin workflow.
+- There are no third-party PHP dependencies to scan; the only front-end dependencies are pinned CDN assets (Bootstrap Icons 1.11.3, Google Fonts "Inter").
+
+## Compliance notes
+
+LSC processes student personal data (names, emails, photos, phone numbers, academic details, chat and files), so the applicable framework depends on where you deploy:
+
+- **POPIA (South Africa)**: if you deploy for a SA institution, POPIA applies. This codebase provides the technical controls it expects: purpose limitation, data minimisation (optional profile fields), security (headers, hashed passwords, access control, rate limiting) and a privacy policy with a contact point. The operational side remains with you: designate a Responsible Person, keep a record of processing, and handle data-subject requests.
+- **GDPR (EU/UK)**: the same controls map to GDPR's technical measures. If EU students use the instance you additionally need the legal bases, an Article 30 record, and processor terms with Resend/Africa's Talking.
+- **Under-18 learners**: where learners under 18 may register, parental-consent and child-protection rules apply in many jurisdictions. The safest default is to restrict registration to 18+ or to obtain institutional/parental consent.
+- No payment data is processed. This section is not legal advice.
 
 ## Production considerations
 

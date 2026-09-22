@@ -6,6 +6,7 @@ namespace LSC\Tasks;
 
 use LSC\Core\Auth;
 use LSC\Core\Csrf;
+use LSC\Core\RateLimiter;
 use LSC\Groups\GroupRepository;
 
 final class TaskController
@@ -14,7 +15,8 @@ final class TaskController
         private readonly Auth $auth,
         private readonly TaskRepository $tasks,
         private readonly TaskService $service,
-        private readonly GroupRepository $groups
+        private readonly GroupRepository $groups,
+        private readonly RateLimiter $rateLimiter
     ) {
     }
 
@@ -29,7 +31,9 @@ final class TaskController
                 $this->service->deleteIfAllowed((int)$_POST['delete_task'], $userId, (string)$_SESSION['user_role']);
             } elseif (isset($_POST['mark_done_id'])) {
                 $this->service->markDone((int)$_POST['mark_done_id'], $userId);
-            } elseif (isset($_POST['create_task'])) {
+            } elseif (isset($_POST['create_task'])
+                && !$this->rateLimiter->tooManyAttempts('task:user:' . $userId, 50)) {
+                $this->rateLimiter->hit('task:user:' . $userId, 3600);
                 $this->service->createForMember(
                     (int)($_POST['group_id'] ?? 0),
                     $userId,

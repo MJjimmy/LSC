@@ -22,6 +22,10 @@ final class AccountService
         if ((int)$user['is_active'] !== 1) {
             return ['ok' => false, 'error' => 'Your account has been deactivated. Contact an administrator.'];
         }
+        // Keep hashes current if the default algorithm or cost ever changes.
+        if (password_needs_rehash($user['password_hash'], PASSWORD_DEFAULT)) {
+            $this->users->updatePasswordHash((int)$user['user_id'], password_hash($password, PASSWORD_DEFAULT));
+        }
         return ['ok' => true, 'user' => $user];
     }
 
