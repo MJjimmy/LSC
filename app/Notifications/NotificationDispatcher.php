@@ -44,6 +44,32 @@ final class NotificationDispatcher
     }
 
     /**
+     * Queue an outbound notification respecting the user's own channel
+     * preferences (users.notify_email / users.notify_sms). Returns false if
+     * nothing was queued (user missing, inactive, or no channel enabled).
+     */
+    public function queueForUser(int $userId, string $subject, string $message): bool
+    {
+        $statement = $this->database->prepare(
+            'SELECT email, phone_number, notify_email, notify_sms FROM users WHERE user_id = ? AND is_active = 1'
+        );
+        $statement->execute([$userId]);
+        $user = $statement->fetch();
+        if (!$user) {
+            return false;
+        }
+
+        $queued = false;
+        if ((int)$user['notify_email'] === 1 && $user['email']) {
+            $queued = $this->queueEmail($user['email'], $subject, $message, $userId) || $queued;
+        }
+        if ((int)$user['notify_sms'] === 1 && $user['phone_number']) {
+            $queued = $this->queueSms($user['phone_number'], $subject . ': ' . $message, $userId) || $queued;
+        }
+        return $queued;
+    }
+
+    /**
      * Process a batch of pending notifications. Call this from a cron job:
      *   php bin/process-notification-queue.php
      */

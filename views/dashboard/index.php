@@ -44,7 +44,7 @@
         <div class="stat-card-value"><?= count($myTasks) ?></div>
     </div>
 
-    <div class="stat-card copper-tint">
+    <div class="stat-card brand-tint">
         <div class="stat-card-label"><i class="bi bi-clock-fill" style="margin-right:5px;"></i>Pending</div>
         <div class="stat-card-value"><?= count($pendingTasks) ?></div>
     </div>
@@ -114,7 +114,7 @@
                 <?php endforeach; ?>
             </div>
         </div>
-        <a href="admin.php" class="btn-primary btn-copper">
+        <a href="admin.php" class="btn-primary btn-brand">
             <i class="bi bi-shield-lock-fill"></i> Admin Panel
         </a>
     </div>

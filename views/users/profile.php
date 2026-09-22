@@ -21,7 +21,7 @@
             <?php if (!empty($profile['avatar_path'])): ?><img src="avatar.php?user_id=<?= (int)$profile['user_id'] ?>" alt="<?= htmlspecialchars($profile['name']) ?>"><?php else: ?><?= strtoupper(substr($profile['name'], 0, 1)) ?><?php endif; ?>
         </div>
         <div style="font-size:20px;font-weight:700;"><?= htmlspecialchars($profile['name']) ?></div>
-        <div style="font-size:12px;color:var(--copper-dark);font-weight:600;margin-top:3px;"><?= $profile['role'] === 'student' ? 'Learner' : ucfirst($profile['role']) ?></div>
+        <div style="font-size:12px;color:var(--brand-dark);font-weight:600;margin-top:3px;"><?= $profile['role'] === 'student' ? 'Learner' : ucfirst($profile['role']) ?></div>
         <?php if (!empty($profile['course'])): ?><div style="font-size:13px;color:var(--text-secondary);margin-top:11px;"><?= htmlspecialchars($profile['course']) ?></div><?php endif; ?>
         <?php if (!empty($profile['institution'])): ?><div style="font-size:12px;color:var(--text-muted);margin-top:2px;"><?= htmlspecialchars($profile['institution']) ?></div><?php endif; ?>
 
@@ -43,13 +43,40 @@
             <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-                    <div style="grid-column:1/-1;"><label class="ss-label">Profile picture</label><input type="file" name="avatar" class="ss-input" accept=".png,.jpg,.jpeg,.webp"></div>
-                    <div style="grid-column:1/-1;"><label class="ss-label">Full name</label><input type="text" name="name" class="ss-input" required maxlength="100" value="<?= htmlspecialchars($profile['name']) ?>"></div>
-                    <div><label class="ss-label">Institution</label><input type="text" name="institution" class="ss-input" maxlength="150" placeholder="University or school" value="<?= htmlspecialchars($profile['institution'] ?? '') ?>"></div>
-                    <div><label class="ss-label">Course</label><input type="text" name="course" class="ss-input" maxlength="150" placeholder="Programme or major" value="<?= htmlspecialchars($profile['course'] ?? '') ?>"></div>
-                    <div style="grid-column:1/-1;"><label class="ss-label">Bio</label><textarea name="bio" class="ss-input" rows="5" maxlength="1000" placeholder="What are you studying, and what do you enjoy working on?"><?= htmlspecialchars($profile['bio'] ?? '') ?></textarea></div>
+                    <div style="grid-column:1/-1;"><label class="lsc-label">Profile picture</label><input type="file" name="avatar" class="lsc-input" accept=".png,.jpg,.jpeg,.webp"></div>
+                    <div style="grid-column:1/-1;"><label class="lsc-label">Full name</label><input type="text" name="name" class="lsc-input" required maxlength="100" value="<?= htmlspecialchars($profile['name']) ?>"></div>
+                    <div><label class="lsc-label">Institution</label><input type="text" name="institution" class="lsc-input" maxlength="150" placeholder="University or school" value="<?= htmlspecialchars($profile['institution'] ?? '') ?>"></div>
+                    <div><label class="lsc-label">Course</label><input type="text" name="course" class="lsc-input" maxlength="150" placeholder="Programme or major" value="<?= htmlspecialchars($profile['course'] ?? '') ?>"></div>
+                    <div style="grid-column:1/-1;"><label class="lsc-label">Bio</label><textarea name="bio" class="lsc-input" rows="5" maxlength="1000" placeholder="What are you studying, and what do you enjoy working on?"><?= htmlspecialchars($profile['bio'] ?? '') ?></textarea></div>
                 </div>
-                <div style="display:flex;justify-content:flex-end;margin-top:18px;"><button class="btn-primary btn-copper" type="submit"><i class="bi bi-check2"></i> Save profile</button></div>
+                <div style="display:flex;justify-content:flex-end;margin-top:18px;"><button class="btn-primary btn-brand" type="submit" name="update_profile"><i class="bi bi-check2"></i> Save profile</button></div>
+            </form>
+
+            <div style="height:1px;background:var(--border-soft);margin:24px 0;"></div>
+            <div class="panel-title" style="margin-bottom:3px;">Notifications</div>
+            <div class="panel-sub" style="margin-bottom:20px;">Choose how LSC reaches you about group invitations.</div>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div style="grid-column:1/-1;">
+                        <label class="lsc-label">Phone number</label>
+                        <input type="tel" name="phone_number" class="lsc-input" placeholder="+27821234567" value="<?= htmlspecialchars((string)($profile['phone_number'] ?? '')) ?>">
+                        <div style="font-size:11px;color:var(--text-muted);margin-top:5px;">International format, e.g. +27821234567. Leave empty for email only.</div>
+                    </div>
+                    <div>
+                        <label style="display:flex;align-items:center;gap:9px;font-size:13.5px;cursor:pointer;">
+                            <input type="checkbox" name="notify_email" style="width:16px;height:16px;accent-color:var(--brand);" <?= (int)($profile['notify_email'] ?? 1) === 1 ? 'checked' : '' ?>>
+                            Email notifications
+                        </label>
+                    </div>
+                    <div>
+                        <label style="display:flex;align-items:center;gap:9px;font-size:13.5px;cursor:pointer;">
+                            <input type="checkbox" name="notify_sms" style="width:16px;height:16px;accent-color:var(--brand);" <?= (int)($profile['notify_sms'] ?? 0) === 1 ? 'checked' : '' ?>>
+                            SMS notifications
+                        </label>
+                    </div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;margin-top:18px;"><button class="btn-primary btn-brand" type="submit" name="update_notifications"><i class="bi bi-bell"></i> Save notifications</button></div>
             </form>
         <?php else: ?>
             <div class="panel-title">About <?= htmlspecialchars($profile['name']) ?></div>

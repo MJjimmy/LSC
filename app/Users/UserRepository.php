@@ -18,6 +18,7 @@ final class UserRepository
         $statement = $this->database->prepare(<<<'SQL'
             SELECT u.user_id, u.name, u.email, u.role, u.bio, u.institution,
                    u.course, u.avatar_path, u.created_at,
+                   u.phone_number, u.notify_email, u.notify_sms,
                    (SELECT COUNT(*) FROM group_members gm WHERE gm.user_id = u.user_id) AS group_count,
                    (SELECT COUNT(*) FROM files f WHERE f.uploaded_by = u.user_id) AS file_count,
                    (SELECT COUNT(*) FROM tasks t WHERE t.assigned_to = u.user_id AND t.status = 'done') AS completed_task_count
@@ -62,6 +63,13 @@ final class UserRepository
     {
         return $this->database->prepare('UPDATE users SET avatar_path = ? WHERE user_id = ?')
             ->execute([$avatarPath, $userId]);
+    }
+
+    public function updateNotificationSettings(int $userId, ?string $phoneNumber, int $notifyEmail, int $notifySms): bool
+    {
+        return $this->database->prepare(<<<'SQL'
+            UPDATE users SET phone_number = ?, notify_email = ?, notify_sms = ? WHERE user_id = ?
+            SQL)->execute([$phoneNumber, $notifyEmail, $notifySms, $userId]);
     }
 
     public function all(): array

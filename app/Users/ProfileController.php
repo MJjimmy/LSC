@@ -31,7 +31,11 @@ final class ProfileController
                 http_response_code(403);
                 exit('You can only edit your own profile.');
             }
-            [$error, $success] = $this->update($profileUserId);
+            if (isset($_POST['update_notifications'])) {
+                [$error, $success] = $this->updateNotificationSettings($profileUserId);
+            } else {
+                [$error, $success] = $this->update($profileUserId);
+            }
         }
 
         $profile = $this->users->findActive($profileUserId);
@@ -86,5 +90,31 @@ final class ProfileController
         $_SESSION['user_name'] = $name;
         $_SESSION['user_avatar'] = $newAvatar;
         return ['', 'Profile updated successfully.'];
+    }
+
+    private function updateNotificationSettings(int $userId): array
+    {
+        $phone = trim((string)($_POST['phone_number'] ?? ''));
+        $notifyEmail = isset($_POST['notify_email']) ? 1 : 0;
+        $notifySms = isset($_POST['notify_sms']) ? 1 : 0;
+
+        $phoneNumber = null;
+        if ($phone !== '') {
+            $cleaned = preg_replace('/[\s\-()]/', '', $phone);
+            if (!preg_match('/^\+\d{8,15}$/', $cleaned)) {
+                return ['Enter a phone number in international format, e.g. +27821234567.', ''];
+            }
+            $phoneNumber = $cleaned;
+        }
+
+        if ($notifySms === 1 && $phoneNumber === null) {
+            return ['Add a phone number first to receive SMS notifications.', ''];
+        }
+
+        if (!$this->users->updateNotificationSettings($userId, $phoneNumber, $notifyEmail, $notifySms)) {
+            return ['Your notification settings could not be updated.', ''];
+        }
+
+        return ['', 'Notification settings updated.'];
     }
 }

@@ -1,7 +1,7 @@
 <?php
 // Variables are provided by AdminController::index().
 /* ═══════════════════════════════════════════════════════════════════
-   admin.php — Obsidian & Copper theme
+   admin.php — LSC admin dashboard
    All PHP logic is identical to the original.
 ═══════════════════════════════════════════════════════════════════ */
 
@@ -23,7 +23,7 @@
         ['bi-folder-fill',     'Total Files',  $stats['total_files']],
     ] as [$icon, $lbl, $val]): ?>
     <div class="stat-card">
-        <div style="width:32px;height:32px;border-radius:6px;background:#eff6ff;color:var(--copper-dark);
+        <div style="width:32px;height:32px;border-radius:6px;background:#eff6ff;color:var(--brand-dark);
                     display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:12px;">
             <i class="bi <?= $icon ?>"></i>
         </div>
@@ -43,7 +43,7 @@
     </div>
 
     <div style="overflow-x:auto;">
-        <table class="ss-table">
+        <table class="lsc-table">
             <thead>
                 <tr>
                     <th>User</th>
@@ -58,9 +58,9 @@
                 <tr>
                     <td>
                         <div style="display:flex;align-items:center;gap:10px;">
-                            <div style="width:34px;height:34px;border-radius:50%;background:var(--copper-dim);
-                                        border:1px solid var(--copper-border);display:flex;align-items:center;
-                                        justify-content:center;font-weight:700;font-size:13px;color:var(--copper);flex-shrink:0;">
+                            <div style="width:34px;height:34px;border-radius:50%;background:var(--brand-dim);
+                                        border:1px solid var(--brand-border);display:flex;align-items:center;
+                                        justify-content:center;font-weight:700;font-size:13px;color:var(--brand);flex-shrink:0;">
                                 <?= strtoupper(substr($u['name'], 0, 1)) ?>
                             </div>
                             <div>

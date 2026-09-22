@@ -24,11 +24,11 @@
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
             <input type="hidden" name="open_notification_id" value="<?= (int)$notification['notification_id'] ?>">
             <button type="submit" style="width:100%;border:0;border-bottom:1px solid var(--border-soft);background:<?= $notification['is_read'] ? '#fff' : '#eff6ff' ?>;padding:16px 19px;display:flex;gap:13px;text-align:left;cursor:pointer;font-family:'Inter',system-ui,sans-serif;">
-                <span style="width:39px;height:39px;border-radius:11px;background:var(--copper-dim);border:1px solid var(--copper-border);display:flex;align-items:center;justify-content:center;color:var(--copper);font-size:17px;flex-shrink:0;"><i class="bi <?= $icon ?>"></i></span>
+                <span style="width:39px;height:39px;border-radius:11px;background:var(--brand-dim);border:1px solid var(--brand-border);display:flex;align-items:center;justify-content:center;color:var(--brand);font-size:17px;flex-shrink:0;"><i class="bi <?= $icon ?>"></i></span>
                 <span style="min-width:0;flex:1;">
                     <span style="display:flex;align-items:center;gap:8px;">
                         <strong style="font-size:13.5px;color:var(--text-primary);"><?= htmlspecialchars($notification['title']) ?></strong>
-                        <?php if (!$notification['is_read']): ?><span style="width:7px;height:7px;border-radius:50%;background:var(--copper);"></span><?php endif; ?>
+                        <?php if (!$notification['is_read']): ?><span style="width:7px;height:7px;border-radius:50%;background:var(--brand);"></span><?php endif; ?>
                     </span>
                     <?php if ($notification['body']): ?><span style="display:block;font-size:12.5px;color:var(--text-secondary);margin-top:3px;line-height:1.5;"><?= htmlspecialchars($notification['body']) ?></span><?php endif; ?>
                     <small style="display:block;color:var(--text-muted);margin-top:5px;"><?= date('d M Y, H:i', strtotime($notification['created_at'])) ?></small>

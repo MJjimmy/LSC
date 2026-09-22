@@ -24,10 +24,10 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
         /* ── TOKENS (copied from auth-layout + layout) ── */
         :root {
             --bg-dark:       #123b63;
-            --copper:        #2563eb;
-            --copper-dark:   #1d4ed8;
-            --copper-dim:    rgba(37,99,235,.12);
-            --copper-border: rgba(147,197,253,.45);
+            --brand:        #2563eb;
+            --brand-dark:   #1d4ed8;
+            --brand-dim:    rgba(37,99,235,.12);
+            --brand-border: rgba(147,197,253,.45);
             --green:         #16a34a;
             --cream:         #f4f8fc;
             --card-bg:       #ffffff;
@@ -103,14 +103,14 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
         .logo-icon {
             width: 44px;
             height: 44px;
-            background: var(--copper-dim);
-            border: 1px solid var(--copper-border);
+            background: var(--brand-dim);
+            border: 1px solid var(--brand-border);
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 22px;
-            color: var(--copper);
+            color: var(--brand);
         }
 
         .logo-text h1 {
@@ -149,7 +149,7 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
 
         .nav-btn-outline:hover {
             background: rgba(255,255,255,.05);
-            border-color: var(--copper);
+            border-color: var(--brand);
         }
 
         .nav-btn-solid {
@@ -159,7 +159,7 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
         }
 
         .nav-btn-solid:hover {
-            background: var(--copper);
+            background: var(--brand);
             color: #fff;
         }
 
@@ -178,7 +178,7 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
             padding: 6px 16px;
             font-size: 13px;
             font-weight: 500;
-            color: var(--copper);
+            color: var(--brand);
             margin-bottom: 28px;
         }
 
@@ -210,7 +210,7 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: var(--copper);
+            background: var(--brand);
             color: #fff;
             padding: 12px 28px;
             border-radius: 8px;
@@ -219,7 +219,7 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
             transition: background .2s;
         }
 
-        .btn-primary:hover { background: var(--copper-dark); }
+        .btn-primary:hover { background: var(--brand-dark); }
 
         .btn-secondary {
             display: inline-flex;
@@ -236,7 +236,7 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
         }
 
         .btn-secondary:hover {
-            border-color: var(--copper);
+            border-color: var(--brand);
             background: rgba(37,99,235,.14);
         }
 
@@ -271,20 +271,20 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
 
         .feature-card:hover {
             transform: translateY(-2px);
-            border-color: var(--copper-border);
+            border-color: var(--brand-border);
             background: rgba(255,255,255,.06);
         }
 
         .feature-icon {
             width: 56px;
             height: 56px;
-            background: var(--copper-dim);
+            background: var(--brand-dim);
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 26px;
-            color: var(--copper);
+            color: var(--brand);
             margin-bottom: 20px;
         }
 
@@ -345,14 +345,14 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
         body { background: #f4f8fc; color: var(--text-primary); }
         body::before, body::after { display: none; }
         .navbar { border-bottom-color: var(--border-light); }
-        .logo-icon { background: #eff6ff; border-color: #bfdbfe; color: var(--copper); }
+        .logo-icon { background: #eff6ff; border-color: #bfdbfe; color: var(--brand); }
         .logo-text h1 { color: var(--text-primary); }
         .logo-text span { color: var(--green); }
         .logo-text p { color: var(--text-muted); }
-        .nav-btn-outline { border-color: #bfdbfe; color: var(--copper-dark); }
-        .nav-btn-outline:hover { background: #eff6ff; border-color: var(--copper); }
-        .nav-btn-solid { background: var(--copper); color: #fff; }
-        .nav-btn-solid:hover { background: var(--copper-dark); }
+        .nav-btn-outline { border-color: #bfdbfe; color: var(--brand-dark); }
+        .nav-btn-outline:hover { background: #eff6ff; border-color: var(--brand); }
+        .nav-btn-solid { background: var(--brand); color: #fff; }
+        .nav-btn-solid:hover { background: var(--brand-dark); }
         .hero { margin-top: 24px; padding: 72px 32px; border-radius: 14px; background: linear-gradient(120deg, #123b63, #175488); }
         .hero-badge { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.16); color: #86efac; }
         .hero .btn-primary { background: var(--green); }
@@ -365,7 +365,7 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
         .cta { background: #ecfdf3; border-color: #bbf7d0; }
         .cta h2 { color: var(--text-primary); }
         .cta p { color: var(--text-secondary); }
-        .cta .btn-primary { background: var(--copper) !important; color: #fff !important; }
+        .cta .btn-primary { background: var(--brand) !important; color: #fff !important; }
         .footer { border-top-color: var(--border-light); color: var(--text-muted); }
     </style>
 </head>

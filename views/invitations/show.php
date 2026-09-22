@@ -2,7 +2,7 @@
 
 <div style="max-width:680px;margin:30px auto;">
     <div class="card" style="padding:34px;text-align:center;">
-        <div style="width:64px;height:64px;border-radius:18px;background:var(--copper-dim);border:1px solid var(--copper-border);color:var(--copper);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px;">
+        <div style="width:64px;height:64px;border-radius:18px;background:var(--brand-dim);border:1px solid var(--brand-border);color:var(--brand);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:28px;">
             <i class="bi bi-people-fill"></i>
         </div>
 
@@ -13,7 +13,7 @@
             <div class="page-hero-title" style="color:var(--text-primary);">Invitation unavailable</div>
             <p style="color:var(--text-secondary);margin-top:10px;">This link has expired or has already been used.</p>
         <?php else: ?>
-            <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--copper);margin-bottom:8px;">Group invitation</div>
+            <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brand);margin-bottom:8px;">Group invitation</div>
             <div class="page-hero-title" style="color:var(--text-primary);"><?= htmlspecialchars($invite['group_name']) ?></div>
             <p style="color:var(--text-secondary);margin:10px auto 4px;max-width:500px;line-height:1.6;">
                 <?= htmlspecialchars($invite['inviter_name']) ?> invited you to collaborate, share files and study together.
@@ -29,7 +29,7 @@
             <form method="POST" style="margin-top:22px;">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
                 <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
-                <button type="submit" class="btn-primary btn-copper"><i class="bi bi-check2-circle"></i> Accept invitation</button>
+                <button type="submit" class="btn-primary btn-brand"><i class="bi bi-check2-circle"></i> Accept invitation</button>
                 <a href="groups.php" class="btn-ghost" style="display:inline-flex;text-decoration:none;margin-left:8px;">Not now</a>
             </form>
         <?php endif; ?>

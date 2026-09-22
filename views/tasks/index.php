@@ -21,7 +21,7 @@
 
 <!-- ── STATS ──────────────────────────────────────────────── -->
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px;">
-    <div class="stat-card copper-tint">
+    <div class="stat-card brand-tint">
         <div class="stat-card-label">Pending</div>
         <div class="stat-card-value"><?= $pendingCount ?></div>
     </div>
@@ -40,7 +40,7 @@
     <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
 
         <select onchange="window.location='tasks.php?group_id='+this.value+'&status=<?= htmlspecialchars($selected_status) ?>'"
-                class="ss-input" style="width:auto;">
+                class="lsc-input" style="width:auto;">
             <option value="all">All Groups</option>
             <?php foreach ($myGroups as $g): ?>
                 <option value="<?= $g['group_id'] ?>" <?= $selected_group == $g['group_id'] ? 'selected' : '' ?>>
@@ -50,7 +50,7 @@
         </select>
 
         <select onchange="window.location='tasks.php?group_id=<?= $selected_group ?>&status='+this.value"
-                class="ss-input" style="width:auto;">
+                class="lsc-input" style="width:auto;">
             <option value="all"    <?= $selected_status==='all'     ? 'selected':'' ?>>All Statuses</option>
             <option value="pending"<?= $selected_status==='pending'  ? 'selected':'' ?>>Pending</option>
             <option value="done"   <?= $selected_status==='done'     ? 'selected':'' ?>>Completed</option>
@@ -112,19 +112,19 @@
 <?php endif; ?>
 
 <!-- ── CREATE TASK MODAL ──────────────────────────────────── -->
-<div id="createTaskModal" class="ss-modal-bg" style="display:none;">
-    <div class="ss-modal">
-        <div class="ss-modal-head">
-            <div class="ss-modal-title">Create New Task</div>
-            <div class="ss-modal-sub">Assign a task to yourself within a group.</div>
+<div id="createTaskModal" class="lsc-modal-bg" style="display:none;">
+    <div class="lsc-modal">
+        <div class="lsc-modal-head">
+            <div class="lsc-modal-title">Create New Task</div>
+            <div class="lsc-modal-sub">Assign a task to yourself within a group.</div>
         </div>
-        <div class="ss-modal-body">
+        <div class="lsc-modal-body">
             <form method="POST" id="taskForm">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
 
                 <div style="margin-bottom:14px;">
-                    <label class="ss-label">Group</label>
-                    <select name="group_id" required class="ss-input">
+                    <label class="lsc-label">Group</label>
+                    <select name="group_id" required class="lsc-input">
                         <option value="">— Select group —</option>
                         <?php foreach ($myGroups as $g): ?>
                             <option value="<?= $g['group_id'] ?>"><?= htmlspecialchars($g['group_name']) ?></option>
@@ -133,27 +133,27 @@
                 </div>
 
                 <div style="margin-bottom:14px;">
-                    <label class="ss-label">Task Title</label>
-                    <input type="text" name="title" required maxlength="200" class="ss-input">
+                    <label class="lsc-label">Task Title</label>
+                    <input type="text" name="title" required maxlength="200" class="lsc-input">
                 </div>
 
                 <div style="margin-bottom:14px;">
-                    <label class="ss-label">Description <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
-                    <textarea name="description" rows="3" class="ss-input" style="resize:vertical;"></textarea>
+                    <label class="lsc-label">Description <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
+                    <textarea name="description" rows="3" class="lsc-input" style="resize:vertical;"></textarea>
                 </div>
 
                 <div style="margin-bottom:6px;">
-                    <label class="ss-label">Due Date</label>
-                    <input type="date" name="due_date" required min="<?= date('Y-m-d') ?>" class="ss-input">
+                    <label class="lsc-label">Due Date</label>
+                    <input type="date" name="due_date" required min="<?= date('Y-m-d') ?>" class="lsc-input">
                 </div>
 
                 <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">
                     Task will be assigned to you. Group members can reassign later.
                 </div>
 
-                <div class="ss-modal-footer" style="padding:16px 0 0;border:none;">
+                <div class="lsc-modal-footer" style="padding:16px 0 0;border:none;">
                     <button type="button" onclick="closeTaskModal()" class="btn-ghost">Cancel</button>
-                    <button type="submit" name="create_task" class="btn-primary btn-copper">Create Task</button>
+                    <button type="submit" name="create_task" class="btn-primary btn-brand">Create Task</button>
                 </div>
 
             </form>

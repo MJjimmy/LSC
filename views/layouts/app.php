@@ -33,10 +33,10 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         --primary-soft:   #eff6ff;
         --primary-border: #bfdbfe;
         /* Compatibility aliases for existing components. */
-        --copper:         var(--primary);
-        --copper-dark:    var(--primary-dark);
-        --copper-dim:     rgba(37,99,235,.12);
-        --copper-border:  rgba(147,197,253,.45);
+        --brand:         var(--primary);
+        --brand-dark:    var(--primary-dark);
+        --brand-dim:     rgba(37,99,235,.12);
+        --brand-border:  rgba(147,197,253,.45);
         --cream:          #f4f8fc;
         --card:           #ffffff;
         --border:         #dce6f0;
@@ -76,7 +76,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     ::-webkit-scrollbar-thumb { background: #b8c7d9; border-radius: 10px; }
 
     /* ── MOBILE OVERLAY ─────────────────────────────────────── */
-    .ss-overlay {
+    .lsc-overlay {
         display: none;
         position: fixed;
         inset: 0;
@@ -85,13 +85,13 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         opacity: 0;
         transition: opacity .25s;
     }
-    .ss-overlay.open {
+    .lsc-overlay.open {
         display: block;
         opacity: 1;
     }
 
     /* ── SIDEBAR ────────────────────────────────────────────── */
-    .ss-sidebar {
+    .lsc-sidebar {
         width: 264px;
         min-height: 100vh;
         background: var(--sidebar);
@@ -104,7 +104,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         position: relative;
     }
 
-    .ss-logo {
+    .lsc-logo {
         padding: 20px 18px 17px;
         border-bottom: 1px solid var(--sidebar-border);
         display: flex;
@@ -112,7 +112,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         justify-content: space-between;
     }
 
-    .ss-logo-mark {
+    .lsc-logo-mark {
         font-family: 'Inter', system-ui, sans-serif;
         font-size: 21px;
         font-weight: 800;
@@ -122,9 +122,9 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         display: block;
     }
 
-    .ss-logo-mark span { color: #4ade80; }
+    .lsc-logo-mark span { color: #4ade80; }
 
-    .ss-logo-sub {
+    .lsc-logo-sub {
         font-size: 10.5px;
         color: rgba(255,255,255,.65);
         margin-top: 2px;
@@ -132,7 +132,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
 
     /* Close button — mobile only */
-    .ss-close-btn {
+    .lsc-close-btn {
         display: none;
         background: none;
         border: none;
@@ -144,7 +144,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         flex-shrink: 0;
     }
 
-    .ss-nav {
+    .lsc-nav {
         flex: 1;
         padding: 16px 12px;
         overflow-y: auto;
@@ -153,7 +153,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         gap: 2px;
     }
 
-    .ss-nav-label {
+    .lsc-nav-label {
         font-size: 9.5px;
         letter-spacing: 1.2px;
         text-transform: uppercase;
@@ -162,7 +162,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         font-weight: 500;
     }
 
-    .ss-nav a {
+    .lsc-nav a {
         display: flex;
         align-items: center;
         gap: 10px;
@@ -176,55 +176,55 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         border: 1px solid transparent;
     }
 
-    .ss-nav a .bi { font-size: 15px; flex-shrink: 0; }
+    .lsc-nav a .bi { font-size: 15px; flex-shrink: 0; }
 
-    .ss-nav a:hover {
+    .lsc-nav a:hover {
         background: var(--sidebar-hover);
         color: rgba(255,255,255,.8);
     }
 
-    .ss-nav a.active {
+    .lsc-nav a.active {
         background: rgba(255,255,255,.13);
         color: #fff;
         border-color: rgba(255,255,255,.16);
     }
 
-    .ss-nav a.active .bi { color: #4ade80; }
+    .lsc-nav a.active .bi { color: #4ade80; }
 
     /* ── SIDEBAR BOTTOM ─────────────────────────────────────── */
-    .ss-user {
+    .lsc-user {
         padding: 14px 16px;
         border-top: 1px solid var(--sidebar-border);
     }
 
-    .ss-user-row {
+    .lsc-user-row {
         display: flex;
         align-items: center;
         gap: 10px;
         margin-bottom: 10px;
     }
 
-    .ss-avatar {
+    .lsc-avatar {
         width: 34px;
         height: 34px;
         border-radius: 50%;
-        background: var(--copper-dim);
-        border: 1px solid var(--copper-border);
+        background: var(--brand-dim);
+        border: 1px solid var(--brand-border);
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
         font-size: 13px;
-        color: var(--copper);
+        color: var(--brand);
         flex-shrink: 0;
         overflow: hidden;
     }
-    .ss-avatar img { width:100%; height:100%; object-fit:cover; }
+    .lsc-avatar img { width:100%; height:100%; object-fit:cover; }
 
-    .ss-user-name { font-size: 13px; font-weight: 600; color: #fff; }
-    .ss-user-role { font-size: 11px; color: rgba(255,255,255,.35); margin-top: 1px; }
+    .lsc-user-name { font-size: 13px; font-weight: 600; color: #fff; }
+    .lsc-user-role { font-size: 11px; color: rgba(255,255,255,.35); margin-top: 1px; }
 
-    .ss-signout {
+    .lsc-signout {
         width: 100%;
         display: flex;
         align-items: center;
@@ -242,13 +242,13 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         transition: background .15s, color .15s;
     }
 
-    .ss-signout:hover {
+    .lsc-signout:hover {
         background: rgba(255,255,255,.08);
         color: rgba(255,255,255,.65);
     }
 
     /* ── MAIN WRAPPER ───────────────────────────────────────── */
-    .ss-main {
+    .lsc-main {
         flex: 1;
         display: flex;
         flex-direction: column;
@@ -257,7 +257,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
 
     /* ── TOPBAR ─────────────────────────────────────────────── */
-    .ss-topbar {
+    .lsc-topbar {
         height: 56px;
         background: var(--card);
         border-bottom: 1px solid var(--border);
@@ -269,7 +269,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
 
     /* Hamburger — hidden on desktop */
-    .ss-hamburger {
+    .lsc-hamburger {
         display: none;
         background: none;
         border: none;
@@ -281,7 +281,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         line-height: 1;
     }
 
-    .ss-topbar-title {
+    .lsc-topbar-title {
         font-family: 'Inter', system-ui, sans-serif;
         font-size: 17px;
         font-weight: 700;
@@ -289,14 +289,14 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         letter-spacing: -0.2px;
     }
 
-    .ss-topbar-right {
+    .lsc-topbar-right {
         margin-left: auto;
         display: flex;
         align-items: center;
         gap: 8px;
     }
 
-    .ss-icon-btn {
+    .lsc-icon-btn {
         width: 34px;
         height: 34px;
         border-radius: 6px;
@@ -311,12 +311,12 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         text-decoration: none;
     }
 
-    .ss-icon-btn:hover { background: var(--cream); }
-    .ss-icon-btn { position:relative; }
-    .ss-notification-badge { position:absolute;right:-5px;top:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--red);color:#fff;border:2px solid #fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center; }
+    .lsc-icon-btn:hover { background: var(--cream); }
+    .lsc-icon-btn { position:relative; }
+    .lsc-notification-badge { position:absolute;right:-5px;top:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--red);color:#fff;border:2px solid #fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center; }
 
     /* ── CONTENT AREA ───────────────────────────────────────── */
-    .ss-content {
+    .lsc-content {
         flex: 1;
         overflow-y: auto;
         padding: 26px 28px;
@@ -381,8 +381,8 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         padding: 9px 18px;
         border-radius: 10px;
         background: transparent;
-        border: 1px solid var(--copper-border);
-        color: var(--copper);
+        border: 1px solid var(--brand-border);
+        color: var(--brand);
         font-family: 'Inter', system-ui, sans-serif;
         font-size: 13px;
         font-weight: 600;
@@ -393,7 +393,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         z-index: 1;
         transition: background .15s;
     }
-    .hero-action-btn:hover { background: var(--copper-dim); }
+    .hero-action-btn:hover { background: var(--brand-dim); }
 
     .stat-card {
         background: var(--card);
@@ -418,9 +418,9 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         color: var(--text-primary);
     }
 
-    .stat-card.copper-tint { background: var(--primary-soft); border-color: var(--primary-border); }
-    .stat-card.copper-tint .stat-card-label { color: #1e40af; }
-    .stat-card.copper-tint .stat-card-value { color: var(--copper-dark); }
+    .stat-card.brand-tint { background: var(--primary-soft); border-color: var(--primary-border); }
+    .stat-card.brand-tint .stat-card-label { color: #1e40af; }
+    .stat-card.brand-tint .stat-card-value { color: var(--brand-dark); }
 
     .stat-card.red-tint { background: var(--red-bg); border-color: var(--red-border); }
     .stat-card.red-tint .stat-card-label { color: #943228; }
@@ -444,8 +444,8 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     }
 
     .btn-primary:hover { background: var(--primary-dark); }
-    .btn-copper  { background: var(--copper) !important; color: #fff !important; }
-    .btn-copper:hover { background: var(--copper-dark) !important; }
+    .btn-brand  { background: var(--brand) !important; color: #fff !important; }
+    .btn-brand:hover { background: var(--brand-dark) !important; }
 
     .pill {
         font-size: 11px;
@@ -466,7 +466,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     .pill-private { background: var(--amber-bg);  color: var(--amber);  border: 1px solid var(--amber-border); }
     .pill-public  { background: var(--green-bg);  color: var(--green);  border: 1px solid var(--green-border); }
 
-    .ss-input {
+    .lsc-input {
         width: 100%;
         padding: 10px 14px;
         border-radius: 8px;
@@ -478,9 +478,9 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         outline: none;
         transition: border-color .15s;
     }
-    .ss-input:focus { border-color: var(--copper); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+    .lsc-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
 
-    .ss-label {
+    .lsc-label {
         display: block;
         font-size: 12.5px;
         font-weight: 600;
@@ -504,14 +504,14 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     .panel-link {
         font-size: 12px;
         font-weight: 600;
-        color: var(--copper-dark);
+        color: var(--brand-dark);
         text-decoration: none;
     }
-    .panel-link:hover { color: var(--copper); }
+    .panel-link:hover { color: var(--brand); }
 
-    .ss-table { width: 100%; border-collapse: collapse; }
-    .ss-table thead { background: var(--cream); }
-    .ss-table th {
+    .lsc-table { width: 100%; border-collapse: collapse; }
+    .lsc-table thead { background: var(--cream); }
+    .lsc-table th {
         padding: 12px 20px;
         text-align: left;
         font-size: 10.5px;
@@ -522,17 +522,17 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         border-bottom: 1px solid var(--border);
     }
 
-    .ss-table td {
+    .lsc-table td {
         padding: 13px 20px;
         font-size: 13.5px;
         color: var(--text-primary);
         border-bottom: 1px solid var(--border-soft);
     }
 
-    .ss-table tbody tr:last-child td { border-bottom: none; }
-    .ss-table tbody tr:hover td { background: var(--cream); }
+    .lsc-table tbody tr:last-child td { border-bottom: none; }
+    .lsc-table tbody tr:hover td { background: var(--cream); }
 
-    .ss-modal-bg {
+    .lsc-modal-bg {
         position: fixed;
         inset: 0;
         background: rgba(0,0,0,.55);
@@ -544,7 +544,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         padding: 16px;
     }
 
-    .ss-modal {
+    .lsc-modal {
         background: var(--card);
         border-radius: 12px;
         width: 100%;
@@ -555,20 +555,20 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         overflow-y: auto;
     }
 
-    .ss-modal-head {
+    .lsc-modal-head {
         padding: 22px 24px 18px;
         border-bottom: 1px solid var(--border-soft);
     }
 
-    .ss-modal-title {
+    .lsc-modal-title {
         font-family: 'Inter', system-ui, sans-serif;
         font-size: 20px;
         font-weight: 800;
     }
 
-    .ss-modal-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
-    .ss-modal-body { padding: 20px 24px; }
-    .ss-modal-footer {
+    .lsc-modal-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 3px; }
+    .lsc-modal-body { padding: 20px 24px; }
+    .lsc-modal-footer {
         padding: 16px 24px;
         border-top: 1px solid var(--border-soft);
         display: flex;
@@ -598,7 +598,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     .empty-state p { font-size: 13px; margin-top: 8px; }
 
     /* ── MOBILE BOTTOM NAV ──────────────────────────────────── */
-    .ss-bottom-nav {
+    .lsc-bottom-nav {
         display: none;
         position: fixed;
         bottom: 0; left: 0; right: 0;
@@ -609,14 +609,14 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         padding: 0 4px;
     }
 
-    .ss-bottom-nav-inner {
+    .lsc-bottom-nav-inner {
         display: flex;
         align-items: center;
         justify-content: space-around;
         height: 100%;
     }
 
-    .ss-bnav-item {
+    .lsc-bnav-item {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -632,9 +632,9 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         min-width: 54px;
     }
 
-    .ss-bnav-item .bi { font-size: 19px; }
-    .ss-bnav-item.active { color: #4ade80; }
-    .ss-bnav-item:hover  { color: rgba(255,255,255,.75); }
+    .lsc-bnav-item .bi { font-size: 19px; }
+    .lsc-bnav-item.active { color: #4ade80; }
+    .lsc-bnav-item:hover  { color: rgba(255,255,255,.75); }
 
     /* ══════════════════════════════════════════════════════════
        RESPONSIVE
@@ -643,7 +643,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     @media (max-width: 900px) {
 
         /* Sidebar slides off-screen, comes back on open */
-        .ss-sidebar {
+        .lsc-sidebar {
             position: fixed;
             top: 0; left: 0;
             height: 100%;
@@ -651,15 +651,15 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
             z-index: 200;
         }
 
-        .ss-sidebar.open { transform: translateX(0); }
+        .lsc-sidebar.open { transform: translateX(0); }
 
         /* Show hamburger + close button */
-        .ss-hamburger  { display: block; }
-        .ss-close-btn  { display: block; }
+        .lsc-hamburger  { display: block; }
+        .lsc-close-btn  { display: block; }
 
         /* Content padding + extra bottom space for bottom nav */
-        .ss-content { padding: 18px 16px 80px; }
-        .ss-topbar  { padding: 0 16px; }
+        .lsc-content { padding: 18px 16px 80px; }
+        .lsc-topbar  { padding: 0 16px; }
 
         /* Hero */
         .page-hero       { padding: 20px 20px 20px; }
@@ -674,14 +674,14 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         }
 
         /* Show bottom nav */
-        .ss-bottom-nav { display: block; }
+        .lsc-bottom-nav { display: block; }
 
     }
 
     @media (max-width: 540px) {
 
-        .ss-content  { padding: 14px 12px 80px; }
-        .ss-topbar   { padding: 0 12px; gap: 8px; }
+        .lsc-content  { padding: 14px 12px 80px; }
+        .lsc-topbar   { padding: 0 12px; gap: 8px; }
 
         .page-hero       { padding: 18px 16px; border-radius: 14px; }
         .page-hero-title { font-size: 22px; }
@@ -689,9 +689,9 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 
         .stat-card-value { font-size: 24px; }
 
-        .ss-modal-head   { padding: 18px 18px 14px; }
-        .ss-modal-body   { padding: 16px 18px; }
-        .ss-modal-footer { padding: 12px 18px; }
+        .lsc-modal-head   { padding: 18px 18px 14px; }
+        .lsc-modal-body   { padding: 16px 18px; }
+        .lsc-modal-footer { padding: 12px 18px; }
 
         .btn-primary { font-size: 12px; padding: 8px 14px; }
     }
@@ -704,23 +704,23 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 <body>
 
     <!-- Dark overlay (mobile) -->
-    <div class="ss-overlay" id="ssOverlay" onclick="closeSidebar()"></div>
+    <div class="lsc-overlay" id="ssOverlay" onclick="closeSidebar()"></div>
 
     <!-- ── SIDEBAR ─────────────────────────────────────────── -->
-    <aside class="ss-sidebar" id="ssSidebar">
+    <aside class="lsc-sidebar" id="ssSidebar">
 
-        <div class="ss-logo">
+        <div class="lsc-logo">
             <div>
-                <a href="dashboard.php" class="ss-logo-mark">LS<span>C</span></a>
-                <div class="ss-logo-sub">Learn · Share · Connect</div>
+                <a href="dashboard.php" class="lsc-logo-mark">LS<span>C</span></a>
+                <div class="lsc-logo-sub">Learn · Share · Connect</div>
             </div>
-            <button class="ss-close-btn" onclick="closeSidebar()" aria-label="Close menu">
+            <button class="lsc-close-btn" onclick="closeSidebar()" aria-label="Close menu">
                 <i class="bi bi-x-lg"></i>
             </button>
         </div>
 
-        <nav class="ss-nav">
-            <div class="ss-nav-label">Main</div>
+        <nav class="lsc-nav">
+            <div class="lsc-nav-label">Main</div>
             <a href="dashboard.php" onclick="closeSidebar()" class="<?= $current_page === 'dashboard' ? 'active' : '' ?>">
                 <i class="bi bi-grid-1x2-fill"></i> Dashboard
             </a>
@@ -738,23 +738,23 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
             </a>
             <a href="notifications.php" onclick="closeSidebar()" class="<?= $current_page === 'notifications' ? 'active' : '' ?>">
                 <i class="bi bi-bell-fill"></i> Notifications
-                <?php if ($unreadNotificationCount): ?><span style="margin-left:auto;background:var(--copper);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;"><?= min($unreadNotificationCount, 99) ?></span><?php endif; ?>
+                <?php if ($unreadNotificationCount): ?><span style="margin-left:auto;background:var(--brand);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;"><?= min($unreadNotificationCount, 99) ?></span><?php endif; ?>
             </a>
             <a href="profile.php" onclick="closeSidebar()" class="<?= $current_page === 'profile' ? 'active' : '' ?>">
                 <i class="bi bi-person-circle"></i> My Profile
             </a>
 
             <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
-            <div class="ss-nav-label" style="margin-top:8px;">Administration</div>
+            <div class="lsc-nav-label" style="margin-top:8px;">Administration</div>
             <a href="admin.php" onclick="closeSidebar()" class="<?= $current_page === 'admin' ? 'active' : '' ?>">
                 <i class="bi bi-shield-lock-fill"></i> Admin Panel
             </a>
             <?php endif; ?>
         </nav>
 
-        <div class="ss-user">
-            <a href="profile.php" class="ss-user-row" style="text-decoration:none;">
-                <div class="ss-avatar">
+        <div class="lsc-user">
+            <a href="profile.php" class="lsc-user-row" style="text-decoration:none;">
+                <div class="lsc-avatar">
                     <?php if (!empty($_SESSION['user_avatar'])): ?>
                         <img src="avatar.php?user_id=<?= (int)($_SESSION['user_id'] ?? 0) ?>" alt="">
                     <?php else: ?>
@@ -762,11 +762,11 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
                     <?php endif; ?>
                 </div>
                 <div>
-                    <div class="ss-user-name"><?= htmlspecialchars($_SESSION['user_name'] ?? '') ?></div>
-                    <div class="ss-user-role"><?= ($_SESSION['user_role'] ?? '') === 'student' ? 'Learner' : ucfirst($_SESSION['user_role'] ?? '') ?></div>
+                    <div class="lsc-user-name"><?= htmlspecialchars($_SESSION['user_name'] ?? '') ?></div>
+                    <div class="lsc-user-role"><?= ($_SESSION['user_role'] ?? '') === 'student' ? 'Learner' : ucfirst($_SESSION['user_role'] ?? '') ?></div>
                 </div>
             </a>
-            <a href="logout.php" class="ss-signout">
+            <a href="logout.php" class="lsc-signout">
                 <i class="bi bi-box-arrow-right"></i> Sign Out
             </a>
         </div>
@@ -774,55 +774,55 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     </aside>
 
     <!-- ── MAIN ───────────────────────────────────────────── -->
-    <div class="ss-main">
+    <div class="lsc-main">
 
         <!-- Topbar -->
-        <header class="ss-topbar">
-            <button class="ss-hamburger" onclick="openSidebar()" aria-label="Open menu">
+        <header class="lsc-topbar">
+            <button class="lsc-hamburger" onclick="openSidebar()" aria-label="Open menu">
                 <i class="bi bi-list"></i>
             </button>
-            <div class="ss-topbar-title"><?= ucwords(str_replace('-', ' ', $current_page)) ?></div>
-            <div class="ss-topbar-right">
-                <a href="profile.php" class="ss-icon-btn" title="Profile" aria-label="Profile">
+            <div class="lsc-topbar-title"><?= ucwords(str_replace('-', ' ', $current_page)) ?></div>
+            <div class="lsc-topbar-right">
+                <a href="profile.php" class="lsc-icon-btn" title="Profile" aria-label="Profile">
                     <i class="bi bi-person"></i>
                 </a>
-                <a href="notifications.php" class="ss-icon-btn" title="Notifications" aria-label="Notifications">
+                <a href="notifications.php" class="lsc-icon-btn" title="Notifications" aria-label="Notifications">
                     <i class="bi bi-bell"></i>
-                    <?php if ($unreadNotificationCount): ?><span class="ss-notification-badge"><?= min($unreadNotificationCount, 99) ?></span><?php endif; ?>
+                    <?php if ($unreadNotificationCount): ?><span class="lsc-notification-badge"><?= min($unreadNotificationCount, 99) ?></span><?php endif; ?>
                 </a>
-                <a href="logout.php" class="ss-icon-btn" title="Sign out">
+                <a href="logout.php" class="lsc-icon-btn" title="Sign out">
                     <i class="bi bi-box-arrow-right" style="font-size:14px;"></i>
                 </a>
             </div>
         </header>
 
         <!-- Page content -->
-        <div class="ss-content">
+        <div class="lsc-content">
             <?= $page_content ?? '' ?>
         </div>
 
     </div>
 
     <!-- ── MOBILE BOTTOM NAV ──────────────────────────────── -->
-    <nav class="ss-bottom-nav" aria-label="Mobile navigation">
-        <div class="ss-bottom-nav-inner">
-            <a href="dashboard.php" class="ss-bnav-item <?= $current_page === 'dashboard' ? 'active' : '' ?>">
+    <nav class="lsc-bottom-nav" aria-label="Mobile navigation">
+        <div class="lsc-bottom-nav-inner">
+            <a href="dashboard.php" class="lsc-bnav-item <?= $current_page === 'dashboard' ? 'active' : '' ?>">
                 <i class="bi bi-grid-1x2-fill"></i>
                 <span>Home</span>
             </a>
-            <a href="groups.php" class="ss-bnav-item <?= in_array($current_page, ['groups','group']) ? 'active' : '' ?>">
+            <a href="groups.php" class="lsc-bnav-item <?= in_array($current_page, ['groups','group']) ? 'active' : '' ?>">
                 <i class="bi bi-people-fill"></i>
                 <span>Groups</span>
             </a>
-            <a href="tasks.php" class="ss-bnav-item <?= $current_page === 'tasks' ? 'active' : '' ?>">
+            <a href="tasks.php" class="lsc-bnav-item <?= $current_page === 'tasks' ? 'active' : '' ?>">
                 <i class="bi bi-check2-square"></i>
                 <span>Tasks</span>
             </a>
-            <a href="files.php" class="ss-bnav-item <?= $current_page === 'files' ? 'active' : '' ?>">
+            <a href="files.php" class="lsc-bnav-item <?= $current_page === 'files' ? 'active' : '' ?>">
                 <i class="bi bi-folder-fill"></i>
                 <span>Files</span>
             </a>
-            <a href="calendar.php" class="ss-bnav-item <?= $current_page === 'calendar' ? 'active' : '' ?>">
+            <a href="calendar.php" class="lsc-bnav-item <?= $current_page === 'calendar' ? 'active' : '' ?>">
                 <i class="bi bi-calendar-event-fill"></i>
                 <span>Calendar</span>
             </a>
@@ -860,7 +860,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         let formIsSubmitting = false;
 
         function hasOpenModal() {
-            return Array.from(document.querySelectorAll('.ss-modal-bg')).some(function(modal) {
+            return Array.from(document.querySelectorAll('.lsc-modal-bg')).some(function(modal) {
                 return window.getComputedStyle(modal).display !== 'none';
             });
         }

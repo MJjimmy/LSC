@@ -36,7 +36,7 @@
     </div>
 
     <div style="text-align:right;margin:-4px 0 14px;font-size:12px;">
-        <a href="forgot-password.php" style="color:var(--copper-dark);text-decoration:none;">Forgot password?</a>
+        <a href="forgot-password.php" style="color:var(--brand-dark);text-decoration:none;">Forgot password?</a>
     </div>
 
     <button type="submit" class="auth-btn">Sign In</button>

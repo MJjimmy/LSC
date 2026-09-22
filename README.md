@@ -14,6 +14,7 @@ LSC is a responsive PHP and MySQL collaboration platform for student groups. It 
 - Student profile pages with photo, institution, course, bio, and activity statistics
 - One-time password-reset tokens that expire after 60 minutes
 - In-app notifications for invitations and group membership events
+- Per-user notification preferences (phone number, email and SMS toggles on the profile page); outbound invite emails/SMS go through a queue processed by `bin/process-notification-queue.php`
 - Safe automatic page refreshes that pause while forms or uploads are in progress
 - Responsive desktop/mobile navigation and installable PWA metadata
 - Admin dashboard for platform-level oversight
@@ -109,6 +110,10 @@ Supported types: PDF, DOCX, PPTX, XLSX, TXT, CSV, ZIP, PNG, JPG/JPEG, GIF, and W
 ### Group invitations
 
 Group creators and administrators can open **Members → Invite people**, enter an email address, and create a link valid for seven days. Registered users receive an in-app notification. For an unregistered person, copy and send the generated link directly.
+
+### Notification preferences
+
+Open **Profile → Notifications** to set your phone number (international format, e.g. `+27821234567`) and enable email and/or SMS as your channels. Invitations to registered users are queued on the channels they enabled (delivered by the `bin/process-notification-queue.php` worker using Resend / Africa's Talking); invitations to people without an LSC account are always emailed so they can discover the link. Password-reset emails always use the user's registered email, regardless of these preferences.
 
 ### Password recovery
 
