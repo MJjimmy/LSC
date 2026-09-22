@@ -42,24 +42,27 @@ LSC is a responsive PHP and MySQL collaboration platform for student groups. It 
 
 ## Database setup
 
-For a new installation, create the database and import:
+For a new installation, create an empty database and import:
 
 ```text
 database/init.sql
 ```
 
-For an existing StudySync database, back it up and run this migration once:
+That file is the complete current schema — it already includes everything the
+individual migrations add (chat-file links, group invitations, notifications,
+password-reset tokens, profile fields, join requests, the lecturer role, the
+outbound notification queue, and the rate-limit tables). No further SQL is
+needed for a fresh install.
+
+For an existing StudySync database, back it up first, then run each migration
+you have not applied yet, in this order:
 
 ```text
-database/2026_06_29_collaboration_features.sql
-```
-
-The migration adds chat-file relationships, group invitations, notifications, password-reset tokens, and profile fields.
-
-To enable lecturer registration on an existing database, also run:
-
-```text
-database/2026_07_07_add_lecturer_role.sql
+database/2026_06_29_collaboration_features.sql    # only if the database predates the collaboration features
+database/add_group_join_requests.sql              # join-request moderation (safe to re-run)
+database/2026_07_07_add_lecturer_role.sql         # lecturer registration
+database/2026_07_31_add_notification_channels.sql # phone number, email/SMS preferences, outbound queue
+database/2026_08_11_add_rate_limits.sql           # rate-limiting tables
 ```
 
 To promote the designated administrator, first register `jimmyadmin@gmail.com`
