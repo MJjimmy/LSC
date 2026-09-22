@@ -1,7 +1,5 @@
 <?php
-$pageTitle = $pageTitle ?? 'LSC — Learn. Share. Connect.';
-
-
+$pageTitle = $pageTitle ?? 'LSC | Learn. Share. Connect.';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -9,6 +7,8 @@ $pageTitle = $pageTitle ?? 'LSC — Learn. Share. Connect.';
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= htmlspecialchars($pageTitle) ?></title>
+
+<?php require LSC_ROOT . '/views/partials/theme-init.php'; ?>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,38 +25,17 @@ body {
     color: #172033;
 }
 
-/* Left decorative panel */
+/* Left branding panel */
 .auth-left {
     width: 420px;
     flex-shrink: 0;
-    background: linear-gradient(155deg, #123b63 0%, #175488 100%);
+    background: #123b63;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     padding: 48px 44px;
     position: relative;
     overflow: hidden;
-}
-
-/* Subtle educational blue and green accents */
-.auth-left::before {
-    content: '';
-    position: absolute;
-    top: -80px; left: -80px;
-    width: 360px; height: 360px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(74,222,128,.16) 0%, transparent 65%);
-    pointer-events: none;
-}
-
-.auth-left::after {
-    content: '';
-    position: absolute;
-    bottom: -60px; right: -60px;
-    width: 280px; height: 280px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(96,165,250,.16) 0%, transparent 65%);
-    pointer-events: none;
 }
 
 .auth-brand {
@@ -255,6 +234,18 @@ body {
 
 .auth-footer a:hover { color: #15803d; }
 
+/* Dark theme: flip the form panel, keep the card a light surface */
+html[data-theme="dark"] .auth-right { background: #0e1a28; color: #a9bcca; }
+html[data-theme="dark"] .auth-card { background: #152636; border-color: #25394c; color: #e7eff7; }
+html[data-theme="dark"] .auth-card label,
+html[data-theme="dark"] .auth-card .auth-label { color: #a9bcca; }
+html[data-theme="dark"] .auth-card input,
+html[data-theme="dark"] .auth-card select,
+html[data-theme="dark"] .auth-card textarea { background: #0e1a28; border-color: #25394c; color: #e7eff7; }
+html[data-theme="dark"] .auth-footer { color: #7e93a6; }
+html[data-theme="dark"] .auth-footer a { color: #93c5fd; }
+html[data-theme="dark"] .auth-footer a:hover { color: #86efac; }
+
 @media (max-width: 760px) {
     .auth-left { display: none; }
 }
@@ -267,6 +258,10 @@ body {
 </head>
 
 <body>
+
+    <div style="position:fixed;top:14px;right:16px;z-index:50;">
+        <?php require LSC_ROOT . '/views/partials/theme-toggle.php'; ?>
+    </div>
 
     <!-- Left branding panel -->
     <div class="auth-left">
@@ -291,6 +286,8 @@ body {
             <?= $auth_content ?? '' ?>
         </div>
     </div>
+
+<?php require LSC_ROOT . '/views/partials/consent.php'; ?>
 
 </body>
 </html>

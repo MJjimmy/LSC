@@ -44,26 +44,29 @@ final class NotificationDispatcher
     }
 
     /**
-     * Queue a notification respecting the user's channel preferences.
-     * Looks up email/phone + notify_email/notify_sms from the users table.
+     * Queue an outbound notification respecting the user's own channel
+     * preferences (users.notify_email / users.notify_sms). Returns false if
+     * nothing was queued (user missing, inactive, or no channel enabled).
      */
-    public function queueForUser(int $userId, string $subject, string $message): void
+    public function queueForUser(int $userId, string $subject, string $message): bool
     {
         $statement = $this->database->prepare(
-            'SELECT email, phone_number, notify_email, notify_sms FROM users WHERE user_id = ?'
+            'SELECT email, phone_number, notify_email, notify_sms FROM users WHERE user_id = ? AND is_active = 1'
         );
         $statement->execute([$userId]);
         $user = $statement->fetch();
         if (!$user) {
-            return;
+            return false;
         }
 
+        $queued = false;
         if ((int)$user['notify_email'] === 1 && $user['email']) {
-            $this->queueEmail($user['email'], $subject, $message, $userId);
+            $queued = $this->queueEmail($user['email'], $subject, $message, $userId) || $queued;
         }
         if ((int)$user['notify_sms'] === 1 && $user['phone_number']) {
-            $this->queueSms($user['phone_number'], $subject . ': ' . $message, $userId);
+            $queued = $this->queueSms($user['phone_number'], $subject . ': ' . $message, $userId) || $queued;
         }
+        return $queued;
     }
 
     /**
@@ -143,7 +146,7 @@ final class NotificationDispatcher
 
     private function postJson(string $url, string $payload, array $headers): array
     {
-        return $this->curlRequest($url, $payload, array_merge($headers, []));
+        return $this->curlRequest($url, $payload, $headers);
     }
 
     private function postForm(string $url, array $fields, array $headers): array

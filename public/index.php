@@ -7,6 +7,7 @@ if (isset($_SESSION['user_id'])) {
 }
 
 $pageTitle = 'LSC | Learn. Share. Connect.';
+$pageDescription = 'Create study groups, assign tasks with due dates, share files and chat with your group. One workspace for your course work, free for students.';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -14,75 +15,65 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($pageTitle) ?></title>
+    <meta name="description" content="<?= htmlspecialchars($pageDescription) ?>">
+
+<?php require LSC_ROOT . '/views/partials/theme-init.php'; ?>
 
     <!-- Bootstrap Icons + Fonts -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/icons/lsc-icon.svg">
+    <meta name="theme-color" content="#123b63">
+
+    <!-- Open Graph / social share -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="LSC">
+    <meta property="og:title" content="<?= htmlspecialchars($pageTitle) ?>">
+    <meta property="og:description" content="<?= htmlspecialchars($pageDescription) ?>">
+    <meta property="og:image" content="<?= htmlspecialchars(((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/icons/lsc-og.jpg') ?>">
+    <meta name="twitter:card" content="summary_large_image">
+
     <style>
-        /* ── TOKENS (copied from auth-layout + layout) ── */
         :root {
-            --bg-dark:       #123b63;
-            --copper:        #2563eb;
-            --copper-dark:   #1d4ed8;
-            --copper-dim:    rgba(37,99,235,.12);
-            --copper-border: rgba(147,197,253,.45);
-            --green:         #16a34a;
-            --cream:         #f4f8fc;
-            --card-bg:       #ffffff;
-            --border-light:  #dce6f0;
-            --text-primary:  #172033;
-            --text-secondary:#526277;
-            --text-muted:    #7b8ba0;
+            --navy:       #123b63;
+            --brand:      #2563eb;
+            --brand-dark: #1d4ed8;
+            --green:      #16a34a;
+            --green-dark: #15803d;
+            --bg:         #f4f8fc;
+            --card:       #ffffff;
+            --border:     #dce6f0;
+            --text:       #172033;
+            --text-2:     #526277;
+            --text-3:     #7b8ba0;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        html[data-theme="dark"] {
+            --navy:   #10263c;
+            --bg:     #0e1a28;
+            --card:   #152636;
+            --border: #25394c;
+            --text:   #e7eff7;
+            --text-2: #a9bcca;
+            --text-3: #7e93a6;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Inter', system-ui, sans-serif;
-            background: linear-gradient(160deg, #0f2f52 0%, var(--bg-dark) 58%, #175488 100%);
-            color: #fff;
+            background: var(--bg);
+            color: var(--text);
             line-height: 1.5;
         }
 
-        /* Restrained brand accents */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -100px;
-            left: -100px;
-            width: 500px;
-            height: 500px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(74,222,128,.13) 0%, transparent 65%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            bottom: -80px;
-            right: -80px;
-            width: 400px;
-            height: 400px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(96,165,250,.13) 0%, transparent 65%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
         .container {
-            max-width: 1280px;
+            max-width: 1180px;
             margin: 0 auto;
             padding: 0 24px;
-            position: relative;
-            z-index: 1;
         }
 
         /* Navigation */
@@ -90,365 +81,250 @@ $pageTitle = 'LSC | Learn. Share. Connect.';
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 24px 0;
-            border-bottom: 1px solid rgba(255,255,255,.08);
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        .logo { display: flex; align-items: center; gap: 12px; }
 
         .logo-icon {
-            width: 44px;
-            height: 44px;
-            background: var(--copper-dim);
-            border: 1px solid var(--copper-border);
+            width: 42px; height: 42px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
             border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            color: var(--copper);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 21px;
+            color: var(--brand);
         }
+        html[data-theme="dark"] .logo-icon { background: rgba(37,99,235,.15); border-color: rgba(147,197,253,.3); }
 
-        .logo-text h1 {
-            font-family: 'Inter', system-ui, sans-serif;
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-            color: #fff;
-        }
+        .logo-text h1 { font-size: 23px; font-weight: 800; letter-spacing: -0.3px; }
+        .logo-text h1 span { color: var(--green-dark); }
+        .logo-text p { font-size: 11px; color: var(--text-3); margin-top: 1px; }
 
-        .logo-text span { color: #4ade80; }
-        .logo-text p {
-            font-size: 11px;
-            color: rgba(255,255,255,.35);
-            margin-top: 2px;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 12px;
-        }
+        .nav-actions { display: flex; align-items: center; gap: 10px; }
 
         .nav-btn {
-            padding: 8px 20px;
+            padding: 8px 18px;
             border-radius: 8px;
             font-size: 14px;
             font-weight: 500;
             text-decoration: none;
-            transition: all .2s;
         }
+        .nav-btn-outline { border: 1px solid #bfdbfe; color: var(--brand-dark); }
+        .nav-btn-outline:hover { background: #eff6ff; border-color: var(--brand); }
+        html[data-theme="dark"] .nav-btn-outline { border-color: rgba(147,197,253,.35); color: #93c5fd; }
+        html[data-theme="dark"] .nav-btn-outline:hover { background: rgba(37,99,235,.15); }
+        .nav-btn-solid { background: var(--brand); color: #fff; font-weight: 600; }
+        .nav-btn-solid:hover { background: var(--brand-dark); }
 
-        .nav-btn-outline {
-            border: 1px solid rgba(255,255,255,.2);
-            color: rgba(255,255,255,.8);
-        }
-
-        .nav-btn-outline:hover {
-            background: rgba(255,255,255,.05);
-            border-color: var(--copper);
-        }
-
-        .nav-btn-solid {
-            background: #fff;
-            color: var(--bg-dark);
-            font-weight: 600;
-        }
-
-        .nav-btn-solid:hover {
-            background: var(--copper);
-            color: #fff;
-        }
-
-        /* Hero section */
+        /* Hero: solid panel, no gradients */
         .hero {
-            text-align: center;
-            padding: 80px 0 60px;
+            margin-top: 32px;
+            background: var(--navy);
+            border-radius: 14px;
+            padding: 64px 40px;
+            color: #fff;
         }
 
         .hero-badge {
             display: inline-block;
-            background: rgba(255,255,255,.05);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255,255,255,.1);
-            border-radius: 60px;
-            padding: 6px 16px;
+            background: rgba(255,255,255,.08);
+            border: 1px solid rgba(255,255,255,.16);
+            border-radius: 8px;
+            padding: 6px 14px;
             font-size: 13px;
             font-weight: 500;
-            color: var(--copper);
-            margin-bottom: 28px;
+            color: #86efac;
+            margin-bottom: 24px;
         }
 
-        .hero h1 {
-            font-family: 'Inter', system-ui, sans-serif;
-            font-size: 58px;
+        .hero h2 {
+            font-size: 44px;
             font-weight: 800;
-            letter-spacing: -1.5px;
-            line-height: 1.2;
-            margin-bottom: 20px;
-            color: #fff;
-        }
-
-        .hero p {
-            font-size: 18px;
-            color: rgba(255,255,255,.65);
-            max-width: 700px;
-            margin: 0 auto 32px;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn-primary {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--copper);
-            color: #fff;
-            padding: 12px 28px;
-            border-radius: 8px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background .2s;
-        }
-
-        .btn-primary:hover { background: var(--copper-dark); }
-
-        .btn-secondary {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: transparent;
-            border: 1px solid rgba(255,255,255,.2);
-            color: #fff;
-            padding: 12px 28px;
-            border-radius: 8px;
-            font-weight: 500;
-            text-decoration: none;
-            transition: all .2s;
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--copper);
-            background: rgba(37,99,235,.14);
-        }
-
-        /* Feature cards grid */
-        .features {
-            padding: 60px 0;
-        }
-
-        .section-title {
-            font-family: 'Inter', system-ui, sans-serif;
-            font-size: 32px;
-            font-weight: 800;
-            text-align: center;
-            margin-bottom: 48px;
-            color: #fff;
-        }
-
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 24px;
-        }
-
-        .feature-card {
-            background: rgba(255,255,255,.04);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,.08);
-            border-radius: 12px;
-            padding: 28px 24px;
-            transition: transform .2s, border-color .2s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--copper-border);
-            background: rgba(255,255,255,.06);
-        }
-
-        .feature-icon {
-            width: 56px;
-            height: 56px;
-            background: var(--copper-dim);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-            color: var(--copper);
-            margin-bottom: 20px;
-        }
-
-        .feature-card h3 {
-            font-family: 'Inter', system-ui, sans-serif;
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: #fff;
-        }
-
-        .feature-card p {
-            color: rgba(255,255,255,.6);
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        /* CTA section */
-        .cta {
-            background: rgba(255,255,255,.03);
-            border: 1px solid rgba(255,255,255,.08);
-            border-radius: 14px;
-            padding: 56px 40px;
-            text-align: center;
-            margin: 40px 0 60px;
-        }
-
-        .cta h2 {
-            font-family: 'Inter', system-ui, sans-serif;
-            font-size: 34px;
-            font-weight: 800;
+            letter-spacing: -1.2px;
+            line-height: 1.15;
+            max-width: 640px;
             margin-bottom: 16px;
         }
 
-        .cta p {
-            font-size: 16px;
-            color: rgba(255,255,255,.6);
-            max-width: 550px;
-            margin: 0 auto 28px;
+        .hero p {
+            font-size: 17px;
+            color: rgba(255,255,255,.72);
+            max-width: 560px;
+            margin-bottom: 28px;
         }
+
+        .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+
+        .btn-green {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--green); color: #fff;
+            padding: 11px 24px; border-radius: 8px;
+            font-weight: 600; font-size: 14px; text-decoration: none;
+        }
+        .btn-green:hover { background: var(--green-dark); }
+
+        .btn-ghost {
+            display: inline-flex; align-items: center; gap: 8px;
+            border: 1px solid rgba(255,255,255,.3); color: #fff;
+            padding: 11px 24px; border-radius: 8px;
+            font-weight: 500; font-size: 14px; text-decoration: none;
+        }
+        .btn-ghost:hover { border-color: #fff; }
+
+        /* Features: each card says something different */
+        .features { padding: 56px 0 8px; }
+
+        .section-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .section-sub { font-size: 14.5px; color: var(--text-2); margin-bottom: 28px; }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px 22px 20px;
+        }
+
+        .feature-card h3 {
+            display: flex; align-items: center; gap: 9px;
+            font-size: 16px; font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .feature-card h3 i { color: var(--brand); font-size: 17px; }
+        .feature-card p { font-size: 13.5px; color: var(--text-2); line-height: 1.6; }
+
+        /* CTA */
+        .cta {
+            margin: 48px 0 56px;
+            background: #ecfdf3;
+            border: 1px solid #bbf7d0;
+            border-radius: 14px;
+            padding: 44px 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        html[data-theme="dark"] .cta { background: rgba(21,128,61,.14); border-color: rgba(21,128,61,.4); }
+
+        .cta h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .cta p { font-size: 14.5px; color: var(--text-2); max-width: 520px; }
+        .cta .btn-green { white-space: nowrap; }
 
         /* Footer */
         .footer {
-            text-align: center;
-            padding: 32px 0;
-            border-top: 1px solid rgba(255,255,255,.06);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 24px 0 36px;
+            border-top: 1px solid var(--border);
             font-size: 13px;
-            color: rgba(255,255,255,.4);
+            color: var(--text-3);
         }
+        .footer nav { display: flex; gap: 18px; }
+        .footer a { color: var(--text-2); text-decoration: none; }
+        .footer a:hover { color: var(--brand-dark); }
 
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 40px; }
-            .navbar { flex-direction: column; gap: 16px; }
-            .cta { padding: 40px 24px; }
+        @media (max-width: 900px) {
+            .cards-grid { grid-template-columns: 1fr 1fr; }
+            .hero h2 { font-size: 34px; }
         }
-
-        /* LSC light educational theme */
-        body { background: #f4f8fc; color: var(--text-primary); }
-        body::before, body::after { display: none; }
-        .navbar { border-bottom-color: var(--border-light); }
-        .logo-icon { background: #eff6ff; border-color: #bfdbfe; color: var(--copper); }
-        .logo-text h1 { color: var(--text-primary); }
-        .logo-text span { color: var(--green); }
-        .logo-text p { color: var(--text-muted); }
-        .nav-btn-outline { border-color: #bfdbfe; color: var(--copper-dark); }
-        .nav-btn-outline:hover { background: #eff6ff; border-color: var(--copper); }
-        .nav-btn-solid { background: var(--copper); color: #fff; }
-        .nav-btn-solid:hover { background: var(--copper-dark); }
-        .hero { margin-top: 24px; padding: 72px 32px; border-radius: 14px; background: linear-gradient(120deg, #123b63, #175488); }
-        .hero-badge { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.16); color: #86efac; }
-        .hero .btn-primary { background: var(--green); }
-        .hero .btn-primary:hover { background: #15803d; }
-        .section-title { color: var(--text-primary); }
-        .feature-card { background: #fff; backdrop-filter: none; border-color: var(--border-light); box-shadow: 0 1px 2px rgba(18,59,99,.04); }
-        .feature-card:hover { background: #fff; border-color: #bfdbfe; }
-        .feature-card h3 { color: var(--text-primary); }
-        .feature-card p { color: var(--text-secondary); }
-        .cta { background: #ecfdf3; border-color: #bbf7d0; }
-        .cta h2 { color: var(--text-primary); }
-        .cta p { color: var(--text-secondary); }
-        .cta .btn-primary { background: var(--copper) !important; color: #fff !important; }
-        .footer { border-top-color: var(--border-light); color: var(--text-muted); }
+        @media (max-width: 620px) {
+            .cards-grid { grid-template-columns: 1fr; }
+            .navbar { flex-direction: column; gap: 14px; }
+            .hero { padding: 44px 24px; }
+            .hero h2 { font-size: 29px; }
+            .cta { padding: 32px 24px; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- Navigation -->
     <nav class="navbar">
         <div class="logo">
             <div class="logo-icon"><i class="bi bi-mortarboard-fill"></i></div>
             <div class="logo-text">
                 <h1>LS<span>C</span></h1>
-                <p>Learn · Share · Connect</p>
+                <p>Learn | Share | Connect</p>
             </div>
         </div>
-        <div class="nav-links">
-            <a href="login.php" class="nav-btn nav-btn-outline">Sign In</a>
-            <a href="register.php" class="nav-btn nav-btn-solid">Get Started</a>
+        <div class="nav-actions">
+            <?php require LSC_ROOT . '/views/partials/theme-toggle.php'; ?>
+            <a href="login.php" class="nav-btn nav-btn-outline">Sign in</a>
+            <a href="register.php" class="nav-btn nav-btn-solid">Get started</a>
         </div>
     </nav>
 
-    <!-- Hero -->
     <section class="hero">
-        <div class="hero-badge">
-            <i class="bi bi-mortarboard-fill" style="margin-right: 6px;"></i> Learning and collaboration workspace
-        </div>
-        <h1>Learn, share and move forward together.</h1>
-        <p>One clear workspace for study groups, shared resources, tasks, deadlines and practical collaboration for students and lifelong learners.</p>
+        <div class="hero-badge">Study groups, tasks, files and chat</div>
+        <h2>Your study group, in one place.</h2>
+        <p>Create a group for each of your courses, assign tasks with owners and due dates, share the files the work actually needs, and keep the conversation right next to it.</p>
         <div class="hero-buttons">
-            <a href="register.php" class="btn-primary"><i class="bi bi-person-plus-fill"></i> Create Free Account</a>
-            <a href="login.php" class="btn-secondary"><i class="bi bi-box-arrow-in-right"></i> Sign In</a>
+            <a href="register.php" class="btn-green"><i class="bi bi-person-plus-fill"></i> Create your account</a>
+            <a href="login.php" class="btn-ghost"><i class="bi bi-box-arrow-in-right"></i> Sign in</a>
         </div>
     </section>
 
-    <!-- Feature Cards -->
     <section class="features">
-        <h2 class="section-title">Everything you need to succeed</h2>
+        <h2 class="section-title">What is in LSC</h2>
+        <p class="section-sub">Everything a student group needs to get a course project done.</p>
         <div class="cards-grid">
             <div class="feature-card">
-                <div class="feature-icon"><i class="bi bi-people-fill"></i></div>
-                <h3>Study Groups</h3>
-                <p>Create or join collaborative study groups for every subject.</p>
+                <h3><i class="bi bi-people-fill"></i> Study groups</h3>
+                <p>Public groups join in one click. Private groups run on join requests, and the group creator approves or declines each one from the members tab.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon"><i class="bi bi-check2-square"></i></div>
-                <h3>Task Management</h3>
-                <p>Assign work, track progress and meet deadlines together.</p>
+                <h3><i class="bi bi-check2-square"></i> Tasks with owners and due dates</h3>
+                <p>Every task is assigned to one person, has a due date, and sits in one of two states: pending or done. No status soup.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon"><i class="bi bi-folder-fill"></i></div>
-                <h3>File Sharing</h3>
-                <p>Upload notes, presentations, PDFs and resources securely.</p>
+                <h3><i class="bi bi-folder-fill"></i> A shared file library</h3>
+                <p>PDFs, slides, spreadsheets and notes, up to 100 MB per file. Downloads are limited to people who are in the group.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon"><i class="bi bi-calendar-event-fill"></i></div>
-                <h3>Smart Calendar</h3>
-                <p>Visualize assignments and deadlines across all groups.</p>
+                <h3><i class="bi bi-calendar-event-fill"></i> One calendar, every group</h3>
+                <p>A month view that shows the due dates from every group you belong to, so the next deadline is never a surprise.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon"><i class="bi bi-chat-dots-fill"></i></div>
-                <h3>Rich Group Chat</h3>
-                <p>Share messages, pictures and downloadable files in context.</p>
+                <h3><i class="bi bi-chat-dots-fill"></i> Group chat with attachments</h3>
+                <p>Messages, pictures and documents in the same thread. A file shared in chat stays downloadable from the message itself.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon"><i class="bi bi-bell-fill"></i></div>
-                <h3>Profiles & Notifications</h3>
-                <p>Invite peers, build a profile and never miss a group update.</p>
+                <h3><i class="bi bi-envelope-check-fill"></i> Invites and profiles</h3>
+                <p>Bring members in with an email invite that stays valid for seven days. Your profile shows your institution, course and contribution counts.</p>
             </div>
         </div>
     </section>
 
-    <!-- CTA -->
     <section class="cta">
-        <h2>Ready to boost your productivity?</h2>
-        <p>Join LSC and bring your learning, resources and group work into one place.</p>
-        <a href="register.php" class="btn-primary" style="background: #fff; color: var(--bg-dark);">Start Free Today <i class="bi bi-arrow-right"></i></a>
+        <div>
+            <h2>Set up your first group in a minute.</h2>
+            <p>Create an account, start a group, and send the invite link to your classmates. It is free for students.</p>
+        </div>
+        <a href="register.php" class="btn-green">Start free <i class="bi bi-arrow-right"></i></a>
     </section>
 
-    <!-- Footer -->
     <footer class="footer">
-        © <?= date('2026') ?> LSC — Learn. Share. Connect. 
+        <div>&copy; <?= date('Y') ?> LSC | Learn. Share. Connect.</div>
+        <nav>
+            <a href="privacy.php">Privacy policy</a>
+            <a href="terms.php">Terms and conditions</a>
+        </nav>
     </footer>
 </div>
+
+<?php require LSC_ROOT . '/views/partials/consent.php'; ?>
 
 </body>
 </html>

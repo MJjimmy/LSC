@@ -44,7 +44,7 @@
         <div class="stat-card-value"><?= count($myTasks) ?></div>
     </div>
 
-    <div class="stat-card copper-tint">
+    <div class="stat-card brand-tint">
         <div class="stat-card-label"><i class="bi bi-clock-fill" style="margin-right:5px;"></i>Pending</div>
         <div class="stat-card-value"><?= count($pendingTasks) ?></div>
     </div>
@@ -114,7 +114,7 @@
                 <?php endforeach; ?>
             </div>
         </div>
-        <a href="admin.php" class="btn-primary btn-copper">
+        <a href="admin.php" class="btn-primary btn-brand">
             <i class="bi bi-shield-lock-fill"></i> Admin Panel
         </a>
     </div>
@@ -192,7 +192,7 @@
                     <div style="width:36px;height:36px;border-radius:6px;background:var(--sidebar);
                                 color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;
                                 font-weight:700;font-size:13px;flex-shrink:0;">
-                        <?= strtoupper(substr($g['group_name'], 0, 2)) ?>
+                        <?= htmlspecialchars(strtoupper(mb_substr($g['group_name'], 0, 2))) ?>
                     </div>
                     <div style="flex:1;min-width:0;">
                         <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
@@ -212,6 +212,7 @@
 </div>
 
 <?php
+$pageTitle = 'Dashboard | LSC';
 $page_content = ob_get_clean();
 require LSC_ROOT . '/views/layouts/app.php';
 ?>

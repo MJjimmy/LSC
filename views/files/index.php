@@ -57,8 +57,8 @@ function fileIcon(string $ext): array {
 
 <!-- ── GROUP SELECTOR ────────────────────────────────────── -->
 <div class="card" style="padding:16px 20px;margin-bottom:18px;">
-    <label class="ss-label">Select Study Group</label>
-    <select class="ss-input" style="width:auto;max-width:360px;"
+    <label class="lsc-label">Select Study Group</label>
+    <select class="lsc-input" style="width:auto;max-width:360px;"
             onchange="window.location.href='files.php?group_id='+this.value">
         <?php foreach ($myGroups as $g): ?>
             <option value="<?= $g['group_id'] ?>" <?= $selectedGroup==$g['group_id'] ? 'selected':'' ?>>
@@ -72,7 +72,7 @@ function fileIcon(string $ext): array {
 <div class="card">
     <?php if (count($files) > 0): ?>
     <div style="overflow-x:auto;">
-        <table class="ss-table">
+        <table class="lsc-table">
             <thead>
                 <tr>
                     <th>File</th>
@@ -93,7 +93,7 @@ function fileIcon(string $ext): array {
                             <div>
                                 <a href="download.php?id=<?= (int)$f['file_id'] ?>"
                                    style="font-weight:600;color:var(--text-primary);text-decoration:none;font-size:13.5px;"
-                                   onmouseover="this.style.color='var(--copper-dark)'"
+                                   onmouseover="this.style.color='var(--brand-dark)'"
                                    onmouseout="this.style.color='var(--text-primary)'">
                                     <?= htmlspecialchars($f['file_name']) ?>
                                 </a>
@@ -132,19 +132,19 @@ function fileIcon(string $ext): array {
 </div>
 
 <!-- ── UPLOAD MODAL ──────────────────────────────────────── -->
-<div id="uploadModal" class="ss-modal-bg" style="display:none;">
-    <div class="ss-modal">
-        <div class="ss-modal-head">
-            <div class="ss-modal-title">Upload File</div>
-            <div class="ss-modal-sub">Share resources with your study group.</div>
+<div id="uploadModal" class="lsc-modal-bg" style="display:none;">
+    <div class="lsc-modal">
+        <div class="lsc-modal-head">
+            <div class="lsc-modal-title">Upload File</div>
+            <div class="lsc-modal-sub">Share resources with your study group.</div>
         </div>
-        <div class="ss-modal-body">
+        <div class="lsc-modal-body">
             <form method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
 
                 <div style="margin-bottom:14px;">
-                    <label class="ss-label">Group</label>
-                    <select name="group_id" required class="ss-input">
+                    <label class="lsc-label">Group</label>
+                    <select name="group_id" required class="lsc-input">
                         <?php foreach ($myGroups as $g): ?>
                             <option value="<?= $g['group_id'] ?>" <?= $selectedGroup==$g['group_id'] ? 'selected':'' ?>>
                                 <?= htmlspecialchars($g['group_name']) ?>
@@ -154,10 +154,10 @@ function fileIcon(string $ext): array {
                 </div>
 
                 <div style="margin-bottom:10px;">
-                    <label class="ss-label">Choose File</label>
+                    <label class="lsc-label">Choose File</label>
                     <input type="file" name="file" required
                            accept=".pdf,.docx,.pptx,.xlsx,.txt,.csv,.zip,.png,.jpg,.jpeg,.gif,.webp"
-                           class="ss-input">
+                           class="lsc-input">
                 </div>
 
                 <div style="background:var(--cream);border-radius:8px;padding:10px 14px;
@@ -165,9 +165,9 @@ function fileIcon(string $ext): array {
                     Max 100 MB &middot; Documents, spreadsheets, archives and images
                 </div>
 
-                <div class="ss-modal-footer" style="padding:16px 0 0;border:none;">
+                <div class="lsc-modal-footer" style="padding:16px 0 0;border:none;">
                     <button type="button" onclick="document.getElementById('uploadModal').style.display='none'" class="btn-ghost">Cancel</button>
-                    <button type="submit" class="btn-primary btn-copper"><i class="bi bi-upload"></i> Upload</button>
+                    <button type="submit" class="btn-primary btn-brand"><i class="bi bi-upload"></i> Upload</button>
                 </div>
 
             </form>
@@ -181,4 +181,5 @@ document.getElementById('uploadModal').addEventListener('click', function(e) {
 });
 </script>
 
-<?php $page_content = ob_get_clean(); require LSC_ROOT . '/views/layouts/app.php'; ?>
+<?php $pageTitle = 'Shared Files | LSC';
+$page_content = ob_get_clean(); require LSC_ROOT . '/views/layouts/app.php'; ?>

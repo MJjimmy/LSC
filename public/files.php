@@ -4,6 +4,7 @@ require_once dirname(__DIR__) . '/config/bootstrap.php';
 
 use LSC\Core\Auth;
 use LSC\Core\Database;
+use LSC\Core\RateLimiter;
 use LSC\Core\UploadStorage;
 use LSC\Files\FileController;
 use LSC\Files\FileRepository;
@@ -18,5 +19,6 @@ $storage = new UploadStorage(LSC_STORAGE . DIRECTORY_SEPARATOR . 'uploads');
     new Auth($database),
     $files,
     new FileService($files, $groups, $storage),
-    $groups
+    $groups,
+    new RateLimiter($database)
 ))->index();

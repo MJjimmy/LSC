@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  php-lint:
+    name: PHP syntax lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, mbstring, curl
+      - name: Lint every PHP file
+        run: |
+          fail=0
+          while IFS= read -r file; do
+            php -l "$file" >/dev/null || fail=1
+          done < <(find app bin config public views -name '*.php' -type f)
+          if [ "$fail" -ne 0 ]; then
+            echo "One or more PHP files failed syntax lint" >&2
+            exit 1
+          fi
+          echo "All PHP files passed syntax lint"
+
+  schema-import:
+    name: Schema imports into MySQL 8
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: lsc_ci
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql
+      - name: Import consolidated schema
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot lsc_ci < database/init.sql
+      - name: Verify tables and columns the app depends on
+        run: |
+          php -r '
+            $pdo = new PDO("mysql:host=127.0.0.1;port=3306;dbname=lsc_ci;charset=utf8mb4", "root", "root", [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+            $tables = $pdo->query("SHOW TABLES")->fetchAll(PDO::FETCH_COLUMN);
+            $required = ["files","group_invitations","group_join_requests","group_members","messages","notification_queue","notifications","password_reset_tokens","rate_limits","study_groups","tasks","users"];
+            $missing = array_diff($required, $tables);
+            if ($missing) { fwrite(STDERR, "Missing tables: " . implode(", ", $missing) . PHP_EOL); exit(1); }
+            $columns = fn(string $table) => $pdo->query("SHOW COLUMNS FROM `$table`")->fetchAll(PDO::FETCH_COLUMN);
+            foreach (["phone_number","notify_email","notify_sms","bio","institution","course","avatar_path"] as $c) {
+                if (!in_array($c, $columns("users"))) { fwrite(STDERR, "users missing column: $c" . PHP_EOL); exit(1); }
+            }
+            if (!in_array("file_id", $columns("messages"))) { fwrite(STDERR, "messages missing column: file_id" . PHP_EOL); exit(1); }
+            echo "Schema OK: " . count($tables) . " tables\n";
+          '

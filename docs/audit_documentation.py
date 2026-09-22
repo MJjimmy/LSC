@@ -5,7 +5,7 @@ from docx import Document
 from docx.oxml.ns import qn
 
 
-path = Path(__file__).with_name("StudySync_Project_Documentation.docx")
+path = Path(__file__).with_name("LSC_Project_Documentation.docx")
 doc = Document(path)
 errors = []
 

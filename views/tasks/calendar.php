@@ -7,8 +7,8 @@
     right: 30px; top: 50%;
     transform: translateY(-50%);
     z-index: 1;
-    background: var(--copper-dim);
-    border: 1px solid var(--copper-border);
+    background: var(--brand-dim);
+    border: 1px solid var(--brand-border);
     border-radius: 10px;
     padding: 10px 18px;
     text-align: center;
@@ -100,9 +100,9 @@
 }
 
 .cal-task-count {
-    background: var(--copper-dim);
-    color: var(--copper-dark);
-    border: 1px solid var(--copper-border);
+    background: var(--brand-dim);
+    color: var(--brand-dark);
+    border: 1px solid var(--brand-border);
     font-size: 10px;
     font-weight: 700;
     padding: 1px 5px;
@@ -156,7 +156,7 @@
         font-size: 10px;
     }
 
-    /* Hide task titles on mobile — just show dot indicators */
+    /* Hide task titles on mobile: just show dot indicators */
     .cal-task-label { display: none; }
 
     .cal-task-item { justify-content: center; }
@@ -335,6 +335,7 @@
 </div>
 
 <?php
+$pageTitle = 'Calendar | LSC';
 $page_content = ob_get_clean();
 require LSC_ROOT . '/views/layouts/app.php';
 ?>

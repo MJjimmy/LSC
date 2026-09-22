@@ -48,18 +48,22 @@ final class InvitationService
             );
         }
 
-        // Email goes out regardless of whether they have an LSC account yet -
-        // this is how people who aren't registered find out they were invited.
+        // Outbound email goes through the notification queue. Registered
+        // users receive it on the channels they enabled (profile >
+        // Notifications); unregistered people are always emailed - the link
+        // is how they find out an LSC account is waiting for them.
         if ($ok) {
             $groupName = $this->groups->groupName($groupId);
             $inviteUrl = $this->inviteUrl($token);
-            $this->dispatcher->queueEmail(
-                $email,
-                "You've been invited to join {$groupName} on LSC",
-                "You were invited to join the study group \"{$groupName}\" on LSC.\n\n"
-                    . "Open this link to accept: {$inviteUrl}\n\n"
-                    . "If you weren't expecting this, you can ignore this email."
-            );
+            $subject = "You've been invited to join {$groupName} on LSC";
+            $body = "You were invited to join the study group \"{$groupName}\" on LSC.\n\n"
+                . "Open this link to accept: {$inviteUrl}\n\n"
+                . "If you weren't expecting this, you can ignore this email.";
+            if ($invitedUserId) {
+                $this->dispatcher->queueForUser($invitedUserId, $subject, $body);
+            } else {
+                $this->dispatcher->queueEmail($email, $subject, $body);
+            }
         }
 
         return $ok

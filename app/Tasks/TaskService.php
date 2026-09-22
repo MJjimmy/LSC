@@ -23,6 +23,8 @@ final class TaskService
     ): bool {
         if (
             $title === ''
+            || mb_strlen($title) > 200
+            || mb_strlen($description) > 5000
             || $groupId <= 0
             || strtotime($dueDate) === false
             || strtotime($dueDate) < strtotime('today')

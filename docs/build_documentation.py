@@ -16,10 +16,10 @@ from docx.shared import Inches, Pt, RGBColor
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
 ASSETS = DOCS / "assets"
-OUTPUT = DOCS / "StudySync_Project_Documentation.docx"
+OUTPUT = DOCS / "LSC_Project_Documentation.docx"
 ASSETS.mkdir(parents=True, exist_ok=True)
 
-# compact_reference_guide with a named StudySync brand override:
+# compact_reference_guide with a named LSC brand override:
 # blue heading tokens are consistently replaced by the product copper palette.
 INK = "1E1810"
 COPPER = "A8642A"
@@ -80,7 +80,7 @@ def draw_arrow(draw, start, end, color=COPPER, width=5):
 def create_architecture_illustration(path: Path):
     im = Image.new("RGB", (1600, 880), f"#{CREAM}")
     d = ImageDraw.Draw(im)
-    d.text((80, 55), "StudySync application architecture", font=F_H1, fill=f"#{INK}")
+    d.text((80, 55), "LSC application architecture", font=F_H1, fill=f"#{INK}")
     d.text((80, 103), "A compact PHP application with authenticated collaboration services", font=F_BODY, fill=f"#{MUTED}")
 
     rounded(d, (95, 245, 385, 570), 28, WHITE, BORDER, 3)
@@ -477,7 +477,7 @@ bullet_num_id, decimal_num_id = create_numbering(doc)
 
 header = section.header
 hp = header.paragraphs[0]
-hp.text = "STUDYSYNC  |  PROJECT DOCUMENTATION"
+hp.text = "LSC  |  PROJECT DOCUMENTATION"
 hp.alignment = WD_ALIGN_PARAGRAPH.LEFT
 hp.paragraph_format.space_after = Pt(3)
 for run in hp.runs:
@@ -615,15 +615,15 @@ def page_break():
     doc.add_page_break()
 
 
-# Cover: editorial_cover pattern, restrained StudySync brand treatment.
+# Cover: editorial_cover pattern, restrained LSC brand treatment.
 doc.add_paragraph().paragraph_format.space_after = Pt(70)
 icon_path = ROOT / "public" / "icons" / "icon-192.png"
 if icon_path.exists():
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
     cover_icon = p.add_run().add_picture(str(icon_path), width=Inches(1.05))
-    cover_icon._inline.docPr.set("descr", "StudySync application icon")
-    cover_icon._inline.docPr.set("title", "StudySync")
+    cover_icon._inline.docPr.set("descr", "LSC application icon")
+    cover_icon._inline.docPr.set("title", "LSC")
     p.paragraph_format.space_after = Pt(20)
 
 kicker = doc.add_paragraph()
@@ -634,7 +634,7 @@ set_run_font(r, size=10, bold=True, color=COPPER)
 
 title = doc.add_paragraph(style="Title")
 title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-title.add_run("StudySync")
+title.add_run("LSC")
 subtitle = doc.add_paragraph(style="Subtitle")
 subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
 subtitle.add_run("Smart Student Collaboration Platform")
@@ -657,17 +657,17 @@ set_run_font(r, size=10, italic=True, color=MUTED)
 doc.add_paragraph().paragraph_format.space_after = Pt(95)
 foot = doc.add_paragraph()
 foot.alignment = WD_ALIGN_PARAGRAPH.CENTER
-r = foot.add_run("Prepared for the StudySync project team")
+r = foot.add_run("Prepared for the LSC project team")
 set_run_font(r, size=9.5, color=LIGHT_MUTED)
 
 page_break()
 
 add_heading("Document control", 1)
-add_body("This manual describes the current StudySync codebase and the collaboration release added on 30 June 2026. Interface figures are implementation-based illustrations rather than live screenshots.")
+add_body("This manual describes the current LSC codebase and the collaboration release added on 30 June 2026. Interface figures are implementation-based illustrations rather than live screenshots.")
 add_table(
     ["Field", "Value"],
     [
-        ["Document", "StudySync Project Documentation"],
+        ["Document", "LSC Project Documentation"],
         ["Release", "Collaboration update - version 1.0"],
         ["Audience", "Project owners, developers, testers, administrators and assessors"],
         ["Application stack", "PHP 8.2+, MySQL/MariaDB, responsive HTML/CSS/JavaScript"],
@@ -701,7 +701,7 @@ for item in [
 page_break()
 
 add_heading("1. Executive summary", 1)
-add_body("StudySync is a compact collaboration workspace for students. It brings groups, tasks, deadlines, shared resources and conversation into one responsive application, reducing the need to coordinate study work across unrelated tools.")
+add_body("LSC is a compact collaboration workspace for students. It brings groups, tasks, deadlines, shared resources and conversation into one responsive application, reducing the need to coordinate study work across unrelated tools.")
 add_callout("Release outcome", "The collaboration update adds chat attachments, an in-chat file panel, secure group invitations, profile pages with photos, password recovery and in-app notifications. The changes are backed by a database migration and updated deployment configuration.")
 
 add_heading("1.1 Release objectives", 2)
@@ -713,7 +713,7 @@ add_bullet("Surface important group events through a persistent notification cen
 
 add_heading("1.2 Capability map", 2)
 add_table(
-    ["Area", "What StudySync provides", "Primary user value"],
+    ["Area", "What LSC provides", "Primary user value"],
     [
         ["Groups", "Public/private workspaces, join requests and member controls", "A defined home for each study team"],
         ["Tasks", "Due dates, completion status and group filtering", "Clear ownership and deadline visibility"],
@@ -729,7 +729,7 @@ add_table(
 
 add_heading("2. Product overview and user roles", 1)
 add_heading("2.1 Intended users", 2)
-add_body("StudySync is designed for students who need a lightweight workspace for coursework, revision groups and shared academic projects. It also supports platform administrators and group creators who manage access and collaboration activity.")
+add_body("LSC is designed for students who need a lightweight workspace for coursework, revision groups and shared academic projects. It also supports platform administrators and group creators who manage access and collaboration activity.")
 add_table(
     ["Role", "Permissions and responsibilities"],
     [
@@ -801,9 +801,9 @@ add_callout("Access rule", "Only the invited user ID or an account with the invi
 
 add_heading("4.2 Recover a forgotten password", 2)
 add_number("Choose Forgot password? on the sign-in page and submit the account email address.")
-add_number("StudySync creates a random token, stores only its SHA-256 hash and sets a 60-minute expiry.")
+add_number("LSC creates a random token, stores only its SHA-256 hash and sets a 60-minute expiry.")
 add_number("The user opens the reset link, enters a new password of at least eight characters and confirms it.")
-add_number("StudySync updates the password hash and marks the token as used so it cannot be replayed.")
+add_number("LSC updates the password hash and marks the token as used so it cannot be replayed.")
 add_callout("Production requirement", "Configure APP_URL, MAIL_FROM and a working PHP mail transport or SMTP bridge. Development mode can display the generated link for testing; production mode never does.", fill="FDF6EC", border="B7610A")
 
 add_heading("4.3 Share a file in chat", 2)
@@ -814,7 +814,7 @@ add_number("The upload is saved to the group library and its database ID is link
 add_number("Group members can preview images and download the attachment from the message or Chat files panel.")
 
 add_heading("5. Technical architecture", 1)
-add_figure(ARCH_IMG, 6.5, "Figure 3. StudySync logical architecture.")
+add_figure(ARCH_IMG, 6.5, "Figure 3. LSC logical architecture.")
 add_body("The application uses feature-based controllers, services and repositories. Sessions provide authentication state, PDO repositories provide database access, and views supply page-specific and shared layout rendering.")
 add_table(
     ["Layer", "Key files", "Responsibility"],
@@ -993,11 +993,11 @@ add_number("Add an administrator-controlled role-management workflow with an aud
 add_callout("Definition of done", "The collaboration release is ready for owner-led staging when the database migration is applied, production secrets are configured, persistent upload storage is selected and every acceptance check in Section 9 has evidence.")
 
 # Final preset audit metadata and document properties.
-doc.core_properties.title = "StudySync Project Documentation"
+doc.core_properties.title = "LSC Project Documentation"
 doc.core_properties.subject = "Product, architecture, deployment and release guide"
-doc.core_properties.author = "StudySync Project Team"
-doc.core_properties.keywords = "StudySync, PHP, MySQL, documentation, collaboration"
-doc.core_properties.comments = "Generated from the StudySync repository on 30 June 2026."
+doc.core_properties.author = "LSC Project Team"
+doc.core_properties.keywords = "LSC, PHP, MySQL, documentation, collaboration"
+doc.core_properties.comments = "Generated from the LSC repository on 30 June 2026."
 
 doc.save(OUTPUT)
 print(OUTPUT)

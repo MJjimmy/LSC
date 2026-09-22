@@ -11,6 +11,10 @@
     <div class="auth-alert auth-alert-error"><i class="bi bi-exclamation-circle" style="margin-right:6px;"></i>Your account is inactive. Contact an administrator.</div>
 <?php endif; ?>
 
+<?php if (isset($_GET['expired'])): ?>
+    <div class="auth-alert auth-alert-error"><i class="bi bi-exclamation-circle" style="margin-right:6px;"></i>Your session expired. Please sign in again.</div>
+<?php endif; ?>
+
 <?php if ($error): ?>
     <div class="auth-alert auth-alert-error">
         <i class="bi bi-exclamation-circle" style="margin-right:6px;"></i><?= htmlspecialchars($error) ?>
@@ -36,7 +40,7 @@
     </div>
 
     <div style="text-align:right;margin:-4px 0 14px;font-size:12px;">
-        <a href="forgot-password.php" style="color:var(--copper-dark);text-decoration:none;">Forgot password?</a>
+        <a href="forgot-password.php" style="color:var(--brand-dark);text-decoration:none;">Forgot password?</a>
     </div>
 
     <button type="submit" class="auth-btn">Sign In</button>
@@ -63,6 +67,6 @@ function togglePassword() {
 
 <?php
 $auth_content = ob_get_clean();
-$pageTitle = 'Login — LSC';
+$pageTitle = 'Login | LSC';
 require LSC_ROOT . '/views/layouts/auth.php';
 ?>

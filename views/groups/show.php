@@ -38,9 +38,9 @@
     <div style="font-size:13px;font-weight:600;"><?= htmlspecialchars($groupFlash['message']) ?></div>
     <?php if (!empty($groupFlash['invite_path'])): ?>
     <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
-        <input id="createdInviteLink" class="ss-input" style="flex:1;min-width:220px;" readonly
+        <input id="createdInviteLink" class="lsc-input" style="flex:1;min-width:220px;" readonly
                data-path="<?= htmlspecialchars($groupFlash['invite_path']) ?>">
-        <button type="button" class="btn-primary btn-copper" onclick="copyInviteLink()">
+        <button type="button" class="btn-primary btn-brand" onclick="copyInviteLink()">
             <i class="bi bi-copy"></i> Copy link
         </button>
     </div>
@@ -72,7 +72,7 @@
 <div class="card">
     <?php if (count($tasks) > 0): ?>
     <div style="overflow-x:auto;">
-        <table class="ss-table">
+        <table class="lsc-table">
             <thead>
                 <tr>
                     <th>Task</th>
@@ -125,7 +125,7 @@
         <div style="font-size:12px;color:var(--text-muted);">View profiles and manage access.</div>
     </div>
     <?php if ($canManageGroup): ?>
-    <button type="button" class="btn-primary btn-copper" onclick="document.getElementById('inviteModal').style.display='flex'">
+    <button type="button" class="btn-primary btn-brand" onclick="document.getElementById('inviteModal').style.display='flex'">
         <i class="bi bi-person-plus-fill"></i> Invite people
     </button>
     <?php endif; ?>
@@ -144,9 +144,9 @@
     <?php foreach ($pendingJoinRequests as $request): ?>
     <div style="display:flex;align-items:center;gap:12px;padding:13px 20px;
                 border-bottom:1px solid var(--border-soft);">
-        <div style="width:36px;height:36px;border-radius:50%;background:var(--copper-dim);
-                    border:1px solid var(--copper-border);display:flex;align-items:center;
-                    justify-content:center;font-weight:700;font-size:13px;color:var(--copper);flex-shrink:0;">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--brand-dim);
+                    border:1px solid var(--brand-border);display:flex;align-items:center;
+                    justify-content:center;font-weight:700;font-size:13px;color:var(--brand);flex-shrink:0;">
             <?= strtoupper(substr($request['name'], 0, 1)) ?>
         </div>
         <div style="flex:1;min-width:0;">
@@ -184,9 +184,9 @@
         <a href="profile.php?user_id=<?= (int)$m['user_id'] ?>"
            aria-label="View <?= htmlspecialchars($m['name']) ?>'s profile"
            style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;color:inherit;text-decoration:none;">
-            <div style="width:36px;height:36px;border-radius:50%;background:var(--copper-dim);
-                        border:1px solid var(--copper-border);display:flex;align-items:center;
-                        justify-content:center;font-weight:700;font-size:13px;color:var(--copper);flex-shrink:0;">
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--brand-dim);
+                        border:1px solid var(--brand-border);display:flex;align-items:center;
+                        justify-content:center;font-weight:700;font-size:13px;color:var(--brand);flex-shrink:0;">
                 <?= strtoupper(substr($m['name'], 0, 1)) ?>
             </div>
             <div style="min-width:0;">
@@ -216,24 +216,24 @@
 
 <!-- ── TAB CONTENT: FILES ────────────────────────────────── -->
 <?php if ($canManageGroup): ?>
-<div id="inviteModal" class="ss-modal-bg" style="display:none;">
-    <div class="ss-modal">
-        <div class="ss-modal-head">
-            <div class="ss-modal-title">Invite people</div>
-            <div class="ss-modal-sub">Create a secure, seven-day invitation for this group.</div>
+<div id="inviteModal" class="lsc-modal-bg" style="display:none;">
+    <div class="lsc-modal">
+        <div class="lsc-modal-head">
+            <div class="lsc-modal-title">Invite people</div>
+            <div class="lsc-modal-sub">Create a secure, seven-day invitation for this group.</div>
         </div>
-        <div class="ss-modal-body">
+        <div class="lsc-modal-body">
             <form method="POST" action="?id=<?= $groupId ?>&tab=members">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
-                <label class="ss-label" for="inviteEmail">Email address</label>
-                <input id="inviteEmail" type="email" name="invite_email" class="ss-input"
+                <label class="lsc-label" for="inviteEmail">Email address</label>
+                <input id="inviteEmail" type="email" name="invite_email" class="lsc-input"
                        placeholder="student@example.com" autocomplete="email" required>
                 <div style="font-size:12px;color:var(--text-muted);margin-top:9px;line-height:1.5;">
                     Registered users also receive an in-app notification. For everyone else, copy and share the generated link.
                 </div>
-                <div class="ss-modal-footer" style="padding:18px 0 0;border:none;">
+                <div class="lsc-modal-footer" style="padding:18px 0 0;border:none;">
                     <button type="button" class="btn-ghost" onclick="document.getElementById('inviteModal').style.display='none'">Cancel</button>
-                    <button type="submit" class="btn-primary btn-copper"><i class="bi bi-send-fill"></i> Create invite</button>
+                    <button type="submit" class="btn-primary btn-brand"><i class="bi bi-send-fill"></i> Create invite</button>
                 </div>
             </form>
         </div>
@@ -246,7 +246,7 @@
 <div class="card">
     <?php if (count($files) > 0): ?>
     <div style="overflow-x:auto;">
-        <table class="ss-table">
+        <table class="lsc-table">
             <thead>
                 <tr>
                     <th>File</th>
@@ -260,9 +260,9 @@
                 <tr>
                     <td>
                         <a href="download.php?id=<?= (int)$f['file_id'] ?>"
-                           style="color:var(--copper-dark);font-weight:600;text-decoration:none;font-size:13.5px;"
-                           onmouseover="this.style.color='var(--copper)'"
-                           onmouseout="this.style.color='var(--copper-dark)'">
+                           style="color:var(--brand-dark);font-weight:600;text-decoration:none;font-size:13.5px;"
+                           onmouseover="this.style.color='var(--brand)'"
+                           onmouseout="this.style.color='var(--brand-dark)'">
                             <?= htmlspecialchars($f['file_name']) ?>
                         </a>
                     </td>
@@ -295,7 +295,7 @@
 <?php elseif ($tab === 'chat'): ?>
 
 <style>
-.chat-layout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start}.chat-message{display:flex;gap:10px;margin-bottom:18px}.chat-avatar{width:34px;height:34px;border-radius:50%;background:var(--sidebar);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;overflow:hidden;flex-shrink:0}.chat-avatar img{width:100%;height:100%;object-fit:cover}.chat-attachment{margin-top:8px;border:1px solid var(--border);border-radius:8px;background:#fff;overflow:hidden;max-width:360px}.chat-attachment img{display:block;width:100%;max-height:260px;object-fit:cover;background:var(--cream)}.chat-file-link{display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--text-primary);text-decoration:none}.chat-file-link:hover{background:#eff6ff}.chat-composer{display:flex;gap:9px;align-items:center}.chat-plus{width:42px;height:42px;border-radius:50%;border:1px solid var(--copper-border);background:var(--copper-dim);color:var(--copper);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0}.chat-plus:hover{background:rgba(37,99,235,.2)}@media(max-width:900px){.chat-layout{grid-template-columns:1fr}.chat-files-panel{order:-1}.chat-files-list{display:flex;overflow-x:auto}.chat-files-list>a{min-width:220px}}@media(max-width:600px){.chat-composer{align-items:flex-end}.chat-composer .btn-primary span{display:none}.chat-attachment{max-width:100%}}
+.chat-layout{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:16px;align-items:start}.chat-message{display:flex;gap:10px;margin-bottom:18px}.chat-avatar{width:34px;height:34px;border-radius:50%;background:var(--sidebar);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;overflow:hidden;flex-shrink:0}.chat-avatar img{width:100%;height:100%;object-fit:cover}.chat-attachment{margin-top:8px;border:1px solid var(--border);border-radius:8px;background:#fff;overflow:hidden;max-width:360px}.chat-attachment img{display:block;width:100%;max-height:260px;object-fit:cover;background:var(--cream)}.chat-file-link{display:flex;align-items:center;gap:10px;padding:10px 12px;color:var(--text-primary);text-decoration:none}.chat-file-link:hover{background:#eff6ff}.chat-composer{display:flex;gap:9px;align-items:center}.chat-plus{width:42px;height:42px;border-radius:50%;border:1px solid var(--brand-border);background:var(--brand-dim);color:var(--brand);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex-shrink:0}.chat-plus:hover{background:rgba(37,99,235,.2)}@media(max-width:900px){.chat-layout{grid-template-columns:1fr}.chat-files-panel{order:-1}.chat-files-list{display:flex;overflow-x:auto}.chat-files-list>a{min-width:220px}}@media(max-width:600px){.chat-composer{align-items:flex-end}.chat-composer .btn-primary span{display:none}.chat-attachment{max-width:100%}}
 </style>
 
 <div class="chat-layout">
@@ -324,7 +324,7 @@
                         <div class="chat-attachment">
                             <?php if ($isImage): ?><a href="download.php?id=<?= (int)$msg['file_id'] ?>"><img src="download.php?id=<?= (int)$msg['file_id'] ?>&preview=1" alt="<?= htmlspecialchars($msg['file_name']) ?>"></a><?php endif; ?>
                             <a class="chat-file-link" href="download.php?id=<?= (int)$msg['file_id'] ?>">
-                                <i class="bi <?= $isImage ? 'bi-file-earmark-image-fill' : 'bi-file-earmark-arrow-down-fill' ?>" style="font-size:22px;color:var(--copper);"></i>
+                                <i class="bi <?= $isImage ? 'bi-file-earmark-image-fill' : 'bi-file-earmark-arrow-down-fill' ?>" style="font-size:22px;color:var(--brand);"></i>
                                 <span style="min-width:0;flex:1;"><strong style="font-size:12.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?= htmlspecialchars($msg['file_name']) ?></strong><small style="color:var(--text-muted);"><?= strtoupper($msg['file_type']) ?> &middot; <?= max(1, round($msg['file_size'] / 1024)) ?> KB</small></span>
                                 <i class="bi bi-download" aria-hidden="true"></i>
                             </a>
@@ -343,10 +343,10 @@
                 <input id="chatAttachment" type="file" name="attachment" hidden accept=".pdf,.docx,.pptx,.xlsx,.txt,.csv,.zip,.png,.jpg,.jpeg,.gif,.webp">
                 <label for="chatAttachment" class="chat-plus" title="Add a picture or file" aria-label="Add a picture or file"><i class="bi bi-plus-lg"></i></label>
                 <div style="flex:1;min-width:0;">
-                    <input id="chatMessage" type="text" name="message" placeholder="Type a message..." class="ss-input" style="width:100%;">
-                    <div id="attachmentName" style="display:none;font-size:11px;color:var(--copper-dark);margin:5px 3px 0;"></div>
+                    <input id="chatMessage" type="text" name="message" placeholder="Type a message..." class="lsc-input" style="width:100%;">
+                    <div id="attachmentName" style="display:none;font-size:11px;color:var(--brand-dark);margin:5px 3px 0;"></div>
                 </div>
-                <button type="submit" class="btn-primary btn-copper" style="min-height:42px;"><i class="bi bi-send-fill"></i> <span>Send</span></button>
+                <button type="submit" class="btn-primary btn-brand" style="min-height:42px;"><i class="bi bi-send-fill"></i> <span>Send</span></button>
             </form>
         </div>
     </div>
@@ -354,7 +354,7 @@
     <aside class="card chat-files-panel" style="overflow:hidden;">
         <div class="panel-header" style="padding:15px 16px;">
             <div><div class="panel-title" style="font-size:14px;">Chat files</div><div class="panel-sub">Shared with this group</div></div>
-            <a href="files.php?group_id=<?= $groupId ?>" title="Open file library" style="color:var(--copper);"><i class="bi bi-box-arrow-up-right"></i></a>
+            <a href="files.php?group_id=<?= $groupId ?>" title="Open file library" style="color:var(--brand);"><i class="bi bi-box-arrow-up-right"></i></a>
         </div>
         <div class="chat-files-list">
             <?php if (empty($files)): ?>
@@ -362,7 +362,7 @@
             <?php else: ?>
                 <?php foreach (array_slice($files, 0, 8) as $file): ?>
                 <a href="download.php?id=<?= (int)$file['file_id'] ?>" style="display:flex;gap:10px;padding:12px 15px;border-bottom:1px solid var(--border-soft);text-decoration:none;color:inherit;">
-                    <i class="bi bi-file-earmark-fill" style="color:var(--copper);font-size:18px;"></i>
+                    <i class="bi bi-file-earmark-fill" style="color:var(--brand);font-size:18px;"></i>
                     <span style="min-width:0;"><strong style="font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><?= htmlspecialchars($file['file_name']) ?></strong><small style="color:var(--text-muted);"><?= htmlspecialchars($file['uploaded_by_name']) ?> &middot; <?= max(1, round($file['file_size'] / 1024)) ?> KB</small></span>
                 </a>
                 <?php endforeach; ?>
@@ -397,4 +397,5 @@ document.getElementById('inviteModal')?.addEventListener('click', function (even
 });
 </script>
 
-<?php $page_content = ob_get_clean(); require LSC_ROOT . '/views/layouts/app.php'; ?>
+<?php $pageTitle = $group['group_name'] . ' | Group';
+$page_content = ob_get_clean(); require LSC_ROOT . '/views/layouts/app.php'; ?>

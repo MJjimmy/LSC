@@ -91,7 +91,7 @@ final class RateLimiter
      * TRUSTED_PROXY=cloudflare is set in the environment - otherwise
      * anyone can fake that header and bypass IP-based rate limiting
      * entirely. Set TRUSTED_PROXY=cloudflare once you actually put LSC
-     * behind Cloudflare (see config/bootstrap.php for where env vars live).
+     * behind Cloudflare (host environment variable; see README > Environment variables).
      */
     public static function clientIp(): string
     {

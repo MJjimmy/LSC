@@ -6,6 +6,7 @@ namespace LSC\Files;
 
 use LSC\Core\Auth;
 use LSC\Core\Csrf;
+use LSC\Core\RateLimiter;
 use LSC\Groups\GroupRepository;
 
 final class FileController
@@ -14,7 +15,8 @@ final class FileController
         private readonly Auth $auth,
         private readonly FileRepository $files,
         private readonly FileService $service,
-        private readonly GroupRepository $groups
+        private readonly GroupRepository $groups,
+        private readonly RateLimiter $rateLimiter
     ) {
     }
 
@@ -33,11 +35,16 @@ final class FileController
             Csrf::verify();
             $groupId = (int)($_POST['group_id'] ?? $selectedGroup);
             if (isset($_FILES['file'])) {
-                $result = $this->service->upload($_FILES['file'], $groupId, $userId);
-                $_SESSION['file_flash'] = [
-                    'type' => $result['ok'] ? 'success' : 'error',
-                    'message' => $result['ok'] ? 'File uploaded successfully.' : $result['error'],
-                ];
+                if ($this->rateLimiter->tooManyAttempts('upload:user:' . $userId, 30)) {
+                    $_SESSION['file_flash'] = ['type' => 'error', 'message' => 'Too many uploads from your account. Try again later.'];
+                } else {
+                    $this->rateLimiter->hit('upload:user:' . $userId, 3600);
+                    $result = $this->service->upload($_FILES['file'], $groupId, $userId);
+                    $_SESSION['file_flash'] = [
+                        'type' => $result['ok'] ? 'success' : 'error',
+                        'message' => $result['ok'] ? 'File uploaded successfully.' : $result['error'],
+                    ];
+                }
             } elseif (isset($_POST['delete_file_id'])) {
                 if ($this->service->deleteOwned((int)$_POST['delete_file_id'], $userId)) {
                     $_SESSION['file_flash'] = ['type' => 'success', 'message' => 'File deleted.'];

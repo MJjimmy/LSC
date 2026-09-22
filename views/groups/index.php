@@ -29,7 +29,7 @@
         <div class="stat-card-label" style="color:#1e40af;">
             <i class="bi bi-plus-circle-fill" style="margin-right:5px;"></i>Start a Group
         </div>
-        <div style="font-size:13px;color:var(--copper-dark);margin-top:8px;font-weight:500;">
+        <div style="font-size:13px;color:var(--brand-dark);margin-top:8px;font-weight:500;">
             Create a private space for your team →
         </div>
     </div>
@@ -53,7 +53,7 @@
                 <div style="width:44px;height:44px;border-radius:10px;background:var(--sidebar);
                             color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;
                             font-weight:700;font-size:15px;flex-shrink:0;">
-                    <?= strtoupper(substr($g['group_name'], 0, 2)) ?>
+                    <?= htmlspecialchars(strtoupper(mb_substr($g['group_name'], 0, 2))) ?>
                 </div>
                 <div style="flex:1;min-width:0;">
                     <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
@@ -78,7 +78,7 @@
                 <div style="font-size:11.5px;color:var(--text-muted);">
                     <?= $g['member_count'] ?> members
                 </div>
-                <span style="font-size:12.5px;font-weight:600;color:var(--copper-dark);">Open →</span>
+                <span style="font-size:12.5px;font-weight:600;color:var(--brand-dark);">Open →</span>
             </div>
 
         </a>
@@ -108,7 +108,7 @@
         <div style="width:40px;height:40px;border-radius:8px;background:var(--sidebar);
                     color:rgba(255,255,255,.65);display:flex;align-items:center;justify-content:center;
                     font-weight:700;font-size:14px;flex-shrink:0;">
-            <?= strtoupper(substr($g['group_name'], 0, 2)) ?>
+            <?= htmlspecialchars(strtoupper(mb_substr($g['group_name'], 0, 2))) ?>
         </div>
 
         <div style="flex:1;min-width:0;">
@@ -127,7 +127,7 @@
                 <input type="hidden" name="request_join_group_id" value="<?= $g['group_id'] ?>">
                 <button type="submit" style="
                     font-size:12px;font-weight:600;padding:7px 16px;border-radius:8px;
-                    border:1px solid var(--copper-border);color:var(--copper-dark);
+                    border:1px solid var(--brand-border);color:var(--brand-dark);
                     background:#eff6ff;cursor:pointer;font-family:'Inter',system-ui,sans-serif;
                     transition:background .15s;
                 " onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
@@ -142,34 +142,34 @@
 <?php endif; ?>
 
 <!-- ── CREATE GROUP MODAL ─────────────────────────────────── -->
-<div id="createModal" class="ss-modal-bg" style="display:none;">
-    <div class="ss-modal">
-        <div class="ss-modal-head">
-            <div class="ss-modal-title">Create New Group</div>
-            <div class="ss-modal-sub">Start collaborating with other learners.</div>
+<div id="createModal" class="lsc-modal-bg" style="display:none;">
+    <div class="lsc-modal">
+        <div class="lsc-modal-head">
+            <div class="lsc-modal-title">Create New Group</div>
+            <div class="lsc-modal-sub">Start collaborating with other learners.</div>
         </div>
-        <div class="ss-modal-body">
+        <div class="lsc-modal-body">
             <form method="POST">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
 
                 <div style="margin-bottom:14px;">
-                    <label class="ss-label">Group Name</label>
-                    <input type="text" name="group_name" required maxlength="100" class="ss-input">
+                    <label class="lsc-label">Group Name</label>
+                    <input type="text" name="group_name" required maxlength="100" class="lsc-input">
                 </div>
 
                 <div style="margin-bottom:14px;">
-                    <label class="ss-label">Description</label>
-                    <textarea name="description" rows="3" class="ss-input" style="resize:vertical;"></textarea>
+                    <label class="lsc-label">Description</label>
+                    <textarea name="description" rows="3" class="lsc-input" style="resize:vertical;"></textarea>
                 </div>
 
                 <label style="display:flex;align-items:center;gap:10px;margin-bottom:6px;cursor:pointer;">
-                    <input type="checkbox" name="is_private" style="width:15px;height:15px;accent-color:var(--copper);">
+                    <input type="checkbox" name="is_private" style="width:15px;height:15px;accent-color:var(--brand);">
                     <span style="font-size:13.5px;font-weight:500;">Private Group</span>
                 </label>
 
-                <div class="ss-modal-footer" style="padding:16px 0 0;border:none;">
+                <div class="lsc-modal-footer" style="padding:16px 0 0;border:none;">
                     <button type="button" onclick="document.getElementById('createModal').style.display='none'" class="btn-ghost">Cancel</button>
-                    <button type="submit" name="create_group" class="btn-primary btn-copper">Create Group</button>
+                    <button type="submit" name="create_group" class="btn-primary btn-brand">Create Group</button>
                 </div>
 
             </form>
@@ -183,4 +183,5 @@ document.getElementById('createModal').addEventListener('click', function(e) {
 });
 </script>
 
-<?php $page_content = ob_get_clean(); require LSC_ROOT . '/views/layouts/app.php'; ?>
+<?php $pageTitle = 'Study Groups | LSC';
+$page_content = ob_get_clean(); require LSC_ROOT . '/views/layouts/app.php'; ?>
