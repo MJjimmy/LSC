@@ -21,7 +21,7 @@ LSC is a responsive PHP and MySQL collaboration platform for student groups. It 
 
 ## Requirements
 
-- PHP 8.2 or newer with PDO MySQL and `mbstring`
+- PHP 8.2 or newer with PDO MySQL, `mbstring`, and `curl` (curl is used by the outbound email/SMS notification dispatcher)
 - MySQL 8 or MariaDB 10.4+
 - A web server whose document root is the `public` directory
 - Write permission for `storage/uploads`
@@ -113,7 +113,7 @@ The sign-in page links to **Forgot password?**. Reset tokens are random, stored 
 - Uploads use random stored names, extension allowlists, size limits, and image validation.
 - Group management actions are limited to group creators or administrators.
 - Password-reset responses do not reveal whether an email address exists.
-- New registrations always receive the student role; administrator access must be granted deliberately in the database or through a future secured admin workflow.
+- New registrations can only receive the student or lecturer role; administrator access must be granted deliberately in the database or through a future secured admin workflow.
 
 ## Production considerations
 
