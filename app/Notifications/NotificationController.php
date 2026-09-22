@@ -41,7 +41,6 @@ final class NotificationController
             'join_request' => 'bi-person-raised-hand',
             'group_approved' => 'bi-check-circle-fill',
             'group_declined' => 'bi-info-circle-fill',
-            'task' => 'bi-check2-square',
         ];
         ob_start();
         require \LSC_ROOT . '/views/notifications/index.php';

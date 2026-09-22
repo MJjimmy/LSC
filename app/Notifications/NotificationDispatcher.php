@@ -44,29 +44,6 @@ final class NotificationDispatcher
     }
 
     /**
-     * Queue a notification respecting the user's channel preferences.
-     * Looks up email/phone + notify_email/notify_sms from the users table.
-     */
-    public function queueForUser(int $userId, string $subject, string $message): void
-    {
-        $statement = $this->database->prepare(
-            'SELECT email, phone_number, notify_email, notify_sms FROM users WHERE user_id = ?'
-        );
-        $statement->execute([$userId]);
-        $user = $statement->fetch();
-        if (!$user) {
-            return;
-        }
-
-        if ((int)$user['notify_email'] === 1 && $user['email']) {
-            $this->queueEmail($user['email'], $subject, $message, $userId);
-        }
-        if ((int)$user['notify_sms'] === 1 && $user['phone_number']) {
-            $this->queueSms($user['phone_number'], $subject . ': ' . $message, $userId);
-        }
-    }
-
-    /**
      * Process a batch of pending notifications. Call this from a cron job:
      *   php bin/process-notification-queue.php
      */
@@ -143,7 +120,7 @@ final class NotificationDispatcher
 
     private function postJson(string $url, string $payload, array $headers): array
     {
-        return $this->curlRequest($url, $payload, array_merge($headers, []));
+        return $this->curlRequest($url, $payload, $headers);
     }
 
     private function postForm(string $url, array $fields, array $headers): array

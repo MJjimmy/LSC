@@ -39,6 +39,11 @@ LSC is a responsive PHP and MySQL collaboration platform for student groups. It 
 | `APP_ENV` | Required in production | Set to `production` to enforce production session and error settings |
 | `APP_DEBUG` | No | Set to `1` only during local debugging; never enable it in production |
 | `MAIL_FROM` | For email reset delivery | Sender address used by PHP `mail()` |
+| `TRUSTED_PROXY` | No | Set to `cloudflare` when LSC sits behind Cloudflare so rate limiting reads the real client IP |
+
+A `.env.example` file at the project root is provided: copy it to `.env` and
+adjust — `config/bootstrap.php` loads `.env` automatically, and variables
+already set in the real environment always take precedence.
 
 ## Database setup
 
@@ -85,11 +90,11 @@ unavailable as a public registration role.
 
 ## Local start
 
-1. Configure the environment variables above.
+1. Copy `.env.example` to `.env` and adjust it (it is loaded automatically).
 2. Make `public` the web document root.
 3. Ensure `storage/uploads` is writable by PHP and backed by persistent storage in production.
-4. Import the correct SQL file for a fresh or existing database.
-5. Start the PHP/web-server process of your choice.
+4. Import the correct SQL file for a fresh or existing database — `docker compose -f database/docker-compose.yml up -d` gives you MySQL 8 + phpMyAdmin with the consolidated schema already imported.
+5. Start the PHP/web-server process of your choice, e.g. `php -S 0.0.0.0:8000 -t public`.
 
 The repository includes Railway/Nixpacks configuration that serves `/app/public`.
 
@@ -126,12 +131,12 @@ Before opening the service to public traffic, replace the repository's `php -S` 
 
 ## Verification
 
-All PHP files pass PHP 8.2 syntax lint. Before release, run the acceptance checklist in `docs/StudySync_Project_Documentation.docx` against a staging database and verify desktop and mobile layouts.
+All PHP files pass PHP 8.2 syntax lint. Before release, run the acceptance checklist in `docs/LSC_Project_Documentation.docx` against a staging database and verify desktop and mobile layouts.
 
 ## Documentation
 
 The full architecture, user guide, deployment procedure, security model, and release checklist are in:
 
 ```text
-docs/StudySync_Project_Documentation.docx
+docs/LSC_Project_Documentation.docx
 ```

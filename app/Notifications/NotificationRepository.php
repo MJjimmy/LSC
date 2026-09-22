@@ -24,9 +24,11 @@ final class NotificationRepository
     {
         $limit = max(1, min($limit, 100));
         $statement = $this->database->prepare(
-            "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT {$limit}"
+            'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?'
         );
-        $statement->execute([$userId]);
+        $statement->bindValue(1, $userId, PDO::PARAM_INT);
+        $statement->bindValue(2, $limit, PDO::PARAM_INT);
+        $statement->execute();
         return $statement->fetchAll();
     }
 

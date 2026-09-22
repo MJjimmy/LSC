@@ -1,4 +1,4 @@
-﻿# StudySync .gitignore
+# LSC
 /storage/uploads/*
 !/storage/uploads/.gitkeep
 /vendor/

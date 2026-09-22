@@ -853,7 +853,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
      * refreshes other open LSC tabs after the same action.
      */
     (function setupSafeAutoRefresh() {
-        const actionKey = 'studysync:last-user-action';
+        const actionKey = 'lsc:last-user-action';
         const refreshIntervalMs = 30000;
         const loadedAt = Date.now();
         let formIsDirty = false;
