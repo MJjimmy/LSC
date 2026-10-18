@@ -10,6 +10,11 @@ on:
       - Caddyfile
       - php.ini
       - tests/railpack_config_test.py
+      - tests/runtime_config_test.py
+      - tests/runtime_smoke_test.py
+      - Dockerfile.railway
+      - Dockerfile.railway.dockerignore
+      - runtime/**
       - .github/workflows/railpack-review.yml
 
 permissions:
@@ -25,4 +30,10 @@ jobs:
         with:
           persist-credentials: false
       - name: Verify configuration without cloud credentials or deployment
-        run: python3 tests/railpack_config_test.py
+        run: |
+          python3 tests/railpack_config_test.py
+          python3 tests/runtime_config_test.py
+      - name: Build the pinned production runtime locally
+        run: docker build --platform linux/amd64 --network none -f Dockerfile.railway -t lsc-runtime-fixed:review .
+      - name: Exercise the isolated runtime without deploying
+        run: python3 tests/runtime_smoke_test.py

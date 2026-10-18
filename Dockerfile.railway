@@ -1,0 +1,23 @@
+# Patched, digest-pinned production runtime; local Docker files are untouched.
+FROM cgr.dev/chainguard/nginx@sha256:d74ba9e5cf9f6b049807e27a5a14a8cd2550ac428143b7d15ea3dbad282f4ed1 AS nginx
+FROM cgr.dev/chainguard/php@sha256:0da2195607be7420a4d048d0f6bd6e3e8d9dc13c441a09afc30890ed0ec2a218
+COPY --from=nginx /usr/sbin/nginx /usr/sbin/nginx
+COPY --from=nginx /etc/nginx/mime.types /etc/nginx/mime.types
+COPY --from=nginx /etc/nginx/fastcgi_params /etc/nginx/fastcgi_params
+WORKDIR /app
+COPY app /app/app
+COPY bin /app/bin
+COPY config /app/config
+COPY public /app/public
+COPY views /app/views
+COPY runtime /app/runtime
+COPY php.ini /etc/php/conf.d/99-lsc.ini
+COPY --chown=65532:65532 storage/uploads /app/storage/uploads
+COPY --chmod=0755 runtime/start /app/runtime/start
+COPY --chmod=0755 runtime/services /app/runtime/services
+ENV APP_ENV=production APP_DEBUG=0 APP_SHOW_RESET_LINKS=0
+USER 65532:65532
+RUN ["/usr/sbin/nginx", "-V"]
+RUN ["/bin/php", "-l", "/app/runtime/prepare.php"]
+EXPOSE 8080
+ENTRYPOINT ["/app/runtime/start"]

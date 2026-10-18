@@ -1,0 +1,23 @@
+# Runtime build allowlist: no secrets, uploads or private project documents.
+**
+!app/
+!app/**
+!bin/
+!bin/**
+!config/
+!config/**
+!public/
+!public/**
+!views/
+!views/**
+!runtime/
+!runtime/**
+!php.ini
+!storage/
+!storage/uploads/
+!storage/uploads/.gitkeep
+!Dockerfile.railway
+**/.env
+**/.env.*
+**/.git
+**/*.log

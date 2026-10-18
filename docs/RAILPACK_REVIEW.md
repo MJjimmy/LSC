@@ -1,4 +1,6 @@
-# LSC Railpack review — deployment blocked
+# LSC Railpack review — historical candidate
+
+> Superseded by `RUNTIME_FIX.md` and the dedicated `Dockerfile.railway`. The three findings below describe the old candidate, not the replacement runtime.
 
 ## Scope
 
