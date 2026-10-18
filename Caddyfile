@@ -1,0 +1,35 @@
+{
+    admin off
+    persist_config off
+    auto_https off
+    frankenphp
+    log {
+        output stderr
+        format json
+    }
+}
+
+:{$PORT:8080} {
+    root * /app/public
+    encode zstd gzip
+    request_body {
+        max_size 115343360
+    }
+
+    route {
+        # Run liveness before the missing-file rewrite.
+        respond /healthz "ok" 200
+
+        @private path_regexp private (^|/)\.
+        respond @private 404
+
+        @missing {
+            not file {path} {path}/index.php
+        }
+        rewrite @missing /404.php
+
+        php_server {
+            try_files {path} {path}/index.php
+        }
+    }
+}

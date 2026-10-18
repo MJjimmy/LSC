@@ -1,0 +1,28 @@
+name: Railpack review checks (no deployment)
+
+on:
+  push:
+    branches: [deploy/railpack]
+  pull_request:
+    paths:
+      - composer.json
+      - railpack.json
+      - Caddyfile
+      - php.ini
+      - tests/railpack_config_test.py
+      - .github/workflows/railpack-review.yml
+
+permissions:
+  contents: read
+
+jobs:
+  deployment-contract:
+    name: Offline Railpack configuration checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the exact review commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Verify configuration without cloud credentials or deployment
+        run: python3 tests/railpack_config_test.py
