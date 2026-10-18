@@ -14,6 +14,9 @@ class RuntimeContract(unittest.TestCase):
         self.assertIn('USER 65532:65532',s)
         self.assertNotIn('COPY . ',s)
         self.assertNotIn('apt-get',s)
+        for filename in ['Dockerfile.railway', 'Dockerfile.database']:
+            self.assertNotIn('RUN --network=', (ROOT/filename).read_text(),
+                             'Railway does not support per-instruction network flags')
     def test_nginx_only_serves_public_and_uses_fpm(self):
         path=ROOT/'runtime/nginx.conf.template'
         self.assertTrue(path.exists())
