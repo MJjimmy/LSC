@@ -1,4 +1,4 @@
-name: Railpack review checks (no deployment)
+name: Runtime review checks (no deployment)
 
 on:
   push:
@@ -12,6 +12,11 @@ on:
       - tests/railpack_config_test.py
       - tests/runtime_config_test.py
       - tests/runtime_smoke_test.py
+      - tests/volume_runtime_test.py
+      - tests/database_runtime_test.py
+      - Dockerfile.database
+      - Dockerfile.database.dockerignore
+      - database/init.sql
       - Dockerfile.railway
       - Dockerfile.railway.dockerignore
       - runtime/**
@@ -22,7 +27,7 @@ permissions:
 
 jobs:
   deployment-contract:
-    name: Offline Railpack configuration checks
+    name: Runtime and database verification
     runs-on: ubuntu-latest
     steps:
       - name: Check out the exact review commit
@@ -34,6 +39,12 @@ jobs:
           python3 tests/railpack_config_test.py
           python3 tests/runtime_config_test.py
       - name: Build the pinned production runtime locally
-        run: docker build --platform linux/amd64 --network none -f Dockerfile.railway -t lsc-runtime-fixed:review .
+        run: docker build --platform linux/amd64 --network default -f Dockerfile.railway -t lsc-runtime-fixed:review .
       - name: Exercise the isolated runtime without deploying
         run: python3 tests/runtime_smoke_test.py
+      - name: Verify root-owned upload storage and privilege drop
+        run: python3 tests/volume_runtime_test.py
+      - name: Build the pinned database with the fresh-install schema
+        run: docker build --platform linux/amd64 --network default -f Dockerfile.database -t lsc-database:review .
+      - name: Verify database initialization and restart persistence
+        run: python3 tests/database_runtime_test.py

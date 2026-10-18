@@ -1,0 +1,6 @@
+#!/bin/execlineb -P
+if { /bin/php /app/runtime/volume-permissions.php }
+ifelse { /bin/php /app/runtime/volume-permissions.php --is-root } {
+  /usr/bin/su-exec php /app/runtime/start
+}
+/app/runtime/start

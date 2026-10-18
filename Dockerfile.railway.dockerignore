@@ -21,3 +21,4 @@
 **/.env.*
 **/.git
 **/*.log
+runtime/database-entrypoint

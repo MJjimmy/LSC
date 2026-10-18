@@ -1,0 +1,10 @@
+FROM cgr.dev/chainguard/wolfi-base@sha256:c2a4815b6ca49b9bbafd451b4bde690d567a86b2b6b54877faac8082a7bc4296 AS ownership
+RUN --network=default apk add --no-cache su-exec=0.3-r4 \
+    && echo "8acfb0194081dc849e385cbe7bf1737257fcf6decf865c1bdeb961b9a763029b  /usr/bin/su-exec" | sha256sum -c -
+FROM cgr.dev/chainguard/mariadb@sha256:720bc2a732a3e19e971b91d1080f6b04c1fc644b6e828ac08144322ef6d73239
+COPY --from=ownership /usr/bin/su-exec /usr/bin/su-exec
+COPY --chmod=0755 runtime/database-entrypoint /app/runtime/database-entrypoint
+COPY database/init.sql /docker-entrypoint-initdb.d/10-lsc-schema.sql
+ENV MARIADB_ROOT_HOST=localhost MARIADB_INITDB_SKIP_TZINFO=1
+ENTRYPOINT ["/app/runtime/database-entrypoint"]
+CMD ["mariadbd"]
