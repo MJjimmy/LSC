@@ -39,6 +39,18 @@ define('LSC_STORAGE', LSC_ROOT . DIRECTORY_SEPARATOR . 'storage');
     }
 })(LSC_ROOT . DIRECTORY_SEPARATOR . '.env');
 
+// Explicit, temporary database cutover gate. Default is normal operation.
+// CLI migration tasks bypass this; web reads/writes stop before any DB access.
+if (PHP_SAPI !== 'cli' && getenv('LSC_DB_CUTOVER_MAINTENANCE') === '1') {
+    http_response_code(503);
+    header('Content-Type: text/plain; charset=UTF-8');
+    header('Cache-Control: no-store');
+    header('Retry-After: 60');
+    header('X-Content-Type-Options: nosniff');
+    header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
+    exit('LSC is temporarily unavailable while its database connection is updated. Please try again shortly.');
+}
+
 spl_autoload_register(static function (string $class): void {
     $prefix = 'LSC\\';
     if (!str_starts_with($class, $prefix)) {

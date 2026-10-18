@@ -23,6 +23,10 @@ on:
       - tests/runtime_smoke_test.py
       - tests/volume_runtime_test.py
       - tests/database_runtime_test.py
+      - tests/mysql_transfer_runtime_test.py
+      - tests/cutover_gate_runtime_test.py
+      - bin/transfer-to-mysql.php
+      - config/bootstrap.php
       - Dockerfile.database
       - Dockerfile.database.dockerignore
       - database/init.sql
@@ -58,3 +62,7 @@ jobs:
         run: docker build --platform linux/amd64 --network default -f Dockerfile.database -t lsc-database:review .
       - name: Verify database initialization and restart persistence
         run: python3 tests/database_runtime_test.py
+      - name: Verify the optional cutover maintenance gate
+        run: python3 tests/cutover_gate_runtime_test.py
+      - name: Rehearse MariaDB to MySQL preservation without cloud access
+        run: python3 tests/mysql_transfer_runtime_test.py
