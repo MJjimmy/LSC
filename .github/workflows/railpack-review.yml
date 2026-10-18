@@ -11,6 +11,10 @@ on:
       - php.ini
       - tests/railpack_config_test.py
       - tests/runtime_config_test.py
+      - tests/group_wiring_test.py
+      - public/groups.php
+      - public/group.php
+      - app/Groups/GroupController.php
       - tests/runtime_smoke_test.py
       - tests/volume_runtime_test.py
       - tests/database_runtime_test.py
@@ -38,6 +42,7 @@ jobs:
         run: |
           python3 tests/railpack_config_test.py
           python3 tests/runtime_config_test.py
+          python3 tests/group_wiring_test.py
       - name: Build the pinned production runtime locally
         run: docker build --platform linux/amd64 --network default -f Dockerfile.railway -t lsc-runtime-fixed:review .
       - name: Exercise the isolated runtime without deploying
