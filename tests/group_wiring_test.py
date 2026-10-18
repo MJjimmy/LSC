@@ -13,5 +13,13 @@ class GroupRouteWiring(unittest.TestCase):
                 self.assertIn('use LSC\\Core\\RateLimiter;', source)
                 self.assertRegex(source, r'new GroupController\([\s\S]*,\s*new RateLimiter\(\$database\)\s*\)')
 
+class AccountRouteWiring(unittest.TestCase):
+    def test_all_account_routes_inject_required_rate_limiter(self):
+        for route in ['login.php', 'register.php', 'logout.php', 'forgot-password.php', 'reset-password.php']:
+            with self.subTest(route=route):
+                source = (ROOT / 'public' / route).read_text()
+                self.assertIn('use LSC\\Core\\RateLimiter;', source)
+                self.assertRegex(source, r'new AccountController\([\s\S]*new PasswordResetService\(\$database\),\s*\$limiter\)')
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

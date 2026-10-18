@@ -13,6 +13,11 @@ on:
       - tests/runtime_config_test.py
       - tests/group_wiring_test.py
       - public/groups.php
+      - public/logout.php
+      - public/login.php
+      - public/register.php
+      - public/forgot-password.php
+      - public/reset-password.php
       - public/group.php
       - app/Groups/GroupController.php
       - tests/runtime_smoke_test.py
