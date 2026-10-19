@@ -2,7 +2,7 @@ name: Runtime review checks (no deployment)
 
 on:
   push:
-    branches: [deploy/railpack]
+    branches: [deploy/railpack, feat/google-resend]
   pull_request:
     paths:
       - composer.json
@@ -39,7 +39,26 @@ permissions:
   contents: read
 
 jobs:
+  php-integrations:
+    name: PHP Google and Resend regression checks
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the exact review commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify existing runner PHP extensions
+        run: |
+          php --version
+          php -r 'foreach (["curl", "mbstring", "pdo_sqlite"] as $e) { if (!extension_loaded($e)) { fwrite(STDERR, "Missing extension: $e\n"); exit(1); } }'
+      - name: Test Resend without contacting a provider
+        run: php tests/resend-mailer.php
+      - name: Test Google sign-in without real credentials
+        run: if [ -f tests/google-sign-in.php ]; then php tests/google-sign-in.php; fi
+      - name: Lint PHP source
+        run: python -c "import pathlib,subprocess; files=[p for d in ('app','bin','config','public','views') for p in pathlib.Path(d).rglob('*.php')]; [subprocess.run(['php','-l',str(p)],check=True) for p in files]"
   deployment-contract:
+    if: github.ref == 'refs/heads/deploy/railpack' || github.event_name == 'pull_request'
     name: Runtime and database verification
     runs-on: ubuntu-latest
     steps:
