@@ -2,7 +2,7 @@ name: Runtime review checks (no deployment)
 
 on:
   push:
-    branches: [deploy/railpack, feat/google-resend, fix/android-sign-in, fix/notification-worker, fix/help-profile, fix/app-auth-direct]
+    branches: [deploy/railpack, feat/google-resend, fix/android-sign-in, fix/notification-worker, fix/help-profile, fix/app-auth-direct, fix/mobile-session-diagnostics]
   pull_request:
     paths:
       - composer.json

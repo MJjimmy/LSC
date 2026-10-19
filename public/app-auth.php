@@ -52,6 +52,23 @@ try {
         $token = $_POST['csrf_token'] ?? null;
         $expected = $_SESSION['csrf_token'] ?? null;
         if (!is_string($token) || !is_string($expected) || $expected === '' || !hash_equals($expected, $token)) {
+            // Failure-only diagnostics: never log cookies, session IDs, tokens, intent values or identities.
+            $cookieName = session_name();
+            $cookie = $_COOKIE[$cookieName] ?? null;
+            $cookiePresent = is_string($cookie) && $cookie !== '';
+            $cookieHeader = $_SERVER['HTTP_COOKIE'] ?? '';
+            $cookieCount = is_string($cookieHeader)
+                ? preg_match_all('/(?:^|;)\s*' . preg_quote($cookieName, '/') . '=/', $cookieHeader) : 0;
+            error_log('LSC app sign-in confirmation rejected: ' . json_encode([
+                'cookie_present' => $cookiePresent,
+                // A matching ID does not prove that the session's stored data survived.
+                'cookie_matches_session' => $cookiePresent && session_id() !== '' && hash_equals(session_id(), $cookie),
+                'csrf_expected_present' => is_string($expected) && $expected !== '',
+                'csrf_received_present' => is_string($token) && $token !== '',
+                'current_intent_present' => is_array($_SESSION['app_sign_in'] ?? null),
+                'duplicate_session_cookie' => $cookieCount > 1,
+            ]));
+            $error = 'The browser could not verify this sign-in confirmation. Your browser session may have changed or cookies may be unavailable.';
             $status = 403;
             throw new RuntimeException('Invalid confirmation');
         }

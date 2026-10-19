@@ -1,6 +1,7 @@
 """Hosted-CI-only schema rehearsal using disposable existing review images.
 No public ports, production data, live provider keys, or email delivery.
 """
+import json
 import os
 from pathlib import Path
 import re
@@ -93,6 +94,31 @@ try:
     probe = (Path(__file__).resolve().parent / 'app_auth_http_probe.php').read_text()
     result = docker('exec', '-i', WEB, '/bin/php', input_text=probe)
     print(result.stdout)
+    # Assert failure-only, value-free diagnostics from the actual PHP/FPM route.
+    logs = docker('logs', WEB)
+    prefix = 'LSC app sign-in confirmation rejected: '
+    diagnostics = [json.loads(line.split(prefix, 1)[1])
+                   for line in (logs.stdout + logs.stderr).splitlines() if prefix in line]
+    failures = re.search(r'^APP_AUTH_CSRF_FAILURES=(\d+)$', result.stdout, re.M)
+    assert failures is not None and len(diagnostics) == int(failures[1]), 'Each CSRF 403, and only that failure, must log once'
+    expected_keys = {'cookie_present', 'cookie_matches_session', 'csrf_expected_present',
+                     'csrf_received_present', 'current_intent_present', 'duplicate_session_cookie'}
+    assert diagnostics and all(set(item) == expected_keys and
+                               all(type(value) is bool for value in item.values())
+                               for item in diagnostics), 'Diagnostics must contain only the approved boolean fields'
+    assert any(not item['cookie_present'] and not item['cookie_matches_session'] and
+               not item['csrf_expected_present'] and item['csrf_received_present'] and
+               not item['current_intent_present'] for item in diagnostics), 'Missing-cookie fixture must be distinguishable'
+    assert any(item['cookie_present'] and item['cookie_matches_session'] and
+               item['csrf_expected_present'] and item['csrf_received_present'] and
+               item['current_intent_present'] for item in diagnostics), 'Stale or tampered token must be distinguishable from cookie loss'
+    assert any(item['cookie_present'] and item['cookie_matches_session'] and
+               not item['csrf_expected_present'] and item['csrf_received_present'] and
+               not item['current_intent_present'] for item in diagnostics), 'Session-data loss must be distinguishable from missing cookies'
+    assert any(item['cookie_present'] and item['cookie_matches_session'] and
+               item['csrf_expected_present'] and not item['csrf_received_present'] and
+               item['current_intent_present'] for item in diagnostics), 'Missing-token fixture must be distinguishable'
+    print('PASS: real HTTP CSRF failures emit exactly one boolean-only diagnostic; successful and stale-intent requests emit none')
     # Activation barrier skips fixture backlog; the live daemon must remain supervised.
     audit = docker('exec', WEB, '/bin/php', '/app/bin/audit-notification-queue.php').stdout
     assert '"eligible_email_count":0' in audit and '"processor_enabled":true' in audit, audit
