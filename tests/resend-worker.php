@@ -25,6 +25,10 @@ $r=$d->processPending();expect($db->log===[],'Disabled worker must not select or
 putenv('NOTIFICATION_WORKER_ENABLED=1');putenv('NOTIFICATION_SEND_AFTER=');
 $db=new QueueTestDb();(new NotificationDispatcher($db))->processPending();expect($db->log===[],'Missing backlog cutoff must fail closed');
 putenv('NOTIFICATION_SEND_AFTER=2000-01-01 00:00:00');
+putenv('NOTIFICATION_MIN_QUEUE_ID=');
+$db=new QueueTestDb();(new NotificationDispatcher($db))->processPending();
+expect($db->log===[],'Missing activation queue ID barrier must fail closed');
+putenv('NOTIFICATION_MIN_QUEUE_ID=1');
 $db=new QueueTestDb();$db->lock=0;$calls=0;
 $mailer=new ResendMailer(function()use(&$calls){$calls++;return ['status'=>200,'body'=>'{"id":"fixture-accepted"}','network_error'=>false];});
 (new NotificationDispatcher($db,$mailer))->processPending();
