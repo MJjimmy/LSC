@@ -53,6 +53,8 @@ jobs:
           php -r 'foreach (["curl", "mbstring", "pdo_sqlite"] as $e) { if (!extension_loaded($e)) { fwrite(STDERR, "Missing extension: $e\n"); exit(1); } }'
       - name: Test Resend without contacting a provider
         run: php tests/resend-mailer.php
+      - name: Test email worker safety without sending
+        run: php tests/resend-worker.php
       - name: Test Google sign-in without real credentials
         run: if [ -f tests/google-sign-in.php ]; then php tests/google-sign-in.php; fi
       - name: Lint PHP source
