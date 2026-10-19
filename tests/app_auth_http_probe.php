@@ -10,7 +10,7 @@ function request(string $path,?array $data=null,string $jar='/tmp/lsc-fixture-br
   CURLOPT_TIMEOUT=>10,CURLOPT_PROXY=>'',CURLOPT_COOKIEFILE=>$jar,CURLOPT_COOKIEJAR=>$jar]);
  if($data!==null)curl_setopt_array($h,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>http_build_query($data)]);
  $raw=curl_exec($h);$status=(int)curl_getinfo($h,CURLINFO_HTTP_CODE);$size=(int)curl_getinfo($h,CURLINFO_HEADER_SIZE);
- curl_setopt($h,CURLOPT_COOKIELIST,'FLUSH');curl_close($h);
+ curl_setopt($h,CURLOPT_COOKIELIST,'FLUSH');unset($h);
  if(!is_string($raw))throw new RuntimeException('Fixture HTTP connection failed');
  return [$status,substr($raw,0,$size),substr($raw,$size)];
 }

@@ -30,6 +30,8 @@ try {
     // Count all attempts, including successful exchanges; never trust forwarded IP headers by default.
     $limiter->hit($key, 600);
     if ($action === 'start' && $method === 'GET') {
+        // The originating form document must allow the authorization redirect too.
+        OAuthProvider::allowAuthorizationRedirect();
         $intent = $service->createIntent($_GET['challenge'] ?? null, $_GET['state'] ?? null);
         ?>
 <!doctype html>
