@@ -55,6 +55,8 @@ jobs:
         run: php tests/resend-mailer.php
       - name: Test email worker safety without sending
         run: php tests/resend-worker.php
+      - name: Test real password-reset controller with a fake provider
+        run: php tests/resend-password-reset.php
       - name: Test Google sign-in without real credentials
         run: if [ -f tests/google-sign-in.php ]; then php tests/google-sign-in.php; fi
       - name: Lint PHP source

@@ -22,7 +22,7 @@ final class NotificationDispatcher
 {
     private const MAX_ATTEMPTS = 3;
 
-    public function __construct(private readonly PDO $database)
+    public function __construct(private readonly PDO $database, private readonly ?ResendMailer $mailer = null)
     {
     }
 
@@ -75,27 +75,44 @@ final class NotificationDispatcher
      */
     public function processPending(int $limit = 20): array
     {
-        $statement = $this->database->prepare(
-            'SELECT * FROM notification_queue WHERE status = "pending" AND attempts < ? ORDER BY created_at LIMIT ?'
-        );
-        $statement->bindValue(1, self::MAX_ATTEMPTS, PDO::PARAM_INT);
-        $statement->bindValue(2, $limit, PDO::PARAM_INT);
-        $statement->execute();
-
         $results = ['sent' => 0, 'failed' => 0];
-        foreach ($statement->fetchAll() as $row) {
-            $sent = $row['channel'] === 'email'
-                ? $this->sendEmail($row['recipient'], (string)$row['subject'], $row['body'])
-                : $this->sendSms($row['recipient'], $row['body']);
-
-            if ($sent['ok']) {
-                $this->markSent((int)$row['queue_id']);
-                $results['sent']++;
-            } else {
-                $this->markFailed((int)$row['queue_id'], (int)$row['attempts'], $sent['error']);
-                $results['failed']++;
+        $mailer = $this->mailer ?? new ResendMailer();
+        $cutoff = (string)getenv('NOTIFICATION_SEND_AFTER');
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $cutoff, new \DateTimeZone('UTC'));
+        if (getenv('NOTIFICATION_WORKER_ENABLED') !== '1' || !$mailer->enabled()
+            || !$date || $date->format('Y-m-d H:i:s') !== $cutoff) return $results;
+        $name = 'lsc_mail_' . substr(hash('sha256', (string)$this->database->query('SELECT DATABASE()')->fetchColumn()), 0, 32);
+        $lock = $this->database->prepare('SELECT GET_LOCK(?, 0)');
+        $lock->execute([$name]);
+        if ((int)$lock->fetchColumn() !== 1) return $results;
+        try {
+            $statement = $this->database->prepare(
+                "SELECT * FROM notification_queue WHERE status = 'pending' AND channel = 'email'
+                 AND attempts < ? AND created_at >= ?
+                 AND created_at >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 23 HOUR)
+                 ORDER BY created_at, queue_id LIMIT ?"
+            );
+            $statement->bindValue(1, self::MAX_ATTEMPTS, PDO::PARAM_INT);
+            $statement->bindValue(2, $cutoff, PDO::PARAM_STR);
+            $statement->bindValue(3, max(1, min(20, $limit)), PDO::PARAM_INT);
+            $statement->execute();
+            foreach ($statement->fetchAll() as $row) {
+                $this->database->prepare('UPDATE notification_queue SET attempts = attempts + 1 WHERE queue_id = ?')
+                    ->execute([(int)$row['queue_id']]);
+                $key = 'lsc/queue/' . hash('sha256', (string)getenv('APP_URL') . '|' . $row['queue_id'] . '|' . $row['created_at']);
+                $sent = $mailer->send($row['recipient'], (string)$row['subject'], $row['body'], $key);
+                if ($sent['ok']) {
+                    $this->markSent((int)$row['queue_id'], $sent['provider_id']);
+                    $results['sent']++;
+                } else {
+                    $this->markFailed((int)$row['queue_id'], (int)$row['attempts'], $sent['error']);
+                    $results['failed']++;
+                }
             }
+        } finally {
+            $this->database->prepare('SELECT RELEASE_LOCK(?)')->execute([$name]);
         }
+        // Legacy "sent" means provider-accepted, not inbox-delivered.
         return $results;
     }
 
@@ -196,11 +213,11 @@ final class NotificationDispatcher
         return $statement->execute([$userId, $channel, $recipient, $subject, $body]);
     }
 
-    private function markSent(int $queueId): void
+    private function markSent(int $queueId, string $providerId): void
     {
         $this->database->prepare(
-            'UPDATE notification_queue SET status = "sent", sent_at = NOW() WHERE queue_id = ?'
-        )->execute([$queueId]);
+            'UPDATE notification_queue SET status = "sent", sent_at = UTC_TIMESTAMP(), provider_message_id = ?, last_error = NULL WHERE queue_id = ?'
+        )->execute([$providerId, $queueId]);
     }
 
     private function markFailed(int $queueId, int $attempts, ?string $error): void
