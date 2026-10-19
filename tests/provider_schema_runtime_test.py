@@ -41,7 +41,7 @@ def prepare(check=True):
         '--memory', '256m', '--tmpfs', '/tmp:rw,nosuid,nodev,noexec,size=64m',
         '-e', 'MYSQLHOST=' + NAME, '-e', 'MYSQLDATABASE=provider_check',
         '-e', 'MYSQLUSER=provider_check', '-e', 'MYSQLPORT=3306', '-e', 'MYSQLPASSWORD',
-        '--entrypoint', '/bin/php', 'lsc-runtime-fixed:review', '/app/bin/prepare-provider-schema.php', check=check)
+        '--entrypoint', '/bin/php', 'lsc-runtime-fixed:review', '/app/bin/prepare-deployment.php', check=check)
 
 
 try:

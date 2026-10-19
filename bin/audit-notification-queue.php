@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
-require dirname(__DIR__) . '/config/bootstrap.php';
+require_once dirname(__DIR__) . '/config/bootstrap.php';
 use LSC\Core\Database;
 use LSC\Notifications\ResendMailer;
 try {
