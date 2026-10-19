@@ -7,6 +7,7 @@ namespace LSC\Users;
 use LSC\Core\Auth;
 use LSC\Core\Csrf;
 use LSC\Core\RateLimiter;
+use LSC\Notifications\ResendMailer;
 
 final class AccountController
 {
@@ -14,7 +15,8 @@ final class AccountController
         private readonly Auth $auth,
         private readonly AccountService $accounts,
         private readonly PasswordResetService $passwordResets,
-        private readonly RateLimiter $limiter
+        private readonly RateLimiter $limiter,
+        private readonly ?ResendMailer $mailer = null
     ) {
     }
 
@@ -111,18 +113,27 @@ final class AccountController
             } else {
                 $this->limiter->hit($ipKey, 3600);
                 $this->limiter->hit($emailKey, 3600);
-                if (filter_var($email, FILTER_VALIDATE_EMAIL) && ($token = $this->passwordResets->createToken($email))) {
+                $mailer = $this->mailer ?? new ResendMailer();
+                $showDevelopmentLink = getenv('APP_SHOW_RESET_LINKS') === '1'
+                    && strtolower((string)getenv('APP_ENV')) !== 'production';
+                if (!$mailer->enabled() && !$showDevelopmentLink) {
+                    $error = 'Password reset email is temporarily unavailable. Please try again later.';
+                } elseif (filter_var($email, FILTER_VALIDATE_EMAIL) && ($token = $this->passwordResets->createToken($email))) {
                     $resetUrl = $this->resetUrl($token);
-                    $from = (string)getenv('MAIL_FROM');
-                    if ($from !== '') {
-                        $headers = "From: {$from}\r\nContent-Type: text/plain; charset=UTF-8";
-                        @mail($email, 'Reset your LSC password', "Use this link within 60 minutes to reset your password:\n\n{$resetUrl}\n", $headers);
+                    $accepted = false;
+                    if ($mailer->enabled()) {
+                        $result = $mailer->send($email, 'Reset your LSC password',
+                            "Use this link within 60 minutes to reset your password:\n\n{$resetUrl}\n",
+                            'lsc/reset/' . hash('sha256', $token));
+                        $accepted = $result['ok'];
+                        if (!$accepted) error_log('LSC reset email not accepted: ' . $result['error']);
                     }
-                    if (strtolower((string)getenv('APP_ENV')) !== 'production') {
+                    if (!$accepted && !$showDevelopmentLink) $this->passwordResets->revokeToken($token);
+                    if ($showDevelopmentLink) {
                         $developmentResetUrl = $resetUrl;
                     }
                 }
-                $submitted = true;
+                $submitted = $error === '';
             }
         }
         ob_start();

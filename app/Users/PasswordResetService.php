@@ -35,6 +35,13 @@ final class PasswordResetService
         return $insert->execute([(int)$userId, hash('sha256', $token)]) ? $token : null;
     }
 
+    public function revokeToken(string $token): bool
+    {
+        return $this->database->prepare(
+            'DELETE FROM password_reset_tokens WHERE token_hash = ? AND used_at IS NULL'
+        )->execute([hash('sha256', $token)]);
+    }
+
     public function reset(string $token, string $newPassword): bool
     {
         try {
