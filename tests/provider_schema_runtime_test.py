@@ -99,7 +99,7 @@ try:
     service_path = '/tmp/lsc/sv/notification-worker'
     previous = docker('exec', WEB, '/bin/s6-svstat', '-o', 'pid', service_path).stdout.strip()
     assert previous.isdigit() and int(previous) > 0, 'Queue worker did not start'
-    status = docker('exec', WEB, '/bin/cat', '/proc/' + previous + '/status').stdout
+    status = docker('exec', WEB, '/bin/php', '-r', 'echo file_get_contents("/proc/".$argv[1]."/status");', previous).stdout
     assert re.search(r'^Uid:\s+65532\s', status, re.M), 'Queue worker must remain unprivileged'
     docker('exec', WEB, '/bin/s6-svc', '-t', service_path)
     for attempt in range(40):
