@@ -2,7 +2,7 @@ name: Runtime review checks (no deployment)
 
 on:
   push:
-    branches: [deploy/railpack, feat/google-resend, fix/android-sign-in, fix/notification-worker, fix/help-profile]
+    branches: [deploy/railpack, feat/google-resend, fix/android-sign-in, fix/notification-worker, fix/help-profile, fix/app-auth-direct]
   pull_request:
     paths:
       - composer.json
@@ -41,6 +41,7 @@ on:
       - public/app-auth.php
       - tests/app-sign-in.php
       - tests/app_auth_http_probe.php
+      - tests/app_auth_navigation_test.py
       - bin/prepare-provider-schema.php
       - bin/audit-notification-queue.php
       - bin/notification-worker.php
@@ -83,6 +84,7 @@ jobs:
       - name: Verify Help navigation and Profile UI
         run: |
           python tests/ui_navigation_test.py
+          python tests/app_auth_navigation_test.py
           php tests/help-profile.php
       - name: Lint PHP source
         run: python -c "import pathlib,subprocess; files=[p for d in ('app','bin','config','public','views') for p in pathlib.Path(d).rglob('*.php')]; [subprocess.run(['php','-l',str(p)],check=True) for p in files]"

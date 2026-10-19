@@ -1,6 +1,6 @@
 # Android Google sign-in handoff
 
-This uses the **same PHP backend, Google web OAuth client and existing identities**. There is no native Google SDK, replacement backend or additional configuration mode. Email delivery remains unchanged (keep `EMAIL_DELIVERY_ENABLED` off).
+This uses the **same PHP backend, Google web OAuth client and existing identities**. There is no native Google SDK, replacement backend or additional configuration mode. Email delivery and queue activation flags remain unchanged.
 
 ## Wire contract
 
@@ -11,13 +11,13 @@ This uses the **same PHP backend, Google web OAuth client and existing identitie
    /app-auth.php?action=start&challenge=<64hex>&state=<64hex>
    ```
    Native must not accept an arbitrary host, port, scheme or redirect target from web content. Use the same fixed backend origin as the WebView.
-4. GET creates a browser-session-private intent with random `intent_id` and a **600-second** deadline. The page deliberately asks the user to **Continue with Google**. Its POST requires that session's CSRF token and current intent id. Merely visiting start/complete while already signed into the website never issues a handoff code.
+4. GET creates a browser-session-private intent with random `intent_id` and a **600-second** deadline. A minimal document immediately submits its private form, without showing another LSC sign-in screen or asking for another click. The POST still requires that session's CSRF token and current intent id. Only script-disabled browsers see a fallback button. Merely visiting start/complete while already signed into the website never issues a handoff code.
 5. POST starts the existing Google OAuth flow, with `next=app-auth.php?action=complete`, `link_user_id=null`, and the private intent tag. The registered Google callback **stays `/oauth.php?provider=google`**. Existing state, Google PKCE, browser-user binding and provider identity verification still apply. Only after a successful Google exchange and `OAuthAccounts::resolve` does the callback log in and mark the corresponding intent completed. No implicit email linking or role changes are introduced; new Google identities still use the existing student defaults.
-6. GET complete requires the completed intent's user id to equal the current browser auth id and an active account. It consumes that intent once and persists only `SHA256hex(code)`, native challenge, authoritative user id and a **120-second** expiry. The no-store/no-referrer result has a deliberate **Return to LSC** anchor (no automatic external navigation):
+6. GET complete requires the completed intent's user id to equal the current browser auth id and an active account. It consumes that intent once and persists only `SHA256hex(code)`, native challenge, authoritative user id and a **120-second** expiry. The no-store/no-referrer response is a **303 redirect directly to the fixed native target**, with no LSC success page or manual Return to LSC link:
    ```text
    lscapp://auth?code=<64hex>&state=<64hex>
    ```
-   No Google token, access token, password, session id or verifier is put in this link.
+   No Google token, access token, password, session id or verifier is put in this link. An Android/browser permission prompt may still require user approval; the website must not bypass device policy.
 7. Native accepts only the exact `lscapp://auth` target, with no alternate user-info/port/path/fragment and exactly one well-formed code and state. Compare state against a still-pending request (maximum 600 seconds since native start), atomically claim that pending request, and reject missing/mismatched/expired/replayed callbacks. State matching is native's responsibility: the exchange body intentionally does not include state.
 8. Call `WebView.postUrl` on the **fixed original backend HTTPS URL**, never a URL from the callback:
    ```text
@@ -54,4 +54,4 @@ php tests/google-sign-in.php
 
 Requires PHP with `pdo_sqlite` and sessions (the existing Google suite additionally uses `mbstring`). The new suite uses only an in-memory SQLite database, session state, synthetic users and obviously fake provider settings. It never loads `.env`, uses the live database, sends email, creates live accounts or calls Google. It covers browser-login bypass prevention, current/private intent and state checks, cross-session/unknown/replayed/expired intents, one-time completion, code hashing/expiry, incorrect verifier, inactive/unknown/expired/replayed codes and role-preserving WebView login. Source-wiring and template checks supplement these tests; they do not establish HTTP headers, live Google behavior or MySQL concurrency.
 
-**Local verification limitation:** PHP is absent in the implementation environment. The test was written before the service with a missing-class RED guard, but `php tests/app-sign-in.php` could not execute (`php: command not found`, exit 127). Neither an observed runtime RED nor GREEN, PHP lint, schema execution, HTTP/Google round trip or MySQL concurrency proof is claimed. Run the commands above on the hosted PHP runtime, then exercise the browser-to-Android flow with an approved existing account before publication.
+**Verification boundary:** PHP is not installed locally; use the existing hosted PHP and isolated runtime CI, not local Docker or new installations. The HTTP fixture exercises automatic-start markup, CSRF refusal, a trusted callback hook in its disposable session, the real native 303 redirect and verifier-bound exchange/replay refusal. It does not contact Google, prove a real consent round trip, or prove the installed phone/browser will allow automatic external navigation. Verify that last step on the user's phone; no new APK is needed when the existing native return handler is already installed.

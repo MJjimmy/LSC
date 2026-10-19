@@ -35,14 +35,15 @@ try {
         $intent = $service->createIntent($_GET['challenge'] ?? null, $_GET['state'] ?? null);
         ?>
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Continue to Google — LSC</title></head>
-<body><main><h1>Sign in to the LSC Android app</h1>
-<p>Continue to Google to choose the account you want to use in LSC. You will return to the app after signing in.</p>
-<form method="post" action="app-auth.php?action=start">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Google sign-in — LSC</title></head>
+<body>
+<form id="google-start" method="post" action="app-auth.php?action=start">
 <input type="hidden" name="csrf_token" value="<?= $escape(Csrf::token()) ?>">
 <input type="hidden" name="intent_id" value="<?= $escape($intent['intent_id']) ?>">
-<button type="submit">Continue with Google</button>
-</form></main></body></html>
+<noscript><p>Enable JavaScript to continue automatically, or use the button below.</p><button type="submit">Continue with Google</button></noscript>
+</form>
+<script>document.getElementById('google-start').submit();</script>
+</body></html>
         <?php
         exit;
     }
@@ -62,12 +63,8 @@ try {
     if ($action === 'complete' && $method === 'GET') {
         $return = $service->complete();
         $link = 'lscapp://auth?' . http_build_query($return, '', '&', PHP_QUERY_RFC3986);
-        ?>
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Return to LSC</title></head>
-<body><main><h1>Google sign-in complete</h1><p>Return to the app to finish signing in. This link expires in two minutes and works once.</p>
-<a href="<?= $escape($link) ?>" rel="noreferrer">Return to LSC</a></main></body></html>
-        <?php
+        // Fixed native target; code/state are validated hex values, never an arbitrary redirect.
+        header('Location: ' . $link, true, 303);
         exit;
     }
     if ($action === 'exchange' && $method === 'POST') {

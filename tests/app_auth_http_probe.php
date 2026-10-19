@@ -30,19 +30,38 @@ check(in_array($status,[302,303],true) && str_contains($headers,'Location: dashb
 [$status,,$html]=request('/dashboard.php');check($status===200 && str_contains($html,'Android HTTP fixture'),'Password session reaches protected dashboard');
 $verifier=bin2hex(random_bytes(32));$challenge=hash('sha256',$verifier);$state=bin2hex(random_bytes(32));
 [$status,$startHeaders,$html]=request('/app-auth.php?action=start&challenge='.$challenge.'&state='.$state);
-check($status===200 && str_contains($html,'Sign in to the LSC Android app'),'Browser confirmation is rendered');
+check($status===200 && str_contains($html,"document.getElementById('google-start').submit()"),'Browser automatically submits its private start form');
+check(!str_contains($html,'<h1>Sign in to the LSC Android app</h1>'),'No extra app sign-in screen is displayed');
+check(str_contains($html,'<noscript>'),'Script-disabled browsers retain an explicit fallback');
 check(str_contains($startHeaders, "form-action 'self' https://accounts.google.com"),'The originating confirmation document must permit the Google redirect');
 $csrf=field($html,'csrf_token');$intent=field($html,'intent_id');
 [$status]=request('/app-auth.php?action=complete');check($status===400,'An already logged-in browser cannot skip Google completion');
 [$status]=request('/app-auth.php?action=start',['intent_id'=>$intent]);check($status===403,'Browser confirmation requires its CSRF token');
 [$status,$headers]=request('/app-auth.php?action=start',['csrf_token'=>$csrf,'intent_id'=>$intent]);
 check($status===303 && str_contains($headers,'Location: https://accounts.google.com/'),'Confirmed browser flow redirects to Google without following it');
-// Seed an opaque code ONLY for the disposable fixture account; no OAuth exchange is simulated as real.
+// Complete only the trusted callback hook in this isolated fixture; no real Google exchange is claimed.
 require '/app/config/bootstrap.php';
 $db=LSC\Core\Database::connection();$s=$db->prepare('SELECT user_id,role FROM users WHERE email = ?');$s->execute([$email]);$user=$s->fetch(PDO::FETCH_ASSOC);
 check(is_array($user) && $user['role']==='student','Registration stored the correct authoritative role');
-$code=bin2hex(random_bytes(32));
-$db->prepare('INSERT INTO app_auth_codes(code_hash,challenge,user_id,expires_at) VALUES(?,?,?,?)')->execute([hash('sha256',$code),$challenge,$user['user_id'],time()+120]);
+// Load the actual fixture browser session, then invoke the same trusted completion hook
+// that production invokes only AFTER verified Google exchange and identity resolution.
+$browserSessionId=null;
+foreach(file($jar1,FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES) as $line){
+ $cookie=explode("\t",$line);
+ if(count($cookie)===7 && $cookie[5]==='LSC_session')$browserSessionId=$cookie[6];
+}
+check(is_string($browserSessionId) && preg_match('/^[A-Za-z0-9,-]{16,128}$/D',$browserSessionId)===1,'Fixture browser session cookie is present');
+session_write_close();session_save_path('/tmp/lsc/sessions');session_id($browserSessionId);session_start();
+$flow=LSC\Users\OAuthProvider::consume('google',$_SESSION['oauth_flow']['state']);
+(new LSC\Users\AppSignIn($db))->completeGoogle($flow,(int)$user['user_id']);
+session_write_close();
+[$status,$headers,$html]=request('/app-auth.php?action=complete');
+check($status===303 && preg_match('/^Location: (lscapp:\/\/auth\?[^\r\n]+)\r?$/m',$headers,$location)===1,'Completed browser redirects straight to the native app');
+parse_str((string)parse_url($location[1],PHP_URL_QUERY),$nativeReturn);
+check(($nativeReturn['state']??null)===$state && preg_match('/^[a-f0-9]{64}$/D',$nativeReturn['code']??'')===1,'Direct return retains its code and matching native state');
+check($html==='' && !str_contains($html,'Google sign-in complete'),'Completion renders no extra return-link screen');
+$code=$nativeReturn['code'];
+[$status]=request('/app-auth.php?action=complete');check($status===400,'Completed intent cannot issue another callback');
 [$status]=request('/app-auth.php?action=exchange',['code'=>$code,'verifier'=>str_repeat('0',64)],$jar2);
 check($status===400,'Wrong native verifier is refused over HTTP');
 [$status,$headers]=request('/app-auth.php?action=exchange',['code'=>$code,'verifier'=>$verifier,'role'=>'admin','user_id'=>999999],$jar2);
