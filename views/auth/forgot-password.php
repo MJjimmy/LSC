@@ -3,6 +3,10 @@
 <div class="auth-card-title">Forgot Password</div>
 <div class="auth-card-sub">Request a secure reset link</div>
 
+<?php if ($error): ?>
+    <div class="auth-alert auth-alert-error" role="alert"><?= htmlspecialchars($error, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></div>
+<?php endif; ?>
+
 <?php if ($submitted): ?>
     <div class="auth-alert auth-alert-success"><i class="bi bi-envelope-check" style="margin-right:6px;"></i>If an active account matches that email, a reset link has been created.</div>
     <?php if ($developmentResetUrl): ?>

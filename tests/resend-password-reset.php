@@ -27,7 +27,7 @@ $calls=[];
 $mailer=new ResendMailer(function($url,$body,$headers)use(&$calls){$calls[]=json_decode($body,true);return ['status'=>200,'body'=>'{"id":"fixture-accepted"}','network_error'=>false];});
 function submit(ResendMailer $mailer,string $email):string {
  global $db;$_SESSION=[];$_POST=['csrf_token'=>Csrf::token(),'email'=>$email];
- $c=new AccountController(new Auth($db),new AccountService(new UserRepository($db)),new PasswordResetService($db),new RateLimiter($db),$mailer);
+ $c=new AccountController(new Auth($db),new AccountService(new UserRepository($db)),new PasswordResetService($db),new RateLimiter($db),mailer:$mailer);
  ob_start();$c->forgotPassword();return ob_get_clean();
 }
 $html=submit($mailer,'person@example.invalid');
