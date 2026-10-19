@@ -2,7 +2,7 @@ name: Runtime review checks (no deployment)
 
 on:
   push:
-    branches: [deploy/railpack, feat/google-resend]
+    branches: [deploy/railpack, feat/google-resend, fix/android-sign-in]
   pull_request:
     paths:
       - composer.json
@@ -33,6 +33,8 @@ on:
       - views/auth/**
       - views/users/profile.php
       - public/oauth.php
+      - public/app-auth.php
+      - tests/app-sign-in.php
       - bin/prepare-provider-schema.php
       - bin/transfer-to-mysql.php
       - config/bootstrap.php
@@ -68,6 +70,8 @@ jobs:
         run: php tests/resend-password-reset.php
       - name: Test Google sign-in without real credentials
         run: php tests/google-sign-in.php
+      - name: Test Android browser return without real credentials
+        run: php tests/app-sign-in.php
       - name: Lint PHP source
         run: python -c "import pathlib,subprocess; files=[p for d in ('app','bin','config','public','views') for p in pathlib.Path(d).rglob('*.php')]; [subprocess.run(['php','-l',str(p)],check=True) for p in files]"
   deployment-contract:
