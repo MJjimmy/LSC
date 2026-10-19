@@ -14,7 +14,7 @@
     </section>
     <section class="help-section" id="groups">
         <h2>Study groups</h2>
-        <ol><li>Open <a href="groups.php">Study Groups</a> from the main menu.</li><li>Create a group for your course or browse existing groups.</li><li>Join a public group directly. For a private group, send a join request and wait for the group creator to approve it.</li><li>Open your group to find its members, tasks, files and chat. Group management actions depend on your membership and permissions.</li></ol>
+        <ol><li>Open <a href="groups.php">Study Groups</a> from the main menu.</li><li>Create a group for your course or browse existing groups.</li><li>Under Discover Public Groups, choose <strong>Request to Join</strong> and wait for the group creator or an authorised manager to approve it. For a private group, ask its creator for an invitation.</li><li>Open your group to find its members, tasks, files and chat. Group management actions depend on your membership and permissions.</li></ol>
     </section>
     <section class="help-section" id="invitations">
         <h2>Invitations &amp; notifications</h2>

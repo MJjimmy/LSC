@@ -44,6 +44,7 @@ foreach (['', 'android'] as $app) {
     checkUi(str_contains($html, 'href="login.php'.$suffix.'"'), 'Help keeps platform-specific sign-in route');
     checkUi(str_contains($html, 'href="register.php'.$suffix.'"'), 'Help keeps platform-specific registration route');
     checkUi(!str_contains($html, 'Connect Google'), 'Help does not direct users to the removed Profile control');
+    checkUi(str_contains($html, 'Request to Join') && !str_contains($html, 'Join a public group directly'), 'Help matches actual group approval workflow');
 }
 foreach (['login','register'] as $authPage) {
     checkUi(str_contains(file_get_contents(LSC_ROOT.'/views/auth/'.$authPage.'.php'), '/views/auth/google.php'), 'Google remains on '.$authPage);
