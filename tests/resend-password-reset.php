@@ -39,7 +39,8 @@ expect(!str_contains($html,$match[1]),'Production HTML never discloses the email
 $bad=new ResendMailer(fn()=>['status'=>503,'body'=>'secret-response','network_error'=>false]);
 submit($bad,'person@example.invalid');
 expect((int)$db->query('SELECT COUNT(*) FROM password_reset_tokens')->fetchColumn()===0,'Rejected email revokes the undeliverable reset token');
-putenv('EMAIL_DELIVERY_ENABLED=0');$before=count($calls);submit($mailer,'person@example.invalid');
+putenv('EMAIL_DELIVERY_ENABLED=0');$before=count($calls);$disabledHtml=submit($mailer,'person@example.invalid');
+expect(str_contains($disabledHtml,'Password reset email is temporarily unavailable.'),'Disabled delivery must visibly explain that no reset email was sent');
 expect(count($calls)===$before && (int)$db->query('SELECT COUNT(*) FROM password_reset_tokens')->fetchColumn()===0,'Disabled delivery creates neither email nor dangling token');
 putenv('EMAIL_DELIVERY_ENABLED=1');submit($mailer,'missing@example.invalid');expect(count($calls)===$before,'Unknown account causes no provider call');
 echo "Passed {$n} real-controller reset email checks; no real messages sent.\n";
