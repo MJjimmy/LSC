@@ -78,8 +78,9 @@ final class NotificationDispatcher
         $results = ['sent' => 0, 'failed' => 0];
         $mailer = $this->mailer ?? new ResendMailer();
         $cutoff = (string)getenv('NOTIFICATION_SEND_AFTER');
+        $minimum = filter_var(getenv('NOTIFICATION_MIN_QUEUE_ID'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $cutoff, new \DateTimeZone('UTC'));
-        if (getenv('NOTIFICATION_WORKER_ENABLED') !== '1' || !$mailer->enabled()
+        if ($minimum === false || getenv('NOTIFICATION_WORKER_ENABLED') !== '1' || !$mailer->enabled()
             || !$date || $date->format('Y-m-d H:i:s') !== $cutoff) return $results;
         $name = 'lsc_mail_' . substr(hash('sha256', (string)$this->database->query('SELECT DATABASE()')->fetchColumn()), 0, 32);
         $lock = $this->database->prepare('SELECT GET_LOCK(?, 0)');
@@ -88,13 +89,14 @@ final class NotificationDispatcher
         try {
             $statement = $this->database->prepare(
                 "SELECT * FROM notification_queue WHERE status = 'pending' AND channel = 'email'
-                 AND attempts < ? AND created_at >= ?
+                 AND attempts < ? AND created_at >= ? AND queue_id >= ?
                  AND created_at >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 23 HOUR)
                  ORDER BY created_at, queue_id LIMIT ?"
             );
             $statement->bindValue(1, self::MAX_ATTEMPTS, PDO::PARAM_INT);
             $statement->bindValue(2, $cutoff, PDO::PARAM_STR);
-            $statement->bindValue(3, max(1, min(20, $limit)), PDO::PARAM_INT);
+            $statement->bindValue(3, $minimum, PDO::PARAM_INT);
+            $statement->bindValue(4, max(1, min(20, $limit)), PDO::PARAM_INT);
             $statement->execute();
             foreach ($statement->fetchAll() as $row) {
                 $this->database->prepare('UPDATE notification_queue SET attempts = attempts + 1 WHERE queue_id = ?')

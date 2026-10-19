@@ -41,4 +41,5 @@ $log=json_encode($db->log);
 expect(str_contains($log,'GET_LOCK') && str_contains($log,'RELEASE_LOCK'),'Worker must acquire and release a database advisory lock');
 expect(str_contains($log,'provider_message_id'),'Provider acceptance ID must be stored');
 expect(str_contains($log,'created_at >=') && str_contains($log,"channel = 'email'"),'Only new email jobs are selected, not old backlog or SMS');
+expect(str_contains($log,'queue_id >= ?'),'Activation queue ID barrier must be included in selection');
 echo "Passed {$n} email worker guard checks; no real messages sent.\n";

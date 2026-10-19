@@ -37,6 +37,8 @@ on:
       - tests/app-sign-in.php
       - tests/app_auth_http_probe.php
       - bin/prepare-provider-schema.php
+      - bin/audit-notification-queue.php
+      - bin/notification-worker.php
       - bin/transfer-to-mysql.php
       - config/bootstrap.php
       - Dockerfile.database

@@ -75,6 +75,10 @@ try:
         '--read-only', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true',
         '--memory', '512m', '--pids-limit', '128', '--tmpfs', '/tmp:rw,nosuid,nodev,size=128m',
         '-e', 'PORT=18765', '-e', 'APP_ENV=testing', '-e', 'APP_URL=http://127.0.0.1:18765',
+        '-e', 'NOTIFICATION_PROCESSOR_ENABLED=1', '-e', 'NOTIFICATION_WORKER_ENABLED=1',
+        '-e', 'EMAIL_DELIVERY_ENABLED=1', '-e', 'NOTIFICATION_MIN_QUEUE_ID=1000000000',
+        '-e', 'NOTIFICATION_SEND_AFTER=2000-01-01 00:00:00',
+        '-e', 'RESEND_API_KEY=fixture-not-a-real-key', '-e', 'RESEND_FROM_EMAIL=sender@example.invalid',
         '-e', 'GOOGLE_CLIENT_ID=fixture-not-a-real-id', '-e', 'GOOGLE_CLIENT_SECRET=fixture-not-a-real-secret',
         '-e', 'MYSQLHOST=' + NAME, '-e', 'MYSQLDATABASE=provider_check',
         '-e', 'MYSQLUSER=provider_check', '-e', 'MYSQLPORT=3306', '-e', 'MYSQLPASSWORD',
@@ -89,6 +93,24 @@ try:
     probe = (Path(__file__).resolve().parent / 'app_auth_http_probe.php').read_text()
     result = docker('exec', '-i', WEB, '/bin/php', input_text=probe)
     print(result.stdout)
+    # Activation barrier skips fixture backlog; the live daemon must remain supervised.
+    audit = docker('exec', WEB, '/bin/php', '/app/bin/audit-notification-queue.php').stdout
+    assert '"eligible_email_count":0' in audit and '"processor_enabled":true' in audit, audit
+    service_path = '/tmp/lsc/sv/notification-worker'
+    previous = docker('exec', WEB, '/bin/s6-svstat', '-o', 'pid', service_path).stdout.strip()
+    assert previous.isdigit() and int(previous) > 0, 'Queue worker did not start'
+    status = docker('exec', WEB, '/bin/cat', '/proc/' + previous + '/status').stdout
+    assert re.search(r'^Uid:\s+65532\s', status, re.M), 'Queue worker must remain unprivileged'
+    docker('exec', WEB, '/bin/s6-svc', '-t', service_path)
+    for attempt in range(40):
+        current = docker('exec', WEB, '/bin/s6-svstat', '-o', 'pid', service_path, check=False).stdout.strip()
+        if current.isdigit() and int(current) > 0 and current != previous:
+            break
+        time.sleep(.2)
+    else:
+        raise RuntimeError('Queue supervisor did not restart the processor')
+    print('PASS: opt-in queue worker starts unprivileged, skips old fixture mail, and restarts under supervision')
+
     assert before == (sql(user_query).stdout, sql(queue_query).stdout), 'HTTP fixture changed existing rows'
 
     # Mismatch tests touch only this disposable fixture, never any deployed database.

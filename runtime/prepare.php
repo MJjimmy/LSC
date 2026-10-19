@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-// One-time setup only. s6 becomes PID 1 and supervises both production servers.
+// One-time setup. s6 supervises web servers and the explicitly enabled queue processor.
 umask(0077);
 try {
     $rawPort = getenv('PORT');
@@ -30,7 +30,13 @@ try {
         throw new RuntimeException('Runtime configuration could not be written.');
     }
     // Keep executables on the immutable image, not on a noexec temp mount.
-    foreach (['php-fpm', 'nginx'] as $service) {
+    $services = ['php-fpm', 'nginx'];
+    if (getenv('NOTIFICATION_PROCESSOR_ENABLED') === '1') $services[] = 'notification-worker';
+    foreach ($services as $service) {
+        $directory = '/tmp/lsc/sv/' . $service;
+        if (!is_dir($directory) && !mkdir($directory, 0700, true) && !is_dir($directory)) {
+            throw new RuntimeException('Runtime service storage is unavailable.');
+        }
         $target = __DIR__ . '/services/' . $service;
         $link = '/tmp/lsc/sv/' . $service . '/run';
         if (is_link($link) && readlink($link) === $target) {
