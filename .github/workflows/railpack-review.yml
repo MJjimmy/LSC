@@ -35,6 +35,7 @@ on:
       - public/oauth.php
       - public/app-auth.php
       - tests/app-sign-in.php
+      - tests/app_auth_http_probe.php
       - bin/prepare-provider-schema.php
       - bin/transfer-to-mysql.php
       - config/bootstrap.php

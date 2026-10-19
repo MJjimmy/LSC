@@ -12,14 +12,15 @@ import uuid
 NAME = 'lsc-provider-check-' + uuid.uuid4().hex[:10]
 VOLUME = NAME + '-data'
 NETWORK = NAME + '-net'
+WEB = NAME + '-web'
 ENV = dict(os.environ, MARIADB_ROOT_PASSWORD=secrets.token_urlsafe(32),
            MARIADB_PASSWORD=secrets.token_urlsafe(32), MARIADB_USER='provider_check',
            MARIADB_DATABASE='provider_check')
 ENV['MYSQLPASSWORD'] = ENV['MARIADB_PASSWORD']
 
 
-def docker(*args, check=True):
-    p = subprocess.run(['docker', *args], env=ENV, capture_output=True, text=True, timeout=90)
+def docker(*args, check=True, input_text=None):
+    p = subprocess.run(['docker', *args], env=ENV, capture_output=True, text=True, timeout=90, input=input_text)
     if check and p.returncode:
         text = p.stdout + p.stderr
         for key in ['MARIADB_ROOT_PASSWORD', 'MARIADB_PASSWORD']:
@@ -70,6 +71,26 @@ try:
     assert before == (sql(user_query).stdout, sql(queue_query).stdout), 'Users or existing queue data were mutated'
     assert sql("SELECT COUNT(*) FROM oauth_identities").stdout.strip() == '0'
     assert sql("SELECT COUNT(*) FROM notification_queue WHERE provider_message_id IS NOT NULL").stdout.strip() == '0'
+    docker('run', '-d', '--name', WEB, '--pull', 'never', '--network', NETWORK,
+        '--read-only', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true',
+        '--memory', '512m', '--pids-limit', '128', '--tmpfs', '/tmp:rw,nosuid,nodev,size=128m',
+        '-e', 'PORT=18765', '-e', 'APP_ENV=testing', '-e', 'APP_URL=http://127.0.0.1:18765',
+        '-e', 'GOOGLE_CLIENT_ID=fixture-not-a-real-id', '-e', 'GOOGLE_CLIENT_SECRET=fixture-not-a-real-secret',
+        '-e', 'MYSQLHOST=' + NAME, '-e', 'MYSQLDATABASE=provider_check',
+        '-e', 'MYSQLUSER=provider_check', '-e', 'MYSQLPORT=3306', '-e', 'MYSQLPASSWORD',
+        'lsc-runtime-fixed:review')
+    ready_code = "$c=curl_init('http://127.0.0.1:18765/healthz');curl_setopt($c,CURLOPT_RETURNTRANSFER,true);curl_setopt($c,CURLOPT_PROXY,'');curl_exec($c);exit(curl_getinfo($c,CURLINFO_HTTP_CODE)===200?0:1);"
+    for attempt in range(60):
+        if docker('exec', WEB, '/bin/php', '-r', ready_code, check=False).returncode == 0:
+            break
+        time.sleep(.2)
+    else:
+        raise RuntimeError('Disposable fixture web server did not become ready')
+    probe = (Path(__file__).resolve().parent / 'app_auth_http_probe.php').read_text()
+    result = docker('exec', '-i', WEB, '/bin/php', input_text=probe)
+    print(result.stdout)
+    assert before == (sql(user_query).stdout, sql(queue_query).stdout), 'HTTP fixture changed existing rows'
+
     # Mismatch tests touch only this disposable fixture, never any deployed database.
     sql('ALTER TABLE oauth_identities DROP INDEX uq_oauth_provider_subject')
     assert prepare(check=False).returncode != 0, 'Wrong unique keys must fail closed'
@@ -80,7 +101,7 @@ try:
     print('PASS: additive provider schema, repeat execution, exact-key mismatch, receipt-column mismatch, and existing-data preservation')
 finally:
     # Independent attempts: a container failure must not skip volume/network cleanup.
-    for command in [('rm', '-f', NAME), ('volume', 'rm', VOLUME), ('network', 'rm', NETWORK)]:
+    for command in [('rm', '-f', WEB), ('rm', '-f', NAME), ('volume', 'rm', VOLUME), ('network', 'rm', NETWORK)]:
         try:
             docker(*command, check=False)
         except (subprocess.TimeoutExpired, OSError):

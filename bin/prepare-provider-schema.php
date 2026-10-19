@@ -84,6 +84,57 @@ try {
         throw new RuntimeException('oauth_identities users foreign key mismatch; manual review required.');
     }
 
+    // Additive native handoff storage: only hashes, native challenge, user and expiry.
+    $db->exec("CREATE TABLE IF NOT EXISTS app_auth_codes (
+        code_hash CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+        challenge CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+        user_id {$userType} NOT NULL,
+        expires_at BIGINT UNSIGNED NOT NULL,
+        PRIMARY KEY (code_hash),
+        KEY idx_app_auth_expiry (expires_at),
+        CONSTRAINT fk_app_auth_user FOREIGN KEY (user_id) REFERENCES users(user_id)
+    ) ENGINE=InnoDB");
+    $appCodes = $columns('app_auth_codes');
+    foreach (['code_hash', 'challenge'] as $name) {
+        $column = $appCodes[$name] ?? [];
+        if (($column['DATA_TYPE'] ?? '') !== 'char' || (int)($column['CHARACTER_MAXIMUM_LENGTH'] ?? 0) !== 64
+            || ($column['IS_NULLABLE'] ?? '') !== 'NO' || ($column['COLLATION_NAME'] ?? '') !== 'ascii_bin') {
+            throw new RuntimeException('app_auth_codes string columns mismatch; manual review required.');
+        }
+    }
+    if (strtolower((string)($appCodes['user_id']['COLUMN_TYPE'] ?? '')) !== $userType
+        || ($appCodes['user_id']['IS_NULLABLE'] ?? '') !== 'NO'
+        || !preg_match('/^bigint(\\(\\d+\\))? unsigned$/D', strtolower((string)($appCodes['expires_at']['COLUMN_TYPE'] ?? '')))
+        || ($appCodes['expires_at']['IS_NULLABLE'] ?? '') !== 'NO') {
+        throw new RuntimeException('app_auth_codes numeric columns mismatch; manual review required.');
+    }
+    $engineQuery->execute([$schema, 'app_auth_codes']);
+    if (strtoupper((string)$engineQuery->fetchColumn()) !== 'INNODB') {
+        throw new RuntimeException('app_auth_codes engine mismatch; manual review required.');
+    }
+    $query = $db->prepare('SELECT INDEX_NAME, COLUMN_NAME, SUB_PART, NON_UNIQUE FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY INDEX_NAME, SEQ_IN_INDEX');
+    $query->execute([$schema, 'app_auth_codes']);
+    $indexes = [];
+    $primaryUnique = true;
+    foreach ($query->fetchAll(PDO::FETCH_ASSOC) as $index) {
+        $indexes[$index['INDEX_NAME']][] = $index['SUB_PART'] === null ? $index['COLUMN_NAME'] : 'PREFIX_NOT_ALLOWED';
+        if ($index['INDEX_NAME'] === 'PRIMARY' && (int)$index['NON_UNIQUE'] !== 0) {
+            $primaryUnique = false;
+        }
+    }
+    if (!$primaryUnique || ($indexes['PRIMARY'] ?? []) !== ['code_hash'] || !in_array(['expires_at'], $indexes, true)) {
+        throw new RuntimeException('app_auth_codes exact keys mismatch; manual review required.');
+    }
+    $query = $db->prepare('SELECT CONSTRAINT_NAME, COLUMN_NAME, REFERENCED_TABLE_SCHEMA, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND REFERENCED_TABLE_NAME IS NOT NULL ORDER BY CONSTRAINT_NAME, ORDINAL_POSITION');
+    $query->execute([$schema, 'app_auth_codes']);
+    $foreign = [];
+    foreach ($query->fetchAll(PDO::FETCH_ASSOC) as $key) {
+        $foreign[$key['CONSTRAINT_NAME']][] = [$key['COLUMN_NAME'], $key['REFERENCED_TABLE_SCHEMA'], $key['REFERENCED_TABLE_NAME'], $key['REFERENCED_COLUMN_NAME']];
+    }
+    if (!in_array([['user_id', $schema, 'users', 'user_id']], $foreign, true)) {
+        throw new RuntimeException('app_auth_codes users foreign key mismatch; manual review required.');
+    }
+
     $queue = $columns('notification_queue');
     if ($queue === []) {
         throw new RuntimeException('notification_queue is missing; existing application schema must be provisioned first.');
@@ -97,7 +148,7 @@ try {
         || ($messageId['IS_NULLABLE'] ?? '') !== 'YES') {
         throw new RuntimeException('notification_queue.provider_message_id mismatch; manual review required.');
     }
-    fwrite(STDOUT, "Provider schema ready: OAuth keys/FK verified; nullable queue provider_message_id verified.\n");
+    fwrite(STDOUT, "Provider schema ready: OAuth keys/FK, app_auth_codes keys/FK/expiry, and nullable queue provider_message_id verified.\n");
 } catch (Throwable $exception) {
     // No SQL, connection strings, credentials or row values in migration output.
     fwrite(STDERR, "Provider schema preparation failed. No destructive repair was attempted. Review database schema and permissions.\n");

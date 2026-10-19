@@ -8,6 +8,7 @@ use LSC\Core\Auth;
 use LSC\Core\Csrf;
 use LSC\Core\Database;
 use LSC\Core\RateLimiter;
+use LSC\Users\AppSignIn;
 use LSC\Users\OAuthAccounts;
 use LSC\Users\OAuthProvider;
 
@@ -55,9 +56,17 @@ try {
     if ($code === '' || !OAuthProvider::enabled($provider)) {
         throw new RuntimeException('Unable to complete this sign-in. Please try again.');
     }
+    $appSignIn = array_key_exists('app_intent_id', $flow) ? new AppSignIn($database) : null;
+    if ($appSignIn !== null) {
+        $appSignIn->validateCallback($flow);
+    }
     $identity = OAuthProvider::exchange($provider, $code, $flow['verifier']);
     $user = (new OAuthAccounts($database))->resolve($provider, $identity, $flow['link_user_id']);
     $auth->login((int)$user['user_id'], $user['name'], $user['role'], $user['avatar_path']);
+    if ($appSignIn !== null) {
+        // Never complete from an existing browser login or an unverified provider response.
+        $appSignIn->completeGoogle($flow, (int)$user['user_id']);
+    }
     header('Location: ' . OAuthProvider::safeNext($flow['next']), true, 303);
     exit;
 } catch (PDOException $exception) {
