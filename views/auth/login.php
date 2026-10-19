@@ -47,6 +47,8 @@
 
 </form>
 
+<?php require LSC_ROOT . '/views/auth/google.php'; ?>
+
 <div class="auth-footer">
     Don't have an account? <a href="register.php<?= !empty($_GET['next']) ? '?next=' . rawurlencode($_GET['next']) : '' ?>">Register</a>
 </div>

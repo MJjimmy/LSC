@@ -54,6 +54,8 @@
 
 </form>
 
+<?php require LSC_ROOT . '/views/auth/google.php'; ?>
+
 <div class="auth-footer">
     Already have an account? <a href="login.php">Sign In</a>
 </div>

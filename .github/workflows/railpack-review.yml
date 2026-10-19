@@ -25,6 +25,15 @@ on:
       - tests/database_runtime_test.py
       - tests/mysql_transfer_runtime_test.py
       - tests/cutover_gate_runtime_test.py
+      - tests/provider_schema_runtime_test.py
+      - tests/google-sign-in.php
+      - tests/resend-*.php
+      - app/Users/**
+      - app/Notifications/**
+      - views/auth/**
+      - views/users/profile.php
+      - public/oauth.php
+      - bin/prepare-provider-schema.php
       - bin/transfer-to-mysql.php
       - config/bootstrap.php
       - Dockerfile.database
@@ -58,11 +67,11 @@ jobs:
       - name: Test real password-reset controller with a fake provider
         run: php tests/resend-password-reset.php
       - name: Test Google sign-in without real credentials
-        run: if [ -f tests/google-sign-in.php ]; then php tests/google-sign-in.php; fi
+        run: php tests/google-sign-in.php
       - name: Lint PHP source
         run: python -c "import pathlib,subprocess; files=[p for d in ('app','bin','config','public','views') for p in pathlib.Path(d).rglob('*.php')]; [subprocess.run(['php','-l',str(p)],check=True) for p in files]"
   deployment-contract:
-    if: github.ref == 'refs/heads/deploy/railpack' || github.event_name == 'pull_request'
+
     name: Runtime and database verification
     runs-on: ubuntu-latest
     steps:
@@ -85,6 +94,8 @@ jobs:
         run: docker build --platform linux/amd64 --network default -f Dockerfile.database -t lsc-database:review .
       - name: Verify database initialization and restart persistence
         run: python3 tests/database_runtime_test.py
+      - name: Rehearse additive OAuth schema without touching live data
+        run: python3 tests/provider_schema_runtime_test.py
       - name: Verify the optional cutover maintenance gate
         run: python3 tests/cutover_gate_runtime_test.py
       - name: Rehearse MariaDB to MySQL preservation without cloud access
