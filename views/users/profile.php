@@ -34,16 +34,7 @@
     </section>
 
     <section class="card" style="padding:24px;">
-        <?php if ($isOwnProfile): \LSC\Users\OAuthProvider::allowAuthorizationRedirect(); ?>
-            <div class="panel-title">Google sign-in</div>
-            <p>Connect Google to this account without changing your role or profile. A Google account can belong to only one LSC account.</p>
-            <?php if (isset($_GET['connected'])): ?><p role="status">Google account connected.</p><?php endif; ?>
-            <form method="POST" action="oauth.php?provider=google">
-                <input type="hidden" name="intent" value="link">
-                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
-                <button type="submit" class="btn-primary btn-brand" <?= \LSC\Users\OAuthProvider::enabled('google') ? '' : 'disabled' ?>>Connect Google</button>
-            </form>
-            <div style="height:1px;background:var(--border-soft);margin:24px 0;"></div>
+        <?php if ($isOwnProfile): ?>
             <div class="panel-title">About me</div>
             <div style="font-size:13.5px;color:var(--text-secondary);line-height:1.7;margin-top:12px;white-space:pre-line;"><?= htmlspecialchars($profile['bio'] ?: 'Add a bio so other group members can learn more about you.') ?></div>
             <div style="height:1px;background:var(--border-soft);margin:24px 0;"></div>

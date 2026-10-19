@@ -2,7 +2,7 @@ name: Runtime review checks (no deployment)
 
 on:
   push:
-    branches: [deploy/railpack, feat/google-resend, fix/android-sign-in, fix/notification-worker]
+    branches: [deploy/railpack, feat/google-resend, fix/android-sign-in, fix/notification-worker, fix/help-profile]
   pull_request:
     paths:
       - composer.json
@@ -32,6 +32,11 @@ on:
       - app/Notifications/**
       - views/auth/**
       - views/users/profile.php
+      - public/help.php
+      - views/help/**
+      - views/layouts/**
+      - tests/help-profile.php
+      - tests/ui_navigation_test.py
       - public/oauth.php
       - public/app-auth.php
       - tests/app-sign-in.php
@@ -75,6 +80,10 @@ jobs:
         run: php tests/google-sign-in.php
       - name: Test Android browser return without real credentials
         run: php tests/app-sign-in.php
+      - name: Verify Help navigation and Profile UI
+        run: |
+          python tests/ui_navigation_test.py
+          php tests/help-profile.php
       - name: Lint PHP source
         run: python -c "import pathlib,subprocess; files=[p for d in ('app','bin','config','public','views') for p in pathlib.Path(d).rglob('*.php')]; [subprocess.run(['php','-l',str(p)],check=True) for p in files]"
   deployment-contract:

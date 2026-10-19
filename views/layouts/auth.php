@@ -284,6 +284,7 @@ html[data-theme="dark"] .auth-footer a:hover { color: #86efac; }
     <div class="auth-right">
         <div class="auth-card">
             <?= $auth_content ?? '' ?>
+            <p class="auth-footer"><a href="help.php<?= ($_GET['app'] ?? '') === 'android' ? '?app=android' : '' ?>">Need help?</a></p>
         </div>
     </div>
 

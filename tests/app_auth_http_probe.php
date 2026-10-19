@@ -50,6 +50,16 @@ check($status===303 && str_contains($headers,'Location: dashboard.php'),'Fresh W
 [$status,,$html]=request('/dashboard.php',null,$jar2);check($status===200 && str_contains($html,'Android HTTP fixture'),'Returned WebView session opens the protected dashboard');
 [$status]=request('/app-auth.php?action=exchange',['code'=>$code,'verifier'=>$verifier],$jar2);check($status===400,'One-time code cannot replay over HTTP');
 $s=$db->prepare('SELECT role FROM users WHERE user_id = ?');$s->execute([$user['user_id']]);check($s->fetchColumn()==='student','Native request cannot change authoritative role');
+[$status,,$html]=request('/help.php?app=android',null,'/tmp/lsc-fixture-help.cookies');
+check($status===200 && str_contains($html,'<h1>Help &amp; getting started</h1>'),'Guest Android Help is public');
+check(str_contains($html,'href="login.php?app=android"'),'Guest Help preserves native Google route on return to sign-in');
+[$status,,$html]=request('/profile.php',null,$jar2);
+check($status===200 && str_contains($html,'name="update_profile"') && str_contains($html,'name="update_notifications"'),'Authenticated Profile retains account and notification settings');
+check(!str_contains($html,'oauth.php?provider=google') && !str_contains($html,'Connect Google'),'Authenticated Profile has no second Google control');
+check(str_contains($html,'href="help.php"'),'Authenticated mobile layout links to Help');
+[$status,,$html]=request('/help.php',null,$jar2);
+check($status===200 && str_contains($html,'Android HTTP fixture') && str_contains($html,'<h1>Help &amp; getting started</h1>'),'Signed-in Help uses the real authenticated layout');
+check(str_contains($html,'id="invitations"') && str_contains($html,'id="android"'),'Help includes invitation and app guidance');
 $db->prepare('DELETE FROM app_auth_codes WHERE user_id = ?')->execute([$user['user_id']]);
 $db->prepare('DELETE FROM users WHERE user_id = ? AND email = ?')->execute([$user['user_id'],$email]);
 echo "PASS: {$n} real HTTP registration/password-login/browser-confirmation/native-exchange checks on a disposable database; no real Google exchange or email.\n";

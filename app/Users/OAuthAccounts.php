@@ -46,7 +46,7 @@ final class OAuthAccounts
             } else {
                 // Email is contact information, not evidence of local account ownership.
                 if ((new UserRepository($this->database))->findByEmail($identity['email'])) {
-                    throw new RuntimeException('An LSC account already uses this email. Sign in with your LSC password, then open your own Profile and choose Connect Google. If needed, use Forgot password on the sign-in page.');
+                    throw new RuntimeException('An LSC account already uses this email. Sign in with your LSC email and password. If needed, use Forgot password on the sign-in page.');
                 }
                 $statement = $this->database->prepare(
                     "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'student')"

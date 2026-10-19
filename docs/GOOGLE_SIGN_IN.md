@@ -34,7 +34,7 @@ MySQL DDL auto-commits: if a later verification fails, an earlier additive creat
 - The server exchanges the code and retrieves Google userinfo over HTTPS, with TLS verification enabled. It requires a stable subject and boolean `email_verified=true`. It does not decode/trust an unverified ID token or accept browser identity claims.
 - New users are always `student`, regardless of page role fields. They receive an unguessable password hash, not an empty password.
 - Existing identities retain their local user, name, email and role even if Google contact data changes. Inactive local accounts cannot sign in or be linked.
-- Matching email alone **never links accounts**. If your email already exists, sign in with your LSC password (or use Forgot password), open **your own Profile**, and choose **Connect Google**. Linking requires an authenticated active account, explicit `intent=link`, CSRF, and the same account at callback. Completion returns to `profile.php?connected=1`, not Help.
+- Matching email alone **never links accounts**. If your email already exists as a password-based account without a Google identity, sign in with your LSC email and password (or use Forgot password). Profile deliberately has no additional Google control. Existing identity bindings and roles are preserved. The existing server-side linking handler remains authenticated, active-account, explicit-intent, CSRF and same-account protected; this UI change does not weaken it or delete any binding.
 - Each local account can have only one Google identity; an identity already connected elsewhere cannot be claimed. There is no unlink/replacement UI in this change.
 - Continuations allow only a same-directory PHP filename and a restricted query; otherwise they fall back to `dashboard.php`.
 - Provider-returned error text and database exception details are never rendered. User-facing controlled errors are HTML-escaped. Logs contain exception class or database error code only.
@@ -59,7 +59,7 @@ Before claiming deployment success:
 1. Run the preparer against a disposable MySQL schema with realistic existing users/queue rows, twice; compare users, roles, queue statuses/payloads before/after. Check wrong unique keys, prefix indexes, FK and nullable-column mismatches all fail closed.
 2. Apply to the hosted schema under normal migration controls and read back constraints/column metadata without exposing credentials or PII.
 3. Verify guest login/register Google forms, missing-CSRF rejection, unsupported provider rejection, cancelled/wrong/expired state, and absence of Microsoft UI.
-4. In a real browser, complete a fresh Google signup and verify student role; test repeat login, existing-email refusal and password-login → Profile → Connect Google. Check return to Profile and preservation of an existing admin/lecturer role. Verify inactive and cross-account linking refusal.
+4. In a real browser, complete a fresh Google signup and verify student role; test repeat login and the existing-email password-login fallback. Confirm Profile has no Google sign-in/connect control, existing bindings still work, and existing roles are preserved. Verify inactive and cross-account linking refusal.
 5. Verify password login/registration still work. Do not claim the interactive consent flow passed without actually completing it.
 
 Local PHP execution was unavailable during this port; no local Docker, package installation, deployment or Android changes were used. Hosted PHP execution and real Google/browser verification remain required.
