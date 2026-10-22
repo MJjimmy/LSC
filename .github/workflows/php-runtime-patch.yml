@@ -1,0 +1,44 @@
+name: PHP runtime security patch (no deployment)
+
+on:
+  push:
+    branches: [security/php-runtime-2026-10-22, deploy/railpack]
+    paths:
+      - Dockerfile.railway
+      - tests/php_runtime_patch_test.py
+      - .github/workflows/php-runtime-patch.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-patch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact source without retaining credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Require the signature-verified security-release image before execution
+        run: python3 tests/php_runtime_patch_test.py
+      - name: Build isolated production runtime
+        run: docker build --platform linux/amd64 -f Dockerfile.railway -t lsc-runtime-fixed:review .
+      - name: Verify PHP CLI and FPM versions and required extensions
+        shell: bash
+        run: |
+          docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true --entrypoint /bin/php lsc-runtime-fixed:review -r 'if (PHP_VERSION !== "8.5.12") exit(1); foreach (["pdo_mysql","pdo_sqlite","mbstring","curl","fileinfo","session","openssl"] as $e) {if (!extension_loaded($e)) throw new RuntimeException("Missing ".$e);} if (!function_exists("getimagesize")) exit(1); $h=password_hash("isolated-test-password", PASSWORD_DEFAULT); if (!password_verify("isolated-test-password",$h)) exit(1); echo "PHP ".PHP_VERSION."; required extensions, image inspection and password hashing OK\n";'
+          docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true --entrypoint /usr/sbin/php-fpm lsc-runtime-fixed:review -v
+      - name: Verify HTTP paths, PHP lint, supervisor recovery and safe shutdown
+        run: python3 tests/runtime_smoke_test.py
+      - name: Exercise existing offline auth and mail fixtures on the patched runtime
+        shell: bash
+        run: |
+          for test in tests/app-sign-in.php tests/resend-mailer.php tests/resend-password-reset.php; do
+            docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true --pids-limit 128 --memory 512m --tmpfs /tmp:rw,nosuid,nodev,size=64m --mount "type=bind,source=$PWD,target=/review,readonly" --workdir /review --env APP_ENV=testing --env APP_DEBUG=0 --env EMAIL_DELIVERY_ENABLED=0 --entrypoint /bin/php lsc-runtime-fixed:review "$test"
+          done
+      - name: Verify unchanged runtime configuration contracts
+        run: |
+          python3 tests/runtime_config_test.py
+          python3 tests/railpack_config_test.py
