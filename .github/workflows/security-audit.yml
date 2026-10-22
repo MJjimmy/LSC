@@ -20,3 +20,5 @@ jobs:
         run: php -l tests/security_csrf_regression.php
       - name: Verify empty-token CSRF rejection
         run: php tests/security_csrf_regression.php
+      - name: Verify task membership boundary with isolated fixtures
+        run: php tests/security_task_membership.php
