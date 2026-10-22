@@ -22,3 +22,5 @@ jobs:
         run: php tests/security_csrf_regression.php
       - name: Verify task membership boundary with isolated fixtures
         run: php tests/security_task_membership.php
+      - name: Reject malformed scalar parameters before controllers
+        run: php tests/security_scalar_boundary.php
