@@ -1,0 +1,56 @@
+name: Isolated auth security regressions (no deployment)
+on:
+  push:
+    branches: [security/2026-10-22-auth]
+permissions:
+  contents: read
+jobs:
+  auth-security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      AUTH_SECURITY_CI: isolated
+      APP_ENV: testing
+      APP_URL: http://127.0.0.1:18971
+      APP_SHOW_RESET_LINKS: '0'
+      EMAIL_DELIVERY_ENABLED: '0'
+      NOTIFICATION_PROCESSOR_ENABLED: '0'
+      NOTIFICATION_WORKER_ENABLED: '0'
+      MYSQLHOST: 127.0.0.1
+      MYSQLPORT: '13306'
+      MYSQLDATABASE: auth_security
+      MYSQLUSER: auth_security
+      MYSQLPASSWORD: ci-only-disposable-auth
+      MARIADB_ROOT_PASSWORD: ci-only-disposable-root
+      MARIADB_PASSWORD: ci-only-disposable-auth
+      MARIADB_DATABASE: auth_security
+      MARIADB_USER: auth_security
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify runner PHP without installing packages
+        run: |
+          php --version
+          php -r 'foreach (["pdo_mysql", "pdo_sqlite", "mbstring", "curl"] as $e) { if (!extension_loaded($e)) { fwrite(STDERR, "Missing extension: $e\n"); exit(1); } }'
+      - name: Start pinned disposable MariaDB (loopback only, no source data)
+        run: |
+          docker network create --internal auth-security-net
+          docker run -d --name auth-security-db --network auth-security-net -p 127.0.0.1:13306:3306 --memory 512m --pids-limit 128 --security-opt no-new-privileges:true --tmpfs /var/lib/mysql:rw,uid=65532,gid=65532,mode=0700 --tmpfs /run/mysqld:rw,uid=65532,gid=65532 -e MARIADB_ROOT_PASSWORD -e MARIADB_PASSWORD -e MARIADB_DATABASE -e MARIADB_USER cgr.dev/chainguard/mariadb@sha256:720bc2a732a3e19e971b91d1080f6b04c1fc644b6e828ac08144322ef6d73239
+          python -c "import subprocess,time; code='try { new PDO(\"mysql:host=127.0.0.1;port=13306;dbname=auth_security\", getenv(\"MYSQLUSER\"), getenv(\"MYSQLPASSWORD\")); } catch (Throwable) { exit(1); }'; ready=False; [(time.sleep(.5) if not ready else None, (globals().update(ready=True) if subprocess.run(['php','-r',code],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0 else None)) for _ in range(60) if not ready]; assert ready, 'Disposable MariaDB did not become ready'"
+      - name: Lint source and auth fixtures
+        run: python -c "import pathlib,subprocess; [subprocess.run(['php','-l',str(p)],check=True,stdout=subprocess.DEVNULL) for d in ('app','public','views','tests') for p in pathlib.Path(d).rglob('*.php')]; print('PHP syntax checks passed')"
+      - name: Real-controller auth security regressions
+        run: python tests/auth-security-http.py
+      - name: Existing offline regressions
+        if: always()
+        run: |
+          php tests/security_csrf_regression.php
+          php tests/resend-mailer.php
+          php tests/resend-password-reset.php
+          php tests/google-sign-in.php
+      - name: Remove disposable database
+        if: always()
+        run: |
+          docker rm -f auth-security-db
+          docker network rm auth-security-net
