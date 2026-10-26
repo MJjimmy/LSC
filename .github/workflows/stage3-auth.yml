@@ -53,6 +53,11 @@ jobs:
           docker network create --internal stage3-auth-net
           docker run -d --name stage3-auth-db --network stage3-auth-net -p 127.0.0.1:13306:3306 --memory 512m --pids-limit 128 --cap-drop ALL --security-opt no-new-privileges:true --tmpfs /var/lib/mysql:rw,uid=65532,gid=65532,mode=0700 --tmpfs /run/mysqld:rw,uid=65532,gid=65532 -e MARIADB_ROOT_PASSWORD -e MARIADB_PASSWORD -e MARIADB_DATABASE -e MARIADB_USER cgr.dev/chainguard/mariadb@sha256:720bc2a732a3e19e971b91d1080f6b04c1fc644b6e828ac08144322ef6d73239
           python -c "import subprocess,time; code='try { new PDO(\"mysql:host=127.0.0.1;port=13306;dbname=auth_security\", getenv(\"MYSQLUSER\"), getenv(\"MYSQLPASSWORD\")); } catch (Throwable) { exit(1); }'; ready=False; [(time.sleep(.5) if not ready else None, (globals().update(ready=True) if subprocess.run(['php','-r',code],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0 else None)) for _ in range(60) if not ready]; assert ready, 'Disposable MariaDB did not become ready'"
+      - name: Diagnose only disposable database startup failures
+        if: failure()
+        run: |
+          docker inspect --format '{{json .State}}' stage3-auth-db
+          docker logs stage3-auth-db
       - name: Lint application and regression PHP
         run: python -c "import pathlib,subprocess; [subprocess.run(['php','-l',str(p)],check=True,stdout=subprocess.DEVNULL) for d in ('app','bin','config','public','views','tests') for p in pathlib.Path(d).rglob('*.php')]; print('PHP syntax checks passed')"
       - name: Real-controller multi-session and signup-quota regressions
