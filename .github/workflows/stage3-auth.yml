@@ -1,0 +1,83 @@
+name: Stage 3 isolated session and signup regressions (no deployment)
+
+on:
+  push:
+    branches: [security/stage3-auth-2026-10-26, deploy/railpack]
+    paths:
+      - app/Core/Auth.php
+      - app/Users/**
+      - public/oauth.php
+      - public/login.php
+      - public/register.php
+      - public/reset-password.php
+      - config/bootstrap.php
+      - tests/stage3-*
+      - tests/app-sign-in.php
+      - .github/workflows/stage3-auth.yml
+
+permissions:
+  contents: read
+
+jobs:
+  auth-security:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      AUTH_SECURITY_CI: isolated
+      APP_ENV: testing
+      APP_URL: http://127.0.0.1:18971
+      APP_SHOW_RESET_LINKS: '0'
+      EMAIL_DELIVERY_ENABLED: '0'
+      NOTIFICATION_PROCESSOR_ENABLED: '0'
+      NOTIFICATION_WORKER_ENABLED: '0'
+      MYSQLHOST: 127.0.0.1
+      MYSQLPORT: '13306'
+      MYSQLDATABASE: auth_security
+      MYSQLUSER: auth_security
+      MYSQLPASSWORD: ci-only-disposable-auth
+      MARIADB_ROOT_PASSWORD: ci-only-disposable-root
+      MARIADB_PASSWORD: ci-only-disposable-auth
+      MARIADB_DATABASE: auth_security
+      MARIADB_USER: auth_security
+    steps:
+      - name: Check out exact source without retaining credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify preinstalled PHP extensions; no package installs
+        run: |
+          php --version
+          php -r 'foreach (["pdo_mysql", "pdo_sqlite", "mbstring", "curl"] as $e) { if (!extension_loaded($e)) throw new RuntimeException("Missing preinstalled extension: ".$e); }'
+      - name: Start previously reviewed pinned disposable MariaDB on loopback
+        run: |
+          docker network create --internal stage3-auth-net
+          docker run -d --name stage3-auth-db --network stage3-auth-net -p 127.0.0.1:13306:3306 --memory 512m --pids-limit 128 --cap-drop ALL --security-opt no-new-privileges:true --tmpfs /var/lib/mysql:rw,uid=65532,gid=65532,mode=0700 --tmpfs /run/mysqld:rw,uid=65532,gid=65532 -e MARIADB_ROOT_PASSWORD -e MARIADB_PASSWORD -e MARIADB_DATABASE -e MARIADB_USER cgr.dev/chainguard/mariadb@sha256:720bc2a732a3e19e971b91d1080f6b04c1fc644b6e828ac08144322ef6d73239
+          python -c "import subprocess,time; code='try { new PDO(\"mysql:host=127.0.0.1;port=13306;dbname=auth_security\", getenv(\"MYSQLUSER\"), getenv(\"MYSQLPASSWORD\")); } catch (Throwable) { exit(1); }'; ready=False; [(time.sleep(.5) if not ready else None, (globals().update(ready=True) if subprocess.run(['php','-r',code],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL).returncode==0 else None)) for _ in range(60) if not ready]; assert ready, 'Disposable MariaDB did not become ready'"
+      - name: Lint application and regression PHP
+        run: python -c "import pathlib,subprocess; [subprocess.run(['php','-l',str(p)],check=True,stdout=subprocess.DEVNULL) for d in ('app','bin','config','public','views','tests') for p in pathlib.Path(d).rglob('*.php')]; print('PHP syntax checks passed')"
+      - name: Real-controller multi-session and signup-quota regressions
+        run: python tests/stage3-auth-http.py
+      - name: Password rehash must preserve reset and authentication snapshots
+        if: always()
+        run: php tests/stage3-rehash.php
+      - name: Preserve existing offline security, provider and UI regressions
+        if: always()
+        run: |
+          php tests/security_csrf_regression.php
+          php tests/security_task_membership.php
+          php tests/security_scalar_boundary.php
+          php tests/stage2-php.php
+          php tests/app-sign-in.php
+          php tests/google-sign-in.php
+          php tests/resend-mailer.php
+          php tests/resend-worker.php
+          php tests/resend-password-reset.php
+          php tests/help-profile.php
+          python tests/ui_navigation_test.py
+          python tests/app_auth_navigation_test.py
+          python tests/php_runtime_patch_test.py
+      - name: Remove only the disposable auth database and network
+        if: always()
+        run: |
+          docker rm -f stage3-auth-db
+          docker network rm stage3-auth-net
