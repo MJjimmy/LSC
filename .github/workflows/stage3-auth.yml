@@ -58,6 +58,8 @@ jobs:
         run: |
           docker inspect --format '{{json .State}}' stage3-auth-db
           docker logs stage3-auth-db
+          docker port stage3-auth-db
+          php -r 'try { new PDO("mysql:host=127.0.0.1;port=13306;dbname=auth_security", getenv("MYSQLUSER"), getenv("MYSQLPASSWORD")); echo "Disposable PDO ready\n"; } catch (Throwable $e) { echo "Disposable PDO error code: ".$e->getCode()."\n"; }'
       - name: Lint application and regression PHP
         run: python -c "import pathlib,subprocess; [subprocess.run(['php','-l',str(p)],check=True,stdout=subprocess.DEVNULL) for d in ('app','bin','config','public','views','tests') for p in pathlib.Path(d).rglob('*.php')]; print('PHP syntax checks passed')"
       - name: Real-controller multi-session and signup-quota regressions
