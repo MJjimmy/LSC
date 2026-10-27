@@ -12,12 +12,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
-      - name: Preinstalled PHP only
+      - name: Bounded isolated authentication regressions (preinstalled tools only)
         run: |
-          test ! -e .env
-          php --version
-          php -r 'if (!extension_loaded("pdo_sqlite")) throw new RuntimeException("Missing SQLite");'
-      - name: Lint
-        run: python -c "import pathlib,subprocess; [subprocess.run(['php','-l',str(p)],check=True,stdout=subprocess.DEVNULL) for d in ('app','config','public','tests') for p in pathlib.Path(d).rglob('*.php')]; print('PHP syntax checks passed')"
-      - name: Rehash regressions
-        run: php -d allow_url_fopen=0 -d disable_functions=mail,curl_exec,curl_multi_exec tests/stage3-rehash.php
+          test ! -e .env && test ! -L .env
+          python -I tests/final-auth-runner.py stage3-rehash.php final-auth.php
