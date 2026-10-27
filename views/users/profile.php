@@ -1,4 +1,8 @@
-<?php // Variables are provided by ProfileController::show(). ?>
+<?php
+// Variables are provided by ProfileController::show(). Recompute policy for isolated view fixtures too.
+$canEditProfile = $isOwnProfile || ($isSiteAdmin ?? false);
+$canViewContact = $isOwnProfile || ($isSiteAdmin ?? false);
+?>
 
 <style>
 .profile-grid{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start}.profile-avatar{width:116px;height:116px;border-radius:20px;background:var(--sidebar);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Inter',system-ui,sans-serif;font-size:38px;font-weight:800;margin:0 auto 16px;overflow:hidden;border:4px solid #fff;box-shadow:0 8px 22px rgba(18,59,99,.14)}.profile-avatar img{width:100%;height:100%;object-fit:cover}.profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:22px}.profile-stat{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:11px 6px;text-align:center}.profile-stat strong{display:block;font-size:18px}.profile-stat span{font-size:10px;color:var(--text-muted)}@media(max-width:780px){.profile-grid{grid-template-columns:1fr}.profile-avatar{width:96px;height:96px}.profile-stats{max-width:380px;margin:22px auto 0}}
@@ -34,8 +38,8 @@
     </section>
 
     <section class="card" style="padding:24px;">
-        <?php if ($isOwnProfile): ?>
-            <div class="panel-title">About me</div>
+        <?php if ($canEditProfile): ?>
+            <div class="panel-title"><?= $isOwnProfile ? 'About me' : 'About ' . htmlspecialchars($profile['name']) ?></div>
             <div style="font-size:13.5px;color:var(--text-secondary);line-height:1.7;margin-top:12px;white-space:pre-line;"><?= htmlspecialchars($profile['bio'] ?: 'Add a bio so other group members can learn more about you.') ?></div>
             <div style="height:1px;background:var(--border-soft);margin:24px 0;"></div>
             <div class="panel-title" style="margin-bottom:3px;">Edit profile</div>
@@ -52,6 +56,7 @@
                 <div style="display:flex;justify-content:flex-end;margin-top:18px;"><button class="btn-primary btn-brand" type="submit" name="update_profile"><i class="bi bi-check2"></i> Save profile</button></div>
             </form>
 
+            <?php if ($isOwnProfile): ?>
             <div style="height:1px;background:var(--border-soft);margin:24px 0;"></div>
             <div class="panel-title" style="margin-bottom:3px;">Notifications</div>
             <div class="panel-sub" style="margin-bottom:20px;">Choose how LSC reaches you about group invitations.</div>
@@ -78,6 +83,7 @@
                 </div>
                 <div style="display:flex;justify-content:flex-end;margin-top:18px;"><button class="btn-primary btn-brand" type="submit" name="update_notifications"><i class="bi bi-bell"></i> Save notifications</button></div>
             </form>
+            <?php endif; ?>
         <?php else: ?>
             <div class="panel-title">About <?= htmlspecialchars($profile['name']) ?></div>
             <div style="font-size:13.5px;color:var(--text-secondary);line-height:1.7;margin-top:16px;white-space:pre-line;"><?= htmlspecialchars($profile['bio'] ?: 'This student has not added a bio yet.') ?></div>
