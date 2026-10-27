@@ -74,6 +74,30 @@ adminCheck($groups->isMember(10, 1), 'Site administrator joins immediately witho
 adminCheck((int)$db->query('SELECT COUNT(*) FROM group_join_requests WHERE user_id = 1')->fetchColumn() === 0,
     'Site administrator has no pending approval request');
 
-foreach ($failures as $label) { /* Failures were emitted at the actual assertion. */ }
+function profileFixture(array $config): array
+{
+    $pipes = [];
+    $process = proc_open([PHP_BINARY, '-d', 'display_errors=0', __DIR__ . '/admin-profile-fixture.php',
+        base64_encode(json_encode($config, JSON_THROW_ON_ERROR))], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+    if (!is_resource($process)) { throw new RuntimeException('Profile fixture child unavailable'); }
+    $stdout = stream_get_contents($pipes[1]);
+    $stderr = stream_get_contents($pipes[2]);
+    fclose($pipes[1]); fclose($pipes[2]);
+    $code = proc_close($process);
+    if ($code !== 0 || $stderr !== '') { throw new RuntimeException('Profile fixture setup/execution failed: ' . $stderr); }
+    return json_decode($stdout, true, 32, JSON_THROW_ON_ERROR);
+}
+
+$edited = profileFixture(['actor' => 1, 'target' => 2, 'method' => 'POST', 'post' => [
+    'csrf_token' => 'synthetic-admin-csrf', 'update_profile' => '', 'name' => 'Admin-corrected learner',
+    'institution' => 'Updated College', 'course' => 'Updated Course', 'bio' => 'Corrected bio',
+]]);
+adminCheck($edited['status'] === 200 && $edited['users'][1]['name'] === 'Admin-corrected learner',
+    'Site administrator can edit another active learner profile');
+adminCheck($edited['session']['user_id'] === 1 && $edited['session']['user_name'] === 'Site administrator'
+    && $edited['session']['user_avatar'] === '/uploads/avatars/admin-owned.png',
+    'Editing a learner preserves the acting administrator session identity');
+adminCheck($edited['protected_fields_unchanged'], 'Profile edit cannot change authentication, role, contact or consent fields');
+
 echo "RESULT: {$checks} checks; " . count($failures) . " failures; synthetic SQLite, no MySQL claim.\n";
 exit($failures === [] ? 0 : 1);
