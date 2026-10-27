@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import resource
+import re
 import shutil
 import signal
 import subprocess
@@ -81,6 +82,9 @@ with tempfile.TemporaryDirectory(prefix='lsc-offline-', dir=runner_temp) as owne
         env=env, capture_output=True, text=True, timeout=10, check=True)
     if verified.stderr:
         raise RuntimeError('BLOCKED: isolated PHP configuration produced stderr')
+    php_log = scratch / 'logs' / 'php-errors.log'
+    if php_log.exists() and php_log.stat().st_size:
+        raise RuntimeError('BLOCKED: isolated PHP startup emitted errors')
     print(verified.stdout, flush=True)
     results = []
     def child_limits():
@@ -90,6 +94,7 @@ with tempfile.TemporaryDirectory(prefix='lsc-offline-', dir=runner_temp) as owne
         command = [sys.executable, '-I', str(ROOT / 'tests' / name)] if name.endswith('.py') else [php, str(ROOT / 'tests' / name)]
         output_path = scratch / 'logs' / (name + '.stdout')
         error_path = scratch / 'logs' / (name + '.stderr')
+        log_offset = php_log.stat().st_size if php_log.exists() else 0
         reason = None
         with output_path.open('wb') as output, error_path.open('wb') as error:
             process = subprocess.Popen(command, cwd=ROOT, env=env, stdout=output, stderr=error,
@@ -117,21 +122,32 @@ with tempfile.TemporaryDirectory(prefix='lsc-offline-', dir=runner_temp) as owne
         with error_path.open(errors='replace') as stream:
             error = stream.read(16000)
         # unittest writes its normal successful summary to stderr; PHP does not.
-        ok = reason is None and process.returncode == 0 and (name.endswith('.py') or not error)
-        results.append({'script': name, 'passed': ok, 'returncode': process.returncode, 'bound_failure': reason})
+        logged = ''
+        if php_log.exists():
+            with php_log.open(errors='replace') as stream:
+                stream.seek(log_offset)
+                logged = stream.read(16000)
+        log_lines = logged.splitlines()
+        # This one reviewed fixture deliberately injects a rejected fake HTTP 503.
+        # Its existing application error_log is expected; PHP warnings and any
+        # other script/message still fail this gate. No provider is contacted.
+        expected_fake_error = (name == 'resend-password-reset.php' and len(log_lines) == 1
+            and re.fullmatch(r'\[[^\]]+\] LSC reset email not accepted: Resend request failed \(HTTP 503\)\.', log_lines[0]) is not None)
+        unexpected_log = bool(log_lines) and not expected_fake_error
+        ok = reason is None and process.returncode == 0 and (name.endswith('.py') or not error) and not unexpected_log
+        results.append({'script': name, 'passed': ok, 'returncode': process.returncode, 'bound_failure': reason,
+            'expected_fake_provider_error_count': 1 if expected_fake_error else 0,
+            'unexpected_php_log': unexpected_log})
         print(('PASS: ' if ok else 'FAIL: ') + name, flush=True)
         if output:
             print(output[:16000], flush=True)
         if error:
             print(error[:16000], flush=True)
+        if unexpected_log:
+            print(logged, flush=True)
         if not ok:
             break
-    php_log = scratch / 'logs' / 'php-errors.log'
-    if php_log.exists() and php_log.stat().st_size:
-        print('FAIL: PHP emitted warnings/errors into the isolated error log', flush=True)
-        with php_log.open(errors='replace') as stream:
-            print(stream.read(16000), flush=True)
-        results.append({'script': 'isolated-php-error-log', 'passed': False})
+
     complete = len(results) == len(SCRIPTS) and all(row['passed'] for row in results)
     print(json.dumps({'offline_regressions': results, 'all_requested_executed': len(results) == len(SCRIPTS),
         'passed': complete, 'mysql_integration': 'NOT RUN', 'production_changed': False}), flush=True)

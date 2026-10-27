@@ -9,7 +9,7 @@ require $root . '/app/Notifications/NotificationRepository.php';
 
 // Execute real repository queries with only explicit MySQL dialect adaptations.
 // This verifies authorization/state behavior, NOT MySQL engine/concurrency behavior.
-final class AdminFixturePDO extends PDO
+class AdminFixturePDO extends PDO
 {
     public function __construct()
     {
@@ -36,9 +36,33 @@ final class AdminFixturePDO extends PDO
     }
 }
 
-function adminFixture(): AdminFixturePDO
+// Deterministic interleavings/faults over real SQLite, not mocked auth answers.
+final class JoinInterleavingPDO extends AdminFixturePDO
 {
-    $db = new AdminFixturePDO();
+    public bool $demoteBeforeTransaction = false;
+    public bool $suppressMemberInsert = false;
+
+    public function beginTransaction(): bool
+    {
+        if ($this->demoteBeforeTransaction) {
+            $this->demoteBeforeTransaction = false;
+            parent::exec("UPDATE users SET role = 'student' WHERE user_id = 1");
+        }
+        return parent::beginTransaction();
+    }
+
+    public function prepare(string $query, array $options = []): PDOStatement|false
+    {
+        if ($this->suppressMemberInsert && str_contains($query, 'INSERT IGNORE INTO group_members')) {
+            return parent::prepare('SELECT ?, ?', $options);
+        }
+        return parent::prepare($query, $options);
+    }
+}
+
+function adminFixture(?AdminFixturePDO $db = null): AdminFixturePDO
+{
+    $db = $db ?? new AdminFixturePDO();
     $db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, role TEXT, is_active INTEGER);
         CREATE TABLE study_groups (group_id INTEGER PRIMARY KEY, group_name TEXT, description TEXT,
             created_by INTEGER, is_private INTEGER);
@@ -213,6 +237,21 @@ $publicPhoto = profileFixture(['actor' => 2, 'target' => 1], 'admin-avatar-fixtu
 adminCheck($publicPhoto['status'] === 200 && $publicPhoto['served_fixture_bytes'], 'Active-profile avatar access remains compatible for authenticated learners');
 $missingPhoto = profileFixture(['actor' => 1, 'target' => 999], 'admin-avatar-fixture.php');
 adminCheck($missingPhoto['status'] === 404 && !$missingPhoto['served_fixture_bytes'], 'Missing avatar target fails closed');
+
+$demotedDb = adminFixture(new JoinInterleavingPDO());
+$demotedGroups = new LSC\Groups\GroupRepository($demotedDb);
+$demotedService = new LSC\Groups\GroupService($demotedDb, $demotedGroups, new LSC\Notifications\NotificationRepository($demotedDb));
+$demotedDb->demoteBeforeTransaction = true;
+adminCheck(!$demotedService->requestJoin(10, 1) && !$demotedGroups->isMember(10, 1),
+    'Administrator demoted before the join transaction cannot bypass approval');
+$suppressedDb = adminFixture(new JoinInterleavingPDO());
+$suppressedGroups = new LSC\Groups\GroupRepository($suppressedDb);
+$suppressedGroups->addJoinRequest(10, 1);
+$suppressedService = new LSC\Groups\GroupService($suppressedDb, $suppressedGroups, new LSC\Notifications\NotificationRepository($suppressedDb));
+$suppressedDb->suppressMemberInsert = true;
+adminCheck(!$suppressedService->requestJoin(10, 1) && !$suppressedGroups->isMember(10, 1)
+    && (int)$suppressedDb->query('SELECT COUNT(*) FROM group_join_requests WHERE user_id = 1')->fetchColumn() === 1,
+    'Ignored membership insertion cannot report success or remove the pending request');
 
 echo "RESULT: {$checks} checks; " . count($failures) . " failures; synthetic SQLite, no MySQL claim.\n";
 exit($failures === [] ? 0 : 1);
