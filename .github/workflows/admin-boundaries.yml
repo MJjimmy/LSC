@@ -1,0 +1,32 @@
+name: Site administrator permission regressions (no deployment)
+
+on:
+  push:
+    branches: [security/admin-2026-10-27]
+
+permissions:
+  contents: read
+
+jobs:
+  admin-boundaries:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    env:
+      APP_ENV: testing
+      APP_DEBUG: '0'
+      EMAIL_DELIVERY_ENABLED: '0'
+      NOTIFICATION_PROCESSOR_ENABLED: '0'
+      NOTIFICATION_WORKER_ENABLED: '0'
+    steps:
+      - name: Check out exact source without retaining credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify preinstalled tools only; no installs or container execution
+        run: |
+          php --version
+          php -r 'foreach (["pdo_sqlite", "mbstring"] as $e) { if (!extension_loaded($e)) throw new RuntimeException("Missing preinstalled extension: ".$e); }'
+      - name: Lint application and regression PHP
+        run: python -c "import pathlib,subprocess; files=[p for d in ('app','bin','config','public','views','tests') for p in pathlib.Path(d).rglob('*.php')]; [subprocess.run(['php','-l',str(p)],check=True,stdout=subprocess.DEVNULL) for p in files]; print('PHP syntax checks passed:',len(files))"
+      - name: Exercise actual administrator authorization and synthetic persistence
+        run: php tests/admin-boundaries.php
