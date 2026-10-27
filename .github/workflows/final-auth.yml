@@ -15,4 +15,4 @@ jobs:
       - name: Bounded isolated authentication regressions (preinstalled tools only)
         run: |
           test ! -e .env && test ! -L .env
-          python -I tests/final-auth-runner.py stage3-rehash.php final-auth.php final-auth-controllers.php
+          python -I tests/final-auth-runner.py stage3-rehash.php final-auth.php final-auth-controllers.php app-sign-in.php security_csrf_regression.php security_scalar_boundary.php google-sign-in.php resend-mailer.php resend-worker.php resend-password-reset.php help-profile.php

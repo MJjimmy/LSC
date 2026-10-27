@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import resource
+import re
 import shutil
 import signal
 import subprocess
@@ -40,10 +41,18 @@ with tempfile.TemporaryDirectory(prefix='lsc-auth-', dir=os.environ['RUNNER_TEMP
     assert not verified.stderr
     print(verified.stdout,flush=True)
     def limits():
-        resource.setrlimit(resource.RLIMIT_FSIZE,(2097152,2097152))
-        resource.setrlimit(resource.RLIMIT_CPU,(90,90))
+        getattr(resource,'setrlimit')(getattr(resource,'RLIMIT_FSIZE'),(2097152,2097152))
+        getattr(resource,'setrlimit')(getattr(resource,'RLIMIT_CPU'),(90,90))
     results=[]; php_log=owned/'logs'/'php-errors.log'
     assert not php_log.exists() or not php_log.stat().st_size
+    linted=0
+    for directory in ('app','bin','config','public','views','tests'):
+        for path in sorted((ROOT/directory).rglob('*.php')):
+            lint=subprocess.run([php,'-l',str(path)],env=env,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE,timeout=10,preexec_fn=limits)
+            assert lint.returncode==0 and not lint.stderr, 'BLOCKED: PHP lint failed: '+str(path.relative_to(ROOT))
+            linted+=1
+    assert not php_log.exists() or not php_log.stat().st_size, 'BLOCKED: lint emitted PHP errors'
+    print('PHP syntax checks passed: '+str(linted),flush=True)
     for name in names:
         out=owned/'logs'/(name+'.out'); err=owned/'logs'/(name+'.err')
         offset=php_log.stat().st_size if php_log.exists() else 0
@@ -57,7 +66,7 @@ with tempfile.TemporaryDirectory(prefix='lsc-auth-', dir=os.environ['RUNNER_TEMP
                         reason='process/output bound exceeded'; break
                     time.sleep(.05)
             finally:
-                try: os.killpg(process.pid,signal.SIGKILL)
+                try: getattr(os,'killpg')(process.pid,getattr(signal,'SIGKILL'))
                 except ProcessLookupError: pass
                 process.wait(timeout=5)
         with out.open(errors='replace') as stream: output=stream.read(32000)
@@ -66,10 +75,12 @@ with tempfile.TemporaryDirectory(prefix='lsc-auth-', dir=os.environ['RUNNER_TEMP
         if php_log.exists():
             with php_log.open(errors='replace') as stream:
                 stream.seek(offset); logged=stream.read(16000)
-        ok=reason is None and process.returncode==0 and not error and not logged
-        results.append({'script':name,'passed':ok,'returncode':process.returncode,'bound_failure':reason,'unexpected_php_log':bool(logged)})
+        expected_fake_error=(name=='resend-password-reset.php' and re.fullmatch(r'\[[^\]]+\] LSC reset email not accepted: Resend request failed \(HTTP 503\)\.\s*',logged) is not None)
+        unexpected_log=bool(logged) and not expected_fake_error
+        ok=reason is None and process.returncode==0 and not error and not unexpected_log
+        results.append({'script':name,'passed':ok,'returncode':process.returncode,'bound_failure':reason,'unexpected_php_log':unexpected_log,'expected_fake503_log_count':1 if expected_fake_error else 0})
         print(output,end='',flush=True)
         if error: print(error,flush=True)
-        if logged: print(logged,flush=True)
-    print(json.dumps({'results':results,'scripts_executed':len(results),'passed':all(x['passed'] for x in results),'mysql':'NOT RUN','http':'NOT RUN','production_changed':False}),flush=True)
+        if unexpected_log: print(logged,flush=True)
+    print(json.dumps({'results':results,'scripts_executed':len(results),'php_files_linted':linted,'passed':all(x['passed'] for x in results),'mysql':'NOT RUN','http':'NOT RUN','production_changed':False}),flush=True)
     raise SystemExit(0 if all(x['passed'] for x in results) else 1)

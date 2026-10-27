@@ -26,6 +26,20 @@ class AuthFixturePDO extends PDO {
 $owned=realpath((string)getenv('FINAL_AUTH_TEMP'));
 if (!$owned || file_get_contents($owned.'/owned') !== 'lsc-auth-offline') throw new RuntimeException('owned scratch required');
 $path=$owned.'/controllers.sqlite';
+if (($argv[1]??'') === 'reserve') {
+    if (!is_file($path)) throw new RuntimeException('fixture not initialized');
+    $db=new PDO('sqlite:'.$path,null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+    $db->exec('PRAGMA busy_timeout=3000');
+    echo (new LSC\Core\RateLimiter($db))->consume('parallel:quota',6,3600) ? '1' : '0';
+    exit;
+}
+if (($argv[1]??'') === 'protected') {
+    if (!is_file($path)) throw new RuntimeException('fixture not initialized');
+    $db=new PDO('sqlite:'.$path,null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+    $_SESSION=json_decode(file_get_contents($owned.'/saved-session.json'),true,flags:JSON_THROW_ON_ERROR);
+    (new LSC\Core\Auth($db))->requireLogin();
+    echo 'AUTHORIZED'; exit;
+}
 if (($argv[1]??'') === 'register') {
     if (!is_file($path)) throw new RuntimeException('fixture not initialized');
     $db=new AuthFixturePDO('sqlite:'.$path,null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
@@ -42,6 +56,7 @@ $db->exec('CREATE TABLE users(user_id INTEGER PRIMARY KEY, name TEXT, email TEXT
 $db->exec('CREATE TABLE rate_limits(rl_key TEXT PRIMARY KEY, attempts INTEGER, expires_at TEXT)');
 $db->exec('CREATE TABLE password_reset_tokens(reset_id INTEGER PRIMARY KEY,user_id INTEGER REFERENCES users(user_id),token_hash TEXT UNIQUE,expires_at TEXT,used_at TEXT)');
 $db->exec('CREATE TABLE app_auth_codes(code_hash TEXT PRIMARY KEY,challenge TEXT,user_id INTEGER REFERENCES users(user_id),expires_at INTEGER)');
+$db->exec('CREATE TABLE oauth_identities(provider TEXT, subject TEXT, user_id INTEGER REFERENCES users(user_id), UNIQUE(provider,subject))');
 $pass=$fail=0;
 function assertion(bool $ok,string $label): void { if (!$ok) throw new RuntimeException($label); }
 function scenario(string $label,callable $run): void { global $pass,$fail; try { $run(); ++$pass; echo "PASS: $label\n"; } catch(Throwable $e) { ++$fail; echo 'FAIL: '.$label.' ('.get_class($e).': '.$e->getMessage().")\n"; } }
@@ -95,6 +110,60 @@ scenario('actual reset controller uses real SQLite service and rejects token reu
     assertion(password_verify('ControllerAfter123!',(string)$db->query('SELECT password_hash FROM users WHERE user_id='.$id)->fetchColumn()),'controller did not persist password');
     ob_start(); $controller->resetPassword(); $html=ob_get_clean();
     assertion(str_contains($html,'expired or has already been used'),'reuse not rejected');
+});
+scenario('twelve independent SQLite processes admit exactly six signup reservations',function() use($db,$owned) {
+    $processes=[];
+    for($i=0;$i<12;$i++) {
+        $pipes=[];
+        $process=proc_open([PHP_BINARY,__FILE__,'reserve'],[0=>['pipe','r'],1=>['file',$owned.'/parallel-'.$i.'.out','w'],2=>['file',$owned.'/parallel-'.$i.'.err','w']],$pipes);
+        assertion(is_resource($process),'parallel start'); fclose($pipes[0]); $processes[$i]=$process;
+    }
+    $admitted=0;
+    foreach($processes as $i=>$process) {
+        assertion(proc_close($process)===0 && filesize($owned.'/parallel-'.$i.'.err')===0,'parallel process failed');
+        $value=file_get_contents($owned.'/parallel-'.$i.'.out');
+        assertion($value==='0'||$value==='1','parallel response'); $admitted+=(int)$value;
+    }
+    assertion($admitted===6,'parallel cap not six');
+    assertion((int)$db->query("SELECT attempts FROM rate_limits WHERE rl_key='parallel:quota'")->fetchColumn()===6,'parallel persistence');
+});
+scenario('real reset revokes local resolved-OAuth native sessions and completed intent; protected guard denies each',function() use($db,$service,$id,$owned) {
+    $auth=new LSC\Core\Auth($db); $app=new LSC\Users\AppSignIn($db);
+    $proof=(string)$db->query('SELECT password_hash FROM users WHERE user_id='.$id)->fetchColumn();
+    $_SESSION=[]; assertion($auth->login($id,'Forged','admin',null,$proof),'local session'); $sessions=[$_SESSION];
+    $db->prepare('INSERT INTO oauth_identities VALUES(?,?,?)')->execute(['google','offline-subject',$id]);
+    $resolved=(new LSC\Users\OAuthAccounts($db))->resolve('google',['subject'=>'offline-subject'],null);
+    $_SESSION=[]; assertion($auth->login((int)$resolved['user_id'],$resolved['name'],$resolved['role'],$resolved['avatar_path'],$resolved['password_hash']),'resolved OAuth session'); $sessions[]=$_SESSION;
+    $make=function() use($app,$id): void {
+        $intent=$app->createIntent(hash('sha256',str_repeat('a',64)),str_repeat('b',64));
+        $_SESSION['app_sign_in']['oauth_state']=str_repeat('c',64);
+        $app->completeGoogle(['provider'=>'google','link_user_id'=>null,'next'=>'app-auth.php?action=complete','app_intent_id'=>$intent['intent_id'],'state'=>str_repeat('c',64)],$id);
+    };
+    $make(); $ticket=$app->complete(); $_SESSION=[]; $app->exchange($ticket['code'],str_repeat('a',64)); $sessions[]=$_SESSION;
+    $make(); $completed=$_SESSION;
+    $token=$service->createToken('reset@example.invalid'); assertion($service->reset($token,'FinalReset123!'),'real reset');
+    // No intervening isLoggedIn()/requireLogin() before checking completed intent.
+    $_SESSION=$completed; $rejected=false;
+    try { $app->complete(); } catch(RuntimeException) { $rejected=true; }
+    assertion($rejected,'completed intent survived reset');
+    foreach($sessions as $session) {
+        $_SESSION=$session; assertion(!$auth->isLoggedIn(),'pre-reset issuer session survived');
+        file_put_contents($owned.'/saved-session.json',json_encode($session,JSON_THROW_ON_ERROR));
+        $pipes=[]; $child=proc_open([PHP_BINARY,__FILE__,'protected'],[0=>['pipe','r'],1=>['file',$owned.'/protected.out','w'],2=>['file',$owned.'/protected.err','w']],$pipes);
+        assertion(is_resource($child),'protected guard child'); fclose($pipes[0]);
+        assertion(proc_close($child)===0 && filesize($owned.'/protected.err')===0,'protected guard child failure');
+        assertion(file_get_contents($owned.'/protected.out')==='','direct protected guard authorized revoked session');
+    }
+});
+scenario('inactive expired and unknown reset tokens never change password',function() use($db,$service,$id) {
+    $token=$service->createToken('reset@example.invalid');
+    $before=$db->query('SELECT password_hash FROM users WHERE user_id='.$id)->fetchColumn();
+    $db->exec('UPDATE users SET is_active=0 WHERE user_id='.$id);
+    assertion(!$service->reset($token,'Inactive123!'),'inactive reset accepted');
+    $db->exec('UPDATE users SET is_active=1 WHERE user_id='.$id);
+    $db->exec("UPDATE password_reset_tokens SET expires_at=CURRENT_TIMESTAMP WHERE user_id=".$id);
+    assertion(!$service->reset($token,'Expired123!') && !$service->reset(str_repeat('0',64),'Unknown123!'),'invalid reset accepted');
+    assertion($before===$db->query('SELECT password_hash FROM users WHERE user_id='.$id)->fetchColumn(),'invalid token changed password');
 });
 echo "Controller/reset scenarios: $pass passed, $fail failed (no HTTP/MySQL proof).\n";
 exit($fail?1:0);

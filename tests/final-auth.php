@@ -7,7 +7,16 @@ spl_autoload_register(static function (string $class): void {
 ini_set('session.use_cookies', '0');
 session_start();
 ob_start(); // session_regenerate_id must remain usable throughout this CLI suite.
-$db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+// Deterministic exchange-commit/login race, real PDO operations, no production hook.
+class AuthCommitFixture extends PDO {
+    public ?Closure $afterCommit = null;
+    public function commit(): bool {
+        $result = parent::commit(); $hook = $this->afterCommit; $this->afterCommit = null;
+        if ($hook) $hook();
+        return $result;
+    }
+}
+$db = new AuthCommitFixture('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
 $db->exec('CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT, password_hash TEXT, role TEXT, is_active INTEGER, avatar_path TEXT)');
 $db->exec('CREATE TABLE app_auth_codes (code_hash CHAR(64) PRIMARY KEY, challenge CHAR(64), user_id INTEGER, expires_at INTEGER)');
 $db->exec('CREATE TABLE rate_limits (rl_key TEXT PRIMARY KEY, attempts INTEGER, expires_at TEXT)');
@@ -53,7 +62,7 @@ test('missing trusted credential proof is strictly rejected', function () use ($
 test('four argument fallback cannot refresh an existing stale session', function () use ($auth, $db, $old, $new) {
     resetUser(); $auth->login(1, 'Synthetic', 'student', null, $old);
     $db->prepare('UPDATE users SET password_hash=?')->execute([$new]);
-    check($auth->login(1, 'Synthetic', 'student') === false && !$auth->isLoggedIn(), 'fallback resurrected stale session');
+    check($auth->login(1, 'Synthetic', 'student', null) === false && !$auth->isLoggedIn(), 'fallback resurrected stale session');
 });
 test('password change revokes independent sessions and private intents', function () use ($auth, $db, $old, $new) {
     resetUser(); $auth->login(1, 'Synthetic', 'student', null, $old); $saved = $_SESSION;
@@ -104,6 +113,48 @@ test('atomic signup reservation preserves six-hit fixed hour contract', function
     $db->exec("UPDATE rate_limits SET expires_at='2000-01-01 00:00:00'");
     check($limiter->consume('register:ip:fixture',6,3600),'expiry not renewed');
     check((int)$db->query('SELECT attempts FROM rate_limits')->fetchColumn()===1,'expired count not reset');
+});
+test('completed proof is immutable across fresh same-user relogin', function () use ($app, $auth, $db, $new) {
+    resetUser(); readyIntent(); $intent = $_SESSION['app_sign_in'];
+    $db->prepare('UPDATE users SET password_hash=?')->execute([$new]);
+    check($auth->login(1,'Synthetic','student',null,$new) === true,'fresh relogin');
+    check($_SESSION['app_sign_in'] === $intent,'login refreshed completed intent proof');
+    $before=(int)$db->query('SELECT COUNT(*) FROM app_auth_codes')->fetchColumn();
+    reject(fn()=>$app->complete());
+    check((int)$db->query('SELECT COUNT(*) FROM app_auth_codes')->fetchColumn()===$before,'old intent minted ticket');
+});
+test('legacy completed intent missing proof cannot issue code', function () use ($app) {
+    resetUser(); readyIntent(); unset($_SESSION['app_sign_in']['completed_auth_fingerprint']);
+    reject(fn()=>$app->complete());
+});
+test('exchange commit followed by password reset cannot establish native session', function () use ($app,$auth,$db,$new) {
+    resetUser(); readyIntent(); $ticket=$app->complete(); $_SESSION=[];
+    $db->afterCommit=static function() use($db,$new): void { $db->prepare('UPDATE users SET password_hash=?')->execute([$new]); };
+    reject(fn()=>$app->exchange($ticket['code'],str_repeat('a',64)));
+    check(!$auth->isLoggedIn() && !isset($_SESSION['android_client']),'stale exchange established native session');
+    $query=$db->prepare('SELECT COUNT(*) FROM app_auth_codes WHERE code_hash=?'); $query->execute([hash('sha256',$ticket['code'])]);
+    check((int)$query->fetchColumn()===0,'committed exchange must remain single-use');
+});
+test('fresh login and authorization use current authoritative metadata', function () use ($auth,$db,$old) {
+    resetUser();
+    check($auth->login(1,'Forged','admin',null,$old)===true,'trusted login');
+    check($_SESSION['user_name']==='Synthetic' && $_SESSION['user_role']==='student','caller metadata trusted');
+    $db->exec("UPDATE users SET role='lecturer' WHERE user_id=1");
+    check($auth->isLoggedIn() && $_SESSION['user_role']==='lecturer','role not refreshed');
+    $db->exec("UPDATE users SET role='student' WHERE user_id=1");
+});
+test('malformed fingerprints invalidate anonymously without warnings', function () use ($auth,$old) {
+    foreach ([null,[],123,'',str_repeat('a',64)] as $fingerprint) {
+        resetUser(); $auth->login(1,'Synthetic','student',null,$old); $_SESSION['auth_fingerprint']=$fingerprint;
+        check(!$auth->isLoggedIn() && session_status()===PHP_SESSION_ACTIVE,'malformed fingerprint accepted or session destroyed');
+        check(strlen(LSC\Core\Csrf::token())===64,'anonymous CSRF unavailable');
+    }
+});
+test('expired native ticket does not authenticate or consume', function () use ($app,$db,$auth) {
+    resetUser(); readyIntent(); $ticket=$app->complete(); $_SESSION=[];
+    $db->prepare('UPDATE app_auth_codes SET expires_at=? WHERE code_hash=?')->execute([time(),hash('sha256',$ticket['code'])]);
+    reject(fn()=>$app->exchange($ticket['code'],str_repeat('a',64)));
+    check(!$auth->isLoggedIn(),'expired code authenticated');
 });
 echo "Final auth: $passed passed, $failed failed; external database/provider/mail calls: 0.\n";
 ob_end_flush(); session_destroy(); exit($failed ? 1 : 0);
