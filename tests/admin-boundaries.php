@@ -99,5 +99,102 @@ adminCheck($edited['session']['user_id'] === 1 && $edited['session']['user_name'
     'Editing a learner preserves the acting administrator session identity');
 adminCheck($edited['protected_fields_unchanged'], 'Profile edit cannot change authentication, role, contact or consent fields');
 
+$adminView = profileFixture(['actor' => 1, 'target' => 2]);
+adminCheck(str_contains($adminView['html'], 'target@example.invalid')
+    && str_contains($adminView['html'], '+27820000002'), 'Administrator sees the target email and phone');
+adminCheck(str_contains($adminView['html'], 'name="update_profile"'), 'Administrator receives working profile edit controls');
+adminCheck(!str_contains($adminView['html'], 'name="update_notifications"'), 'Administrator cannot edit another user notification consent');
+adminCheck(!str_contains($adminView['html'], 'synthetic-not-a-password-hash'), 'Credential material never enters the profile HTML');
+$inactive = profileFixture(['actor' => 1, 'target' => 4]);
+adminCheck($inactive['status'] === 200 && str_contains($inactive['html'], 'Inactive learner'),
+    'Administrator can inspect an inactive account without reactivating it');
+
+foreach ([2, 3] as $actor) {
+    $target = $actor === 2 ? 3 : 2;
+    $read = profileFixture(['actor' => $actor, 'target' => $target, 'session_role' => 'admin']);
+    adminCheck($read['status'] === 200 && !str_contains($read['html'], 'name="update_profile"')
+        && !str_contains($read['html'], 'target@example.invalid') && !str_contains($read['html'], 'creator@example.invalid')
+        && !str_contains($read['html'], '+27820000002'),
+        'Ordinary user/group creator cannot obtain admin controls or contact details by forging a session role: ' . $actor);
+    $denied = profileFixture(['actor' => $actor, 'target' => $target, 'method' => 'POST', 'post' => [
+        'csrf_token' => 'synthetic-admin-csrf', 'name' => 'Unauthorized change', 'update_profile' => '',
+    ]]);
+    adminCheck($denied['status'] === 403 && $denied['users'][$target - 1]['name'] !== 'Unauthorized change',
+        'Cross-account profile write is forbidden for non-administrator: ' . $actor);
+}
+$badCsrf = profileFixture(['actor' => 1, 'target' => 2, 'method' => 'POST', 'post' => [
+    'csrf_token' => 'wrong-token', 'name' => 'Unauthorized change', 'update_profile' => '',
+]]);
+adminCheck($badCsrf['status'] === 403 && $badCsrf['users'][1]['name'] === 'Target learner', 'Admin profile editing still requires valid CSRF');
+$consent = profileFixture(['actor' => 1, 'target' => 2, 'method' => 'POST', 'post' => [
+    'csrf_token' => 'synthetic-admin-csrf', 'update_notifications' => '', 'phone_number' => '+27829999999', 'notify_sms' => '1',
+]]);
+adminCheck($consent['status'] === 403 && $consent['protected_fields_unchanged'], 'Direct admin POST cannot change target contact or notification preferences');
+$injected = profileFixture(['actor' => 1, 'target' => 2, 'method' => 'POST', 'post' => [
+    'csrf_token' => 'synthetic-admin-csrf', 'update_profile' => '', 'name' => 'Allowed profile change',
+    'role' => 'admin', 'email' => 'hijack@example.invalid', 'password_hash' => 'injected', 'is_active' => '0', 'notify_sms' => '1',
+]]);
+adminCheck($injected['status'] === 200 && $injected['protected_fields_unchanged'], 'Profile edit ignores forged role, identity, password, active-state and consent fields');
+$own = profileFixture(['actor' => 2, 'target' => 2, 'method' => 'POST', 'post' => [
+    'csrf_token' => 'synthetic-admin-csrf', 'update_profile' => '', 'name' => 'Learner own edit',
+]]);
+adminCheck($own['status'] === 200 && $own['users'][1]['name'] === 'Learner own edit'
+    && $own['session']['user_name'] === 'Learner own edit', 'Learner retains normal own-profile editing and session refresh');
+$missing = profileFixture(['actor' => 1, 'target' => 999, 'method' => 'POST', 'post' => [
+    'csrf_token' => 'synthetic-admin-csrf', 'name' => 'Ghost edit', 'update_profile' => '',
+]]);
+adminCheck($missing['status'] === 404, 'Missing target profile fails closed');
+
+$repeatDb = adminFixture();
+$repeatGroups = new LSC\Groups\GroupRepository($repeatDb);
+$repeatService = new LSC\Groups\GroupService($repeatDb, $repeatGroups, new LSC\Notifications\NotificationRepository($repeatDb));
+$repeatGroups->addJoinRequest(10, 1);
+adminCheck($repeatService->requestJoin(10, 1) && $repeatService->requestJoin(10, 1)
+    && (int)$repeatDb->query('SELECT COUNT(*) FROM group_members WHERE user_id = 1')->fetchColumn() === 1,
+    'Repeated admin joins remain idempotent');
+adminCheck((int)$repeatDb->query('SELECT COUNT(*) FROM group_join_requests WHERE user_id = 1')->fetchColumn() === 0,
+    'Admin direct join removes an earlier pending request');
+adminCheck(!$repeatService->requestJoin(999, 1) && !$repeatService->requestJoin(10, 4),
+    'Nonexistent group and inactive administrator cannot join');
+$_POST = ['user_role' => 'admin'];
+adminCheck($repeatService->requestJoin(11, 2) && !$repeatGroups->isMember(11, 2),
+    'Group creator remains subject to approval and cannot forge the site-admin role');
+
+$temp = getenv('RUNNER_TEMP') ?: getenv('TMPDIR');
+if (!$temp || !is_dir($temp)) { throw new RuntimeException('Designated fixture temp directory missing'); }
+$viewRoot = $temp . '/lsc-admin-views-' . bin2hex(random_bytes(12));
+mkdir($viewRoot . '/views/layouts', 0700, true);
+file_put_contents($viewRoot . '/views/layouts/app.php', '<?php echo $page_content;');
+define('LSC_ROOT', $viewRoot);
+function csrfToken(): string { return 'synthetic-admin-view-csrf'; }
+function adminRender(string $view, array $variables): string
+{
+    extract($variables, EXTR_SKIP);
+    ob_start(); ob_start();
+    require dirname(__DIR__) . '/views/' . $view . '.php';
+    return ob_get_clean();
+}
+try {
+    $discoveryDb = adminFixture();
+    $discoveryGroups = new LSC\Groups\GroupRepository($discoveryDb);
+    $available = $discoveryGroups->publicGroupsAvailableTo(1);
+    adminCheck(array_column($available, 'group_id') === [10, 11], 'Administrator can discover both private and public unjoined groups');
+    adminCheck(array_column($discoveryGroups->publicGroupsAvailableTo(3), 'group_id') === [11], 'Ordinary discovery still excludes private groups');
+    $_SESSION = ['user_id' => 1, 'user_role' => 'admin'];
+    $html = adminRender('groups/index', ['myGroups' => [], 'publicGroups' => $available]);
+    adminCheck(str_contains($html, 'Join directly') && str_contains($html, 'Synthetic private group')
+        && str_contains($html, 'name="csrf_token"'), 'Administrator group discovery exposes a deliberate CSRF-protected direct-join form');
+    adminCheck((int)$discoveryDb->query('SELECT COUNT(*) FROM group_members')->fetchColumn() === 0,
+        'Reading discovery and rendering forms does not join groups');
+    $stats = ['total_users' => 1, 'total_groups' => 0, 'total_tasks' => 0, 'total_files' => 0];
+    $html = adminRender('users/admin', ['stats' => $stats, 'users' => [[
+        'user_id' => 2, 'name' => 'Target learner', 'email' => 'target@example.invalid', 'role' => 'student', 'is_active' => 1,
+    ]]]);
+    adminCheck(str_contains($html, 'href="profile.php?user_id=2"'), 'Admin user management links directly to the correct learner profile');
+} finally {
+    unlink($viewRoot . '/views/layouts/app.php'); rmdir($viewRoot . '/views/layouts');
+    rmdir($viewRoot . '/views'); rmdir($viewRoot);
+}
+
 echo "RESULT: {$checks} checks; " . count($failures) . " failures; synthetic SQLite, no MySQL claim.\n";
 exit($failures === [] ? 0 : 1);
