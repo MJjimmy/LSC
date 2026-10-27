@@ -24,6 +24,17 @@ final class GroupService
 
     public function requestJoin(int $groupId, int $userId): bool
     {
+        // Resolve the actor's role from the database, never from submitted fields.
+        $actor = $this->database->prepare('SELECT role FROM users WHERE user_id = ? AND is_active = 1');
+        $actor->execute([$userId]);
+        $role = $actor->fetchColumn();
+        if ($role === false) {
+            return false;
+        }
+        if ($role === 'admin') {
+            return $this->joinAsAdministrator($groupId, $userId);
+        }
+
         if ($this->groups->isMember($groupId, $userId)) {
             return false;
         }
@@ -40,6 +51,30 @@ final class GroupService
         }
 
         return $result['ok'];
+    }
+
+    private function joinAsAdministrator(int $groupId, int $userId): bool
+    {
+        if (!$this->groups->find($groupId)) {
+            return false;
+        }
+        try {
+            $this->groups->ensureJoinRequestsTable();
+            $this->database->beginTransaction();
+            if (!$this->groups->join($groupId, $userId)
+                || !$this->groups->deleteRequestsForMember($groupId, $userId)) {
+                $this->database->rollBack();
+                return false;
+            }
+            $this->database->commit();
+            return true;
+        } catch (Throwable $exception) {
+            if ($this->database->inTransaction()) {
+                $this->database->rollBack();
+            }
+            error_log('GroupService::joinAsAdministrator failed.');
+            return false;
+        }
     }
 
     public function approveRequest(int $requestId, int $managerId, string $managerRole): bool

@@ -185,6 +185,13 @@ final class GroupRepository
         )->execute([$requestId]);
     }
 
+    public function deleteRequestsForMember(int $groupId, int $userId): bool
+    {
+        return $this->database->prepare(
+            'DELETE FROM group_join_requests WHERE group_id = ? AND user_id = ?'
+        )->execute([$groupId, $userId]);
+    }
+
     public function groupName(int $groupId): string
     {
         $statement = $this->database->prepare('SELECT group_name FROM study_groups WHERE group_id = ?');
