@@ -35,6 +35,19 @@ $canViewContact = $isOwnProfile || ($isSiteAdmin ?? false);
             <div class="profile-stat"><strong><?= (int)$profile['completed_task_count'] ?></strong><span>Tasks done</span></div>
         </div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:18px;">Member since <?= date('F Y', strtotime($profile['created_at'])) ?></div>
+        <?php if ($canViewContact): ?>
+        <div style="margin-top:18px;text-align:left;font-size:13px;overflow-wrap:anywhere;">
+            <div class="panel-title" style="margin-bottom:8px;">Contact details</div>
+            <div><strong>Email:</strong> <?= htmlspecialchars((string)($profile['email'] ?? '')) ?></div>
+            <div style="margin-top:6px;"><strong>Phone:</strong> <?= htmlspecialchars((string)($profile['phone_number'] ?: 'Not provided')) ?></div>
+            <?php if ($isSiteAdmin ?? false): ?>
+            <div style="margin-top:6px;"><strong>User ID:</strong> #<?= (int)$profile['user_id'] ?></div>
+            <div style="margin-top:6px;"><strong>Account:</strong> <?= !empty($profile['is_active']) ? 'Active' : 'Inactive' ?></div>
+            <div style="margin-top:6px;"><strong>Email notifications:</strong> <?= !empty($profile['notify_email']) ? 'Enabled' : 'Disabled' ?></div>
+            <div style="margin-top:6px;"><strong>SMS notifications:</strong> <?= !empty($profile['notify_sms']) ? 'Enabled' : 'Disabled' ?></div>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
     </section>
 
     <section class="card" style="padding:24px;">

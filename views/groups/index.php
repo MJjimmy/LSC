@@ -1,4 +1,7 @@
-<?php // Variables are provided by GroupController::index(). ?>
+<?php
+// Role is refreshed server-side by Auth::requireLogin(), never taken from form input.
+$isSiteAdmin = ($_SESSION['user_role'] ?? '') === 'admin';
+?>
 
 <!-- ── PAGE HEADER ───────────────────────────────────────── -->
 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
@@ -20,7 +23,7 @@
         <div class="stat-card-value"><?= count($myGroups) ?></div>
     </div>
     <div class="stat-card">
-        <div class="stat-card-label">Public Groups</div>
+        <div class="stat-card-label"><?= $isSiteAdmin ? 'Available Groups' : 'Public Groups' ?></div>
         <div class="stat-card-value"><?= count($publicGroups) ?></div>
     </div>
     <div class="stat-card" style="background:#eff6ff;border-color:#bfdbfe;cursor:pointer;"
@@ -98,7 +101,7 @@
 <!-- ── DISCOVER GROUPS ────────────────────────────────────── -->
 <?php if (!empty($publicGroups)): ?>
 <div style="font-size:10.5px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
-            color:var(--text-muted);margin-bottom:14px;">Discover Public Groups</div>
+            color:var(--text-muted);margin-bottom:14px;"><?= $isSiteAdmin ? 'Discover All Groups' : 'Discover Public Groups' ?></div>
 <div class="card">
     <?php foreach ($publicGroups as $g): ?>
     <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;
@@ -119,7 +122,7 @@
             <div style="font-size:11px;color:var(--text-muted);margin-top:3px;"><?= $g['member_count'] ?> members</div>
         </div>
 
-        <?php if (!empty($g['pending_request_id'])): ?>
+        <?php if (!$isSiteAdmin && !empty($g['pending_request_id'])): ?>
             <span class="pill pill-pending" style="flex-shrink:0;">Request Pending</span>
         <?php else: ?>
             <form method="POST" style="flex-shrink:0;">
@@ -131,7 +134,7 @@
                     background:#eff6ff;cursor:pointer;font-family:'Inter',system-ui,sans-serif;
                     transition:background .15s;
                 " onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
-                    Request to Join
+                    <?= $isSiteAdmin ? 'Join directly' : 'Request to Join' ?>
                 </button>
             </form>
         <?php endif; ?>

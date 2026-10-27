@@ -69,11 +69,14 @@ final class GroupRepository
             FROM study_groups sg
             LEFT JOIN group_join_requests gjr
                    ON gjr.group_id = sg.group_id AND gjr.user_id = ?
-            WHERE sg.is_private = 0
+            WHERE (sg.is_private = 0 OR EXISTS (
+                SELECT 1 FROM users actor
+                WHERE actor.user_id = ? AND actor.role = 'admin' AND actor.is_active = 1
+            ))
               AND sg.group_id NOT IN (SELECT group_id FROM group_members WHERE user_id = ?)
             ORDER BY sg.group_name
             SQL);
-        $statement->execute([$userId, $userId]);
+        $statement->execute([$userId, $userId, $userId]);
         return $statement->fetchAll();
     }
 

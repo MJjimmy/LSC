@@ -81,6 +81,7 @@
                         </span>
                     </td>
                     <td style="text-align:right;">
+                        <a class="btn-ghost" href="profile.php?user_id=<?= (int)$u['user_id'] ?>" style="display:inline-block;font-size:12px;">View / edit profile</a>
                         <?php if ($u['user_id'] != $_SESSION['user_id']): ?>
                         <form method="POST" style="display:inline-block;" onsubmit="return confirm('Are you sure?')">
                             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">

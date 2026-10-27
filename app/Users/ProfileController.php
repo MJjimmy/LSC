@@ -28,7 +28,7 @@ final class ProfileController
         $error = '';
         $success = '';
 
-        if (!$this->users->findActive($profileUserId)) {
+        if (!$this->users->findProfile($profileUserId, $isSiteAdmin)) {
             http_response_code(404);
             exit('Profile not found.');
         }
@@ -50,7 +50,7 @@ final class ProfileController
             }
         }
 
-        $profile = $this->users->findActive($profileUserId);
+        $profile = $this->users->findProfile($profileUserId, $isSiteAdmin);
         if (!$profile) {
             http_response_code(404);
             exit('Profile not found.');
@@ -73,7 +73,7 @@ final class ProfileController
             return ['One or more profile fields are too long.', ''];
         }
 
-        $current = $this->users->findActive($userId);
+        $current = $this->users->findProfile($userId, true);
         $newAvatar = $current['avatar_path'] ?? null;
         if (isset($_FILES['avatar']) && ($_FILES['avatar']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
             $stored = $this->storage->store($_FILES['avatar'], 'avatars');

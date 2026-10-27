@@ -15,18 +15,23 @@ final class UserRepository
 
     public function findActive(int $userId): array|false
     {
+        return $this->findProfile($userId);
+    }
+
+    public function findProfile(int $userId, bool $includeInactive = false): array|false
+    {
         $statement = $this->database->prepare(<<<'SQL'
             SELECT u.user_id, u.name, u.email, u.role, u.bio, u.institution,
                    u.course, u.avatar_path, u.created_at,
-                   u.phone_number, u.notify_email, u.notify_sms,
+                   u.phone_number, u.notify_email, u.notify_sms, u.is_active,
                    (SELECT COUNT(*) FROM group_members gm WHERE gm.user_id = u.user_id) AS group_count,
                    (SELECT COUNT(*) FROM files f WHERE f.uploaded_by = u.user_id) AS file_count,
                    (SELECT COUNT(*) FROM tasks t WHERE t.assigned_to = u.user_id AND t.status = 'done') AS completed_task_count
             FROM users u
-            WHERE u.user_id = ? AND u.is_active = 1
+            WHERE u.user_id = ? AND (u.is_active = 1 OR ? = 'all')
             LIMIT 1
             SQL);
-        $statement->execute([$userId]);
+        $statement->execute([$userId, $includeInactive ? 'all' : 'active']);
         return $statement->fetch();
     }
 
