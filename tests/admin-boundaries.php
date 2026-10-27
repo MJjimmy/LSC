@@ -74,10 +74,13 @@ adminCheck($groups->isMember(10, 1), 'Site administrator joins immediately witho
 adminCheck((int)$db->query('SELECT COUNT(*) FROM group_join_requests WHERE user_id = 1')->fetchColumn() === 0,
     'Site administrator has no pending approval request');
 
-function profileFixture(array $config): array
+function profileFixture(array $config, string $fixture = 'admin-profile-fixture.php'): array
 {
+    if (!in_array($fixture, ['admin-profile-fixture.php', 'admin-avatar-fixture.php'], true)) {
+        throw new RuntimeException('Unknown fixture');
+    }
     $pipes = [];
-    $process = proc_open([PHP_BINARY, '-d', 'display_errors=0', __DIR__ . '/admin-profile-fixture.php',
+    $process = proc_open([PHP_BINARY, '-d', 'display_errors=0', __DIR__ . '/' . $fixture,
         base64_encode(json_encode($config, JSON_THROW_ON_ERROR))], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
     if (!is_resource($process)) { throw new RuntimeException('Profile fixture child unavailable'); }
     $stdout = stream_get_contents($pipes[1]);
@@ -195,6 +198,21 @@ try {
     unlink($viewRoot . '/views/layouts/app.php'); rmdir($viewRoot . '/views/layouts');
     rmdir($viewRoot . '/views'); rmdir($viewRoot);
 }
+
+$adminPhoto = profileFixture(['actor' => 1, 'target' => 3], 'admin-avatar-fixture.php');
+adminCheck($adminPhoto['status'] === 200 && $adminPhoto['served_fixture_bytes']
+    && $adminPhoto['inactive_target_still_inactive'], 'Site administrator can read an inactive profile avatar without reactivating it');
+foreach ([2, 4] as $actor) {
+    $photo = profileFixture(['actor' => $actor, 'target' => 3], 'admin-avatar-fixture.php');
+    adminCheck($photo['status'] === 404 && !$photo['served_fixture_bytes'],
+        'Ordinary or demoted actor cannot read inactive avatars despite a stale admin session role: ' . $actor);
+}
+$disabledPhoto = profileFixture(['actor' => 5, 'target' => 3], 'admin-avatar-fixture.php');
+adminCheck(!$disabledPhoto['served_fixture_bytes'], 'Inactive administrator cannot read an inactive avatar');
+$publicPhoto = profileFixture(['actor' => 2, 'target' => 1], 'admin-avatar-fixture.php');
+adminCheck($publicPhoto['status'] === 200 && $publicPhoto['served_fixture_bytes'], 'Active-profile avatar access remains compatible for authenticated learners');
+$missingPhoto = profileFixture(['actor' => 1, 'target' => 999], 'admin-avatar-fixture.php');
+adminCheck($missingPhoto['status'] === 404 && !$missingPhoto['served_fixture_bytes'], 'Missing avatar target fails closed');
 
 echo "RESULT: {$checks} checks; " . count($failures) . " failures; synthetic SQLite, no MySQL claim.\n";
 exit($failures === [] ? 0 : 1);
