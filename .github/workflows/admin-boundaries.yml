@@ -28,5 +28,5 @@ jobs:
           php -r 'foreach (["pdo_sqlite", "mbstring"] as $e) { if (!extension_loaded($e)) throw new RuntimeException("Missing preinstalled extension: ".$e); }'
       - name: Lint application and regression PHP
         run: python -c "import pathlib,subprocess; files=[p for d in ('app','bin','config','public','views','tests') for p in pathlib.Path(d).rglob('*.php')]; [subprocess.run(['php','-l',str(p)],check=True,stdout=subprocess.DEVNULL) for p in files]; print('PHP syntax checks passed:',len(files))"
-      - name: Exercise actual administrator authorization and synthetic persistence
-        run: php tests/admin-boundaries.php
+      - name: Exercise bounded administrator and nearest offline regressions
+        run: python tests/admin-guarded-regressions.py
