@@ -82,28 +82,58 @@ final class AppSignIn
     public function completeGoogle(array $flow, int $userId): void
     {
         $this->validateCallback($flow);
-        if ($userId < 1 || $userId !== (int)($_SESSION['user_id'] ?? 0)) {
+        if ($userId < 1 || $userId !== (int)($_SESSION['user_id'] ?? 0)
+            || !(new Auth($this->database))->isLoggedIn()) {
             throw new RuntimeException(self::ERROR);
         }
         $_SESSION['app_sign_in']['completed_user_id'] = $userId;
+        $_SESSION['app_sign_in']['completed_auth_fingerprint'] = $_SESSION['auth_fingerprint'];
+    }
+
+    private function sqlite(): bool
+    {
+        return $this->database->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+    }
+
+    /** Same user-first lock order as password reset, before reading any proof. */
+    private function lockUser(int $userId): array|false
+    {
+        if ($this->sqlite()) {
+            $this->database->prepare('UPDATE users SET user_id = user_id WHERE user_id = ?')->execute([$userId]);
+        }
+        $statement = $this->database->prepare('SELECT user_id, name, role, avatar_path, is_active, password_hash FROM users WHERE user_id = ?' . ($this->sqlite() ? '' : ' FOR UPDATE'));
+        $statement->execute([$userId]);
+        return $statement->fetch(PDO::FETCH_ASSOC);
     }
 
     public function complete(): array
     {
         $intent = $this->intent();
         $userId = (int)($intent['completed_user_id'] ?? 0);
-        if ($userId < 1 || $userId !== (int)($_SESSION['user_id'] ?? 0)) {
+        $proof = $intent['completed_auth_fingerprint'] ?? null;
+        if ($userId < 1 || $userId !== (int)($_SESSION['user_id'] ?? 0)
+            || !is_string($proof) || !is_string($_SESSION['auth_fingerprint'] ?? null)
+            || !hash_equals($proof, $_SESSION['auth_fingerprint']) || $this->database->inTransaction()) {
             throw new RuntimeException(self::ERROR);
         }
-        $statement = $this->database->prepare('SELECT user_id FROM users WHERE user_id = ? AND is_active = 1');
-        $statement->execute([$userId]);
-        if ($statement->fetchColumn() === false) {
+        try {
+            $this->database->beginTransaction();
+            $user = $this->lockUser($userId);
+            if (!$user || (int)$user['is_active'] !== 1 || !hash_equals(Auth::fingerprint($user['password_hash']), $proof)) {
+                throw new RuntimeException(self::ERROR);
+            }
+            $code = bin2hex(random_bytes(32));
+            // Credential-bound PKCE, same existing 64-character field; legacy
+            // unbound codes cannot be redeemed after deployment or a reset.
+            $challenge = hash_hmac('sha256', $intent['challenge'], $user['password_hash']);
+            $this->database->prepare('INSERT INTO app_auth_codes (code_hash, challenge, user_id, expires_at) VALUES (?, ?, ?, ?)')
+                ->execute([hash('sha256', $code), $challenge, $userId, time() + 120]);
+            $this->database->commit();
+        } catch (Throwable) {
+            if ($this->database->inTransaction()) $this->database->rollBack();
             throw new RuntimeException(self::ERROR);
         }
         unset($_SESSION['app_sign_in']);
-        $code = bin2hex(random_bytes(32));
-        $this->database->prepare('INSERT INTO app_auth_codes (code_hash, challenge, user_id, expires_at) VALUES (?, ?, ?, ?)')
-            ->execute([hash('sha256', $code), $intent['challenge'], $userId, time() + 120]);
         return ['code' => $code, 'state' => $intent['state']];
     }
 
@@ -114,22 +144,19 @@ final class AppSignIn
             throw new RuntimeException(self::ERROR);
         }
         $hash = hash('sha256', $code);
-        $sqlite = $this->database->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
-        $this->database->beginTransaction();
+        if ($this->database->inTransaction()) throw new RuntimeException(self::ERROR);
         try {
-            if ($sqlite) {
-                // SQLite has no FOR UPDATE: acquire its write lock before the lookup.
-                $this->database->prepare('UPDATE app_auth_codes SET expires_at = expires_at WHERE code_hash = ?')->execute([$hash]);
-            }
-            $statement = $this->database->prepare(
-                'SELECT c.challenge, c.expires_at, u.user_id, u.name, u.role, u.avatar_path, u.is_active
-                 FROM app_auth_codes c JOIN users u ON u.user_id = c.user_id WHERE c.code_hash = ?'
-                 . ($sqlite ? '' : ' FOR UPDATE')
-            );
-            $statement->execute([$hash]);
-            $user = $statement->fetch(PDO::FETCH_ASSOC);
-            if (!$user || (int)$user['expires_at'] <= time() || (int)$user['is_active'] !== 1
-                || !hash_equals($user['challenge'], hash('sha256', $verifier))) {
+            $lookup = $this->database->prepare('SELECT user_id FROM app_auth_codes WHERE code_hash = ?');
+            $lookup->execute([$hash]);
+            $userId = (int)$lookup->fetchColumn();
+            if ($userId < 1) throw new RuntimeException(self::ERROR);
+            $this->database->beginTransaction();
+            $user = $this->lockUser($userId);
+            $statement = $this->database->prepare('SELECT challenge, expires_at FROM app_auth_codes WHERE code_hash = ? AND user_id = ?' . ($this->sqlite() ? '' : ' FOR UPDATE'));
+            $statement->execute([$hash, $userId]);
+            $ticket = $statement->fetch(PDO::FETCH_ASSOC);
+            if (!$user || !$ticket || (int)$ticket['expires_at'] <= time() || (int)$user['is_active'] !== 1
+                || !hash_equals($ticket['challenge'], hash_hmac('sha256', hash('sha256', $verifier), $user['password_hash']))) {
                 throw new RuntimeException(self::ERROR);
             }
             $consume = $this->database->prepare('DELETE FROM app_auth_codes WHERE code_hash = ?');
@@ -142,9 +169,11 @@ final class AppSignIn
             if ($this->database->inTransaction()) {
                 $this->database->rollBack();
             }
-            throw $exception;
+            throw new RuntimeException(self::ERROR);
         }
-        (new Auth($this->database))->login((int)$user['user_id'], $user['name'], $user['role'], $user['avatar_path']);
+        if ((new Auth($this->database))->login((int)$user['user_id'], $user['name'], $user['role'], $user['avatar_path'], $user['password_hash']) !== true) {
+            throw new RuntimeException(self::ERROR);
+        }
         unset($_SESSION['app_sign_in'], $_SESSION['oauth_flow']);
         $_SESSION['android_client'] = true;
         $_SESSION['session_started'] = $_SESSION['last_activity'] = time();

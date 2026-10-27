@@ -29,11 +29,50 @@ final class RateLimiter
     {
     }
 
+    /** Reserve one admitted local signup attempt, including successful signups. */
+    public function consume(string $key, int $maxAttempts, int $decaySeconds): bool
+    {
+        if ($maxAttempts < 1 || $decaySeconds < 1 || $this->database->inTransaction()) {
+            return false;
+        }
+        $sqlite = $this->database->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+        $expires = $sqlite ? "datetime('now', '+' || ? || ' seconds')" : 'DATE_ADD(NOW(), INTERVAL ? SECOND)';
+        try {
+            $this->database->beginTransaction();
+            // The unique-key write serializes contenders even for a missing row.
+            $this->database->prepare('INSERT INTO rate_limits (rl_key, attempts, expires_at) VALUES (?, 0, ' . $expires . ')'
+                . ($sqlite ? ' ON CONFLICT(rl_key) DO NOTHING' : ' ON DUPLICATE KEY UPDATE rl_key = VALUES(rl_key)'))
+                ->execute([$key, $decaySeconds]);
+            $statement = $this->database->prepare('SELECT attempts, (expires_at > CURRENT_TIMESTAMP) AS active FROM rate_limits WHERE rl_key = ?' . ($sqlite ? '' : ' FOR UPDATE'));
+            $statement->execute([$key]);
+            $row = $statement->fetch(PDO::FETCH_ASSOC);
+            if (!$row || ((int)$row['active'] === 1 && (int)$row['attempts'] >= $maxAttempts)) {
+                $this->database->rollBack();
+                return false;
+            }
+            if ((int)$row['active'] === 1) {
+                $update = $this->database->prepare('UPDATE rate_limits SET attempts = attempts + 1 WHERE rl_key = ?');
+                $update->execute([$key]);
+            } else {
+                $update = $this->database->prepare('UPDATE rate_limits SET attempts = 1, expires_at = ' . $expires . ' WHERE rl_key = ?');
+                $update->execute([$decaySeconds, $key]);
+            }
+            if ($update->rowCount() !== 1) {
+                throw new \RuntimeException('Quota reservation failed.');
+            }
+            $this->database->commit();
+            return true;
+        } catch (\Throwable) {
+            if ($this->database->inTransaction()) $this->database->rollBack();
+            return false;
+        }
+    }
+
     /** True if the key has hit or exceeded $maxAttempts within its current window. */
     public function tooManyAttempts(string $key, int $maxAttempts): bool
     {
         $statement = $this->database->prepare(
-            'SELECT attempts FROM rate_limits WHERE rl_key = ? AND expires_at > NOW()'
+            'SELECT attempts FROM rate_limits WHERE rl_key = ? AND expires_at > CURRENT_TIMESTAMP'
         );
         $statement->execute([$key]);
         $attempts = $statement->fetchColumn();
@@ -47,6 +86,15 @@ final class RateLimiter
      */
     public function hit(string $key, int $decaySeconds): void
     {
+        if ($this->database->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+            $this->database->prepare("INSERT INTO rate_limits (rl_key, attempts, expires_at)
+                VALUES (:key, 1, datetime('now', '+' || :decay || ' seconds'))
+                ON CONFLICT(rl_key) DO UPDATE SET
+                attempts = CASE WHEN rate_limits.expires_at > datetime('now') THEN rate_limits.attempts + 1 ELSE 1 END,
+                expires_at = CASE WHEN rate_limits.expires_at > datetime('now') THEN rate_limits.expires_at ELSE datetime('now', '+' || :decay2 || ' seconds') END")
+                ->execute(['key' => $key, 'decay' => $decaySeconds, 'decay2' => $decaySeconds]);
+            return;
+        }
         $statement = $this->database->prepare(
             'INSERT INTO rate_limits (rl_key, attempts, expires_at)
              VALUES (:key, 1, DATE_ADD(NOW(), INTERVAL :decay SECOND))
@@ -79,7 +127,9 @@ final class RateLimiter
     public function availableInSeconds(string $key): int
     {
         $statement = $this->database->prepare(
-            'SELECT TIMESTAMPDIFF(SECOND, NOW(), expires_at) FROM rate_limits WHERE rl_key = ? AND expires_at > NOW()'
+            $this->database->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite'
+                ? "SELECT CAST(strftime('%s', expires_at) AS INTEGER) - CAST(strftime('%s', 'now') AS INTEGER) FROM rate_limits WHERE rl_key = ? AND expires_at > CURRENT_TIMESTAMP"
+                : 'SELECT TIMESTAMPDIFF(SECOND, NOW(), expires_at) FROM rate_limits WHERE rl_key = ? AND expires_at > NOW()'
         );
         $statement->execute([$key]);
         $seconds = $statement->fetchColumn();
