@@ -39,12 +39,14 @@ final class AccountController
             } else {
                 $result = $this->accounts->authenticate($email, (string)($_POST['password'] ?? ''));
                 if ($result['ok']) {
-                    $this->limiter->clear($ipKey);
-                    $this->limiter->clear($emailKey);
                     $user = $result['user'];
-                    $this->auth->login((int)$user['user_id'], $user['name'], $user['role'], $user['avatar_path']);
-                    header('Location: ' . $this->auth->safeLocalRedirect($_POST['next'] ?? $_GET['next'] ?? null));
-                    exit;
+                    if ($this->auth->login((int)$user['user_id'], $user['name'], $user['role'], $user['avatar_path'], $user['password_hash']) === true) {
+                        $this->limiter->clear($ipKey);
+                        $this->limiter->clear($emailKey);
+                        header('Location: ' . $this->auth->safeLocalRedirect($_POST['next'] ?? $_GET['next'] ?? null));
+                        exit;
+                    }
+                    $result = ['ok' => false, 'error' => 'Invalid email or password.'];
                 }
                 $this->limiter->hit($ipKey, 900);
                 $this->limiter->hit($emailKey, 900);

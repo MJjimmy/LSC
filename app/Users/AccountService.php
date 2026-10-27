@@ -24,7 +24,11 @@ final class AccountService
         }
         // Keep hashes current if the default algorithm or cost ever changes.
         if (password_needs_rehash($user['password_hash'], PASSWORD_DEFAULT)) {
-            $this->users->updatePasswordHash((int)$user['user_id'], password_hash($password, PASSWORD_DEFAULT));
+            $replacement = password_hash($password, PASSWORD_DEFAULT);
+            if (!$this->users->updatePasswordHash((int)$user['user_id'], $replacement, $user['password_hash'])) {
+                return ['ok' => false, 'error' => 'Invalid email or password.'];
+            }
+            $user['password_hash'] = $replacement;
         }
         return ['ok' => true, 'user' => $user];
     }
