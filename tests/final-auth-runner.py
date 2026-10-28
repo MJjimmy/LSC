@@ -11,7 +11,7 @@ import sys
 import tempfile
 import time
 ROOT = Path(__file__).resolve().parents[1]
-allowed = {'stage3-rehash.php', 'final-auth.php', 'app-sign-in.php', 'security_csrf_regression.php', 'security_scalar_boundary.php', 'google-sign-in.php', 'resend-mailer.php', 'resend-worker.php', 'resend-password-reset.php', 'help-profile.php', 'final-auth-controllers.php'}
+allowed = {'stage3-rehash.php', 'final-auth.php', 'app-sign-in.php', 'security_csrf_regression.php', 'security_scalar_boundary.php', 'google-sign-in.php', 'resend-mailer.php', 'resend-worker.php', 'resend-password-reset.php', 'help-profile.php', 'final-auth-controllers.php', 'oauth-link-revocation.php'}
 names = sys.argv[1:]
 assert names and set(names) <= allowed and len(names) == len(set(names))
 assert not any(p.is_symlink() or p.name == '.env' for p in ROOT.rglob('*')), 'source symlink/environment refused'
