@@ -12,6 +12,7 @@ if (!$temp || !is_dir($temp)) { throw new RuntimeException('Designated fixture t
 $fixture = $temp . '/lsc-admin-profile-' . bin2hex(random_bytes(12));
 mkdir($fixture . '/views/users', 0700, true);
 mkdir($fixture . '/views/layouts', 0700, true);
+mkdir($fixture . '/sessions', 0700, true);
 file_put_contents($fixture . '/views/users/profile.php', '<?php require ' . var_export($root . '/views/users/profile.php', true) . ';');
 file_put_contents($fixture . '/views/layouts/app.php', '<?php echo $page_content;');
 define('LSC_ROOT', $fixture);
@@ -30,9 +31,20 @@ $db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEX
     (4,'Inactive learner','inactive@example.invalid','synthetic-not-a-password-hash','student',0,'Inactive bio','Fixture College','Physics',NULL,NULL,1,0),
     (5,'Inactive admin','disabled@example.invalid','synthetic-not-a-password-hash','admin',0,'Disabled bio','Fixture College','CS',NULL,NULL,1,0);");
 $before = $db->query('SELECT user_id,email,password_hash,role,is_active,phone_number,notify_email,notify_sms FROM users ORDER BY user_id')->fetchAll();
-$_SESSION = ['user_id' => (int)($config['actor'] ?? 1), 'user_role' => $config['session_role'] ?? 'admin',
-    'user_name' => 'Stale synthetic session name', 'user_avatar' => '/uploads/avatars/admin-owned.png',
-    'csrf_token' => 'synthetic-admin-csrf'];
+ini_set('session.use_cookies', '0');
+ini_set('session.save_path', $fixture . '/sessions');
+session_start();
+$actorId = (int)($config['actor'] ?? 1);
+$statement = $db->prepare('SELECT * FROM users WHERE user_id = ?');
+$statement->execute([$actorId]);
+$actor = $statement->fetch();
+$auth = new LSC\Core\Auth($db);
+if (!$actor || $auth->login($actorId, $actor['name'], $actor['role'], $actor['avatar_path'], $actor['password_hash']) !== true) {
+    throw new RuntimeException('Synthetic trusted fixture login failed');
+}
+// Deliberately stale role metadata must still be refreshed by real authorization.
+$_SESSION['user_role'] = $config['session_role'] ?? 'admin';
+$_SESSION['csrf_token'] = 'synthetic-admin-csrf';
 $_SERVER['REQUEST_METHOD'] = $config['method'] ?? 'GET';
 $_SERVER['PHP_SELF'] = '/profile.php';
 $_GET = ['user_id' => (string)($config['target'] ?? 2)];
@@ -50,11 +62,14 @@ register_shutdown_function(static function () use ($db, $before, $fixture): void
         'session' => array_intersect_key($_SESSION, array_flip(['user_id','user_name','user_avatar','user_role'])),
         'protected_fields_unchanged' => $after === $before,
         'users' => $db->query('SELECT user_id,name,institution,course,bio FROM users ORDER BY user_id')->fetchAll()];
+    if (session_status() === PHP_SESSION_ACTIVE) { session_write_close(); }
+    foreach (glob($fixture . '/sessions/sess_*') ?: [] as $session) { unlink($session); }
+    rmdir($fixture . '/sessions');
     unlink($fixture . '/views/users/profile.php');
     unlink($fixture . '/views/layouts/app.php');
     rmdir($fixture . '/views/users'); rmdir($fixture . '/views/layouts');
     rmdir($fixture . '/views'); rmdir($fixture);
     echo json_encode($record, JSON_THROW_ON_ERROR);
 });
-$controller = new LSC\Users\ProfileController(new LSC\Core\Auth($db), new LSC\Users\UserRepository($db), new LSC\Core\UploadStorage($fixture . '/storage'));
+$controller = new LSC\Users\ProfileController($auth, new LSC\Users\UserRepository($db), new LSC\Core\UploadStorage($fixture . '/storage'));
 $controller->show();

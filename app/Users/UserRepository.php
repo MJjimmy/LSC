@@ -77,10 +77,13 @@ final class UserRepository
             SQL)->execute([$phoneNumber, $notifyEmail, $notifySms, $userId]);
     }
 
-    public function updatePasswordHash(int $userId, string $passwordHash): bool
+    public function updatePasswordHash(int $userId, string $passwordHash, string $expectedPasswordHash): bool
     {
-        return $this->database->prepare('UPDATE users SET password_hash = ? WHERE user_id = ?')
-            ->execute([$passwordHash, $userId]);
+        $exact = $this->database->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite'
+            ? 'password_hash = ? COLLATE BINARY' : 'BINARY password_hash = BINARY ?';
+        $statement = $this->database->prepare('UPDATE users SET password_hash = ? WHERE user_id = ? AND is_active = 1 AND ' . $exact);
+        $statement->execute([$passwordHash, $userId, $expectedPasswordHash]);
+        return $statement->rowCount() === 1;
     }
 
     public function all(): array

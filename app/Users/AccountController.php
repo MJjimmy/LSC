@@ -39,12 +39,14 @@ final class AccountController
             } else {
                 $result = $this->accounts->authenticate($email, (string)($_POST['password'] ?? ''));
                 if ($result['ok']) {
-                    $this->limiter->clear($ipKey);
-                    $this->limiter->clear($emailKey);
                     $user = $result['user'];
-                    $this->auth->login((int)$user['user_id'], $user['name'], $user['role'], $user['avatar_path']);
-                    header('Location: ' . $this->auth->safeLocalRedirect($_POST['next'] ?? $_GET['next'] ?? null));
-                    exit;
+                    if ($this->auth->login((int)$user['user_id'], $user['name'], $user['role'], $user['avatar_path'], $user['password_hash']) === true) {
+                        $this->limiter->clear($ipKey);
+                        $this->limiter->clear($emailKey);
+                        header('Location: ' . $this->auth->safeLocalRedirect($_POST['next'] ?? $_GET['next'] ?? null));
+                        exit;
+                    }
+                    $result = ['ok' => false, 'error' => 'Invalid email or password.'];
                 }
                 $this->limiter->hit($ipKey, 900);
                 $this->limiter->hit($emailKey, 900);
@@ -67,11 +69,10 @@ final class AccountController
             Csrf::verify();
             $ipKey = 'register:ip:' . RateLimiter::clientIp();
 
-            if ($this->limiter->tooManyAttempts($ipKey, 6)) {
+            if (!$this->limiter->consume($ipKey, 6, 3600)) {
                 $wait = $this->limiter->availableInSeconds($ipKey);
                 $error = 'Too many signup attempts from this connection. Try again in ' . RateLimiter::humanDuration($wait) . '.';
             } else {
-                $this->limiter->hit($ipKey, 3600);
                 $result = $this->accounts->register(
                     (string)($_POST['name'] ?? ''),
                     (string)($_POST['email'] ?? ''),
@@ -80,7 +81,6 @@ final class AccountController
                     (string)($_POST['role'] ?? '')
                 );
                 if ($result['ok']) {
-                    $this->limiter->clear($ipKey);
                     $next = $this->auth->safeLocalRedirect($_POST['next'] ?? $_GET['next'] ?? null);
                     header('Location: login.php?registered=1&next=' . rawurlencode($next));
                     exit;

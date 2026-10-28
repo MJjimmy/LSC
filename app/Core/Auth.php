@@ -14,7 +14,17 @@ final class Auth
 
     public function isLoggedIn(): bool
     {
-        return isset($_SESSION['user_id']);
+        if (!isset($_SESSION['user_id'])) {
+            return false;
+        }
+        $user = $this->activeUser((int)$_SESSION['user_id']);
+        $proof = $_SESSION['auth_fingerprint'] ?? null;
+        if (!$user || !is_string($proof) || !hash_equals(self::fingerprint($user['password_hash']), $proof)) {
+            $this->invalidate();
+            return false;
+        }
+        $this->identity($user);
+        return true;
     }
 
     public function requireLogin(): void
@@ -24,21 +34,7 @@ final class Auth
             exit;
         }
 
-        $statement = $this->database->prepare(
-            'SELECT name, role, avatar_path FROM users WHERE user_id = ? AND is_active = 1'
-        );
-        $statement->execute([(int)$_SESSION['user_id']]);
-        $user = $statement->fetch(PDO::FETCH_ASSOC);
 
-        if (!$user) {
-            $this->logout();
-            header('Location: login.php?deactivated=1');
-            exit;
-        }
-
-        $_SESSION['user_name'] = $user['name'];
-        $_SESSION['user_role'] = $user['role'];
-        $_SESSION['user_avatar'] = $user['avatar_path'];
     }
 
     public function requireAdmin(): void
@@ -50,13 +46,48 @@ final class Auth
         }
     }
 
-    public function login(int $userId, string $name, string $role, ?string $avatarPath = null): void
+    public function login(int $userId, string $name, string $role, ?string $avatarPath = null, ?string $expectedPasswordHash = null): bool
     {
+        $user = $this->activeUser($userId);
+        if (!$user || $expectedPasswordHash === null || $expectedPasswordHash === ''
+            || !hash_equals($user['password_hash'], $expectedPasswordHash)) {
+            $this->invalidate();
+            return false;
+        }
         session_regenerate_id(true);
-        $_SESSION['user_id'] = $userId;
-        $_SESSION['user_name'] = $name;
-        $_SESSION['user_role'] = $role;
-        $_SESSION['user_avatar'] = $avatarPath;
+        $this->identity($user);
+        $_SESSION['auth_fingerprint'] = self::fingerprint($user['password_hash']);
+        $_SESSION['session_started'] = $_SESSION['last_activity'] = time();
+        return true;
+    }
+
+    public static function fingerprint(string $passwordHash): string
+    {
+        return hash('sha256', $passwordHash);
+    }
+
+    private function activeUser(int $userId): array|false
+    {
+        $statement = $this->database->prepare('SELECT user_id, name, role, avatar_path, password_hash FROM users WHERE user_id = ? AND is_active = 1');
+        $statement->execute([$userId]);
+        return $statement->fetch(PDO::FETCH_ASSOC);
+    }
+
+    private function identity(array $user): void
+    {
+        $_SESSION['user_id'] = (int)$user['user_id'];
+        $_SESSION['user_name'] = $user['name'];
+        $_SESSION['user_role'] = $user['role'];
+        $_SESSION['user_avatar'] = $user['avatar_path'];
+    }
+
+    private function invalidate(): void
+    {
+        // Keep an anonymous active session usable for a new CSRF token.
+        $_SESSION = [];
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
     }
 
     public function safeLocalRedirect(?string $target, string $fallback = 'dashboard.php'): string

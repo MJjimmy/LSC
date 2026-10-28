@@ -61,8 +61,10 @@ try {
         $appSignIn->validateCallback($flow);
     }
     $identity = OAuthProvider::exchange($provider, $code, $flow['verifier']);
-    $user = (new OAuthAccounts($database))->resolve($provider, $identity, $flow['link_user_id']);
-    $auth->login((int)$user['user_id'], $user['name'], $user['role'], $user['avatar_path']);
+    $user = (new OAuthAccounts($database))->resolve($provider, $identity, $flow['link_user_id'], $flow['link_fingerprint'] ?? null);
+    if ($auth->login((int)$user['user_id'], $user['name'], $user['role'], $user['avatar_path'], $user['password_hash']) !== true) {
+        throw new RuntimeException('Unable to complete sign-in. Please try again.');
+    }
     if ($appSignIn !== null) {
         // Never complete from an existing browser login or an unverified provider response.
         $appSignIn->completeGoogle($flow, (int)$user['user_id']);

@@ -28,6 +28,7 @@ spl_autoload_register(static function (string $class) use ($root): void {
 });
 $db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
 $db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT, role TEXT,
+    password_hash TEXT NOT NULL DEFAULT 'synthetic-avatar-proof',
     is_active INTEGER, bio TEXT, institution TEXT, course TEXT, avatar_path TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP, phone_number TEXT, notify_email INTEGER, notify_sms INTEGER);
     CREATE TABLE group_members (group_id INTEGER,user_id INTEGER);
@@ -45,7 +46,21 @@ file_put_contents($fixture . '/storage/uploads/avatars/fixture.png', $image);
 ini_set('session.use_cookies', '0');
 ini_set('session.save_path', $fixture . '/sessions');
 session_start();
-$_SESSION = ['user_id' => (int)($config['actor'] ?? 1), 'user_role' => 'admin', 'user_name' => 'Stale role'];
+$actorId = (int)($config['actor'] ?? 1);
+$statement = $db->prepare('SELECT * FROM users WHERE user_id = ?');
+$statement->execute([$actorId]);
+$actor = $statement->fetch();
+if (!$actor) { throw new RuntimeException('Unknown synthetic avatar actor'); }
+if (!$actor['is_active']) {
+    $db->prepare('UPDATE users SET is_active = 1 WHERE user_id = ?')->execute([$actorId]);
+}
+if ((new LSC\Core\Auth($db))->login($actorId, $actor['name'], $actor['role'], $actor['avatar_path'], $actor['password_hash']) !== true) {
+    throw new RuntimeException('Synthetic trusted avatar login failed');
+}
+if (!$actor['is_active']) {
+    $db->prepare('UPDATE users SET is_active = 0 WHERE user_id = ?')->execute([$actorId]);
+}
+$_SESSION['user_role'] = 'admin'; // Real request authorization must refresh this stale value.
 $_GET = ['user_id' => (string)($config['target'] ?? 3)];
 $_POST = [];
 $_SERVER['REQUEST_METHOD'] = 'GET';

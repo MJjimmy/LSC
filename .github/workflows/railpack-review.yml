@@ -89,6 +89,8 @@ jobs:
       - name: Lint PHP source
         run: python -c "import pathlib,subprocess; files=[p for d in ('app','bin','config','public','views') for p in pathlib.Path(d).rglob('*.php')]; [subprocess.run(['php','-l',str(p)],check=True) for p in files]"
   deployment-contract:
+    # User-approved pause: do not execute database-image tests on live releases.
+    if: github.ref != 'refs/heads/deploy/railpack'
 
     name: Runtime and database verification
     runs-on: ubuntu-latest

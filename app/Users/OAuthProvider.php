@@ -70,6 +70,14 @@ final class OAuthProvider
         if (!self::enabled($provider)) {
             throw new RuntimeException('This sign-in option is not available yet. Please use email and password.');
         }
+        $linkFingerprint = null;
+        if ($linkUserId !== null) {
+            $linkFingerprint = $_SESSION['auth_fingerprint'] ?? null;
+            if (($_SESSION['user_id'] ?? null) !== $linkUserId || !is_string($linkFingerprint)
+                || preg_match('/^[a-f0-9]{64}$/D', $linkFingerprint) !== 1) {
+                throw new RuntimeException('Sign in again before connecting Google.');
+            }
+        }
         $config = self::configuration($provider);
         $verifier = bin2hex(random_bytes(32));
         $state = bin2hex(random_bytes(32));
@@ -77,6 +85,7 @@ final class OAuthProvider
             'provider' => $provider, 'state' => $state, 'verifier' => $verifier,
             'expires' => time() + 600, 'next' => self::safeNext($next), 'link_user_id' => $linkUserId,
             'session_user_id' => isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null,
+            'link_fingerprint' => $linkFingerprint,
         ];
         return $config['authorize'] . '?' . http_build_query([
             'client_id' => $config['client_id'], 'redirect_uri' => $config['redirect_uri'],
@@ -93,7 +102,11 @@ final class OAuthProvider
         if (!is_array($flow) || $state === '' || !hash_equals($flow['state'], $state)
             || $flow['provider'] !== $provider || $flow['expires'] < time()
             || ($flow['session_user_id'] ?? null) !== (isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : null)
-            || ($flow['link_user_id'] !== null && $flow['link_user_id'] !== (int)($_SESSION['user_id'] ?? 0))) {
+            || ($flow['link_user_id'] !== null && $flow['link_user_id'] !== (int)($_SESSION['user_id'] ?? 0))
+            || ($flow['link_user_id'] !== null && (!is_string($flow['link_fingerprint'] ?? null)
+                || preg_match('/^[a-f0-9]{64}$/D', $flow['link_fingerprint']) !== 1
+                || !is_string($_SESSION['auth_fingerprint'] ?? null)
+                || !hash_equals($flow['link_fingerprint'], $_SESSION['auth_fingerprint'])))) {
             throw new RuntimeException('This sign-in request expired or is invalid. Please try again.');
         }
         return $flow;
