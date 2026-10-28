@@ -15,6 +15,7 @@ const os = require('node:os');
 const crypto = require('node:crypto');
 const {spawn, spawnSync, execFileSync} = require('node:child_process');
 const REF = '38f93eb393be14e0371311406f827e693fbca770';
+const NATIVE_REF = '8925f16b0c14b91ad0ea13a80502a7f3f593b86e';
 const args = process.argv.slice(2), options = {};
 for (let i = 0; i < args.length; i += 2) {
   if (!['--candidate-root','--browser','--profile-parent','--output'].includes(args[i]) || !args[i+1])
@@ -26,7 +27,9 @@ const id = `${Date.now()}-${crypto.randomBytes(5).toString('hex')}`;
 const profile = path.join(path.resolve(options['--profile-parent'] || (process.platform === 'win32' ? path.dirname(root) : os.tmpdir())), `browser-profile-${id}`);
 const output = path.resolve(options['--output'] || path.join(path.dirname(root), `stage2-browser-${id}.json`));
 const evidence = {startedAt:new Date().toISOString(), candidateRoot:root, baselineRef:REF, output, profile, assertions:[], observations:{}, errors:[]};
-let browser, server, socket, cdp, session, online = true, phase = 'baseline', candidate, baseline, origin;
+let browser, server, socket, cdp, session, online = true, phase = 'baseline', candidate, baseline, nativeBaseline, origin;
+let nativeRequests = 0;
+const nativeResponses = [];
 let stderr = '', posts = 0, workerRequests = [], fatal = false, cleaning;
 const pending = new Map(); let seq = 0;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -68,6 +71,17 @@ async function snapshot() {
 async function fetchText(route, method='GET') {
   return evaluate(`fetch(${JSON.stringify(route)},{method:${JSON.stringify(method)},cache:'no-store'}).then(async r=>({status:r.status,text:await r.text()})).catch(e=>({error:e.name,text:''}))`);
 }
+async function updateController(label) {
+  const changed=await evaluate(`(async()=>{const r=await navigator.serviceWorker.getRegistration();const changed=new Promise(resolve=>navigator.serviceWorker.addEventListener('controllerchange',()=>resolve(true),{once:true}));await r.update();return await Promise.race([changed,new Promise(resolve=>setTimeout(()=>resolve(false),10000))]);})()`);
+  if (!changed) throw new Error('Worker did not update: '+label);
+  await until(()=>evaluate(`navigator.serviceWorker.getRegistration().then(r=>r.active?.state==='activated')`),label);
+}
+function observeNativeResponse(response) {
+  const pathname=new URL(response.url).pathname;
+  if (['/app-auth.php','/oauth.php'].includes(pathname)) {
+    nativeResponses.push({pathname,status:response.status,fromServiceWorker:response.fromServiceWorker===true});
+  }
+}
 function fixture(req,res) {
   if(!online) {req.socket.destroy(); return;}
   const u = new URL(req.url, 'http://127.0.0.1');
@@ -75,7 +89,7 @@ function fixture(req,res) {
   if(u.pathname === '/service-worker.php') {
     workerRequests.push({phase,time:new Date().toISOString()});
     res.setHeader('Content-Type','application/javascript'); res.setHeader('Service-Worker-Allowed','/');
-    res.end((phase==='baseline'?baseline:candidate)+`\n// stage2-harness-phase:${phase}\n`); return;
+    res.end((phase==='baseline'?baseline:phase==='native-baseline'?nativeBaseline:candidate)+`\n// stage2-harness-phase:${phase}\n`); return;
   }
   if(u.pathname==='/__login' && req.method==='POST') {
     const who=u.searchParams.get('account');
@@ -86,6 +100,13 @@ function fixture(req,res) {
     res.setHeader('Set-Cookie','stage2_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');res.end('logged out');return;
   }
   if(req.method!=='GET'){posts++;res.end('POST_NETWORK_ONLY');return;}
+  if(u.pathname==='/oauth.php') {
+    res.writeHead(303,{Location:'/app-auth.php?action=complete'});res.end();return;
+  }
+  if(u.pathname==='/app-auth.php') {
+    nativeRequests++;
+    res.writeHead(303,{Location:'lscapp://auth?code='+('c'.repeat(64))+'&state='+('d'.repeat(64))});res.end();return;
+  }
   if(u.pathname==='/offline.php'){res.setHeader('Content-Type','text/html');res.end('<!doctype html><body>GENERIC_OFFLINE_FIXTURE</body>');return;}
   if(['/icons/lsc-icon.svg','/icons/lsc-og.jpg'].includes(u.pathname) && !u.search) {
     res.setHeader('Content-Type',u.pathname.endsWith('.svg')?'image/svg+xml':'image/jpeg');
@@ -123,6 +144,8 @@ async function cleanup() {
 async function run() {
   baseline=stripPHP(execFileSync('git',['-C',root,'show',`${REF}:public/service-worker.php`],{encoding:'utf8',timeout:10000}));
   candidate=stripPHP(fs.readFileSync(path.join(root,'public','service-worker.php'),'utf8'));
+  nativeBaseline=stripPHP(execFileSync('git',['-C',root,'show',`${NATIVE_REF}:public/service-worker.php`],{encoding:'utf8',timeout:10000}));
+  evidence.nativeBaselineRef=NATIVE_REF;evidence.nativeBaselineHash=sha(nativeBaseline);
   evidence.baselineHash=sha(baseline);evidence.candidateHash=sha(candidate);
   evidence.candidateEqualsBaseline=candidate.replace(/\r\n/g,'\n')===baseline.replace(/\r\n/g,'\n');
   const candidates=[options['--browser'],process.env.CHROME_PATH,
@@ -141,7 +164,7 @@ async function run() {
   const port=await until(()=>fs.existsSync(portFile)&&fs.readFileSync(portFile,'utf8').trim().split(/\r?\n/), 'DevTools startup',15000);
   socket=new WebSocket(`ws://127.0.0.1:${port[0]}${port[1]}`);
   await new Promise((resolve,reject)=>{socket.addEventListener('open',resolve,{once:true});socket.addEventListener('error',reject,{once:true});});
-  socket.addEventListener('message',e=>{const m=JSON.parse(e.data);const p=pending.get(m.id);if(p){pending.delete(m.id);clearTimeout(p.timer);m.error?p.reject(new Error(JSON.stringify(m.error))):p.resolve(m.result);}});
+  socket.addEventListener('message',e=>{const m=JSON.parse(e.data);const p=pending.get(m.id);if(p){pending.delete(m.id);clearTimeout(p.timer);m.error?p.reject(new Error(JSON.stringify(m.error))):p.resolve(m.result);}if(m.method==='Network.responseReceived')observeNativeResponse(m.params.response);if(m.method==='Network.requestWillBeSent'&&m.params.redirectResponse)observeNativeResponse(m.params.redirectResponse);});
   evidence.browserVersion=await send('Browser.getVersion',{},null);
   const target=await send('Target.createTarget',{url:'about:blank'},null);
   session=(await send('Target.attachToTarget',{targetId:target.targetId,flatten:true},null)).sessionId;
@@ -196,6 +219,28 @@ async function run() {
   const privateImageOffline=await fetchText('/private.png?account=B');
   check('private query .png cannot replay offline',!!privateImageOffline.error&&!/PRIVATE_ACCOUNT_[AB]/.test(privateImageOffline.text),privateImageOffline);
   evidence.observations.workerRequests=workerRequests;
+  // Reproduce the actual mobile failure on v2, then update that SAME controlled client.
+  online=true;phase='native-baseline';
+  await navigate('/__harness');await updateController('native baseline activated');
+  const falseOffline=await navigate('/app-auth.php?action=complete');
+  check('v2 witness: online native return is incorrectly replaced by offline page',falseOffline.text.includes('GENERIC_OFFLINE_FIXTURE'),falseOffline);
+  phase='candidate';await updateController('native-return candidate activated');
+  for(const route of ['/app-auth.php?action=complete','/oauth.php?provider=google']) {
+    await navigate('/__harness');
+    const offset=nativeResponses.length,before=nativeRequests;
+    const navigation=await send('Page.navigate',{url:origin+route});
+    await until(()=>nativeRequests>before,'native redirect endpoint reached');
+    await sleep(250);
+    const document=await evaluate('({url:location.href,text:document.body.innerText})');
+    const responses=nativeResponses.slice(offset);
+    const nativeDispatch=responses.some(r=>r.status===303&&!r.fromServiceWorker)||!!navigation.errorText;
+    check('native return bypasses worker through '+route,nativeDispatch&&!responses.some(r=>r.fromServiceWorker)&&!document.text.includes('GENERIC_OFFLINE_FIXTURE'),{navigation,document,responses});
+  }
+  const nativeCaches=await snapshot();
+  check('auth callback routes are never cached',!Object.values(nativeCaches).flat().some(r=>['/app-auth.php','/oauth.php'].includes(new URL(r.url).pathname)),Object.keys(nativeCaches));
+  online=false;
+  const stillOffline=await navigate('/private-new.php');
+  check('ordinary offline fallback survives native-route bypass',stillOffline.text.includes('GENERIC_OFFLINE_FIXTURE'),stillOffline);
 }
 let timer=setTimeout(()=>{fatal=true;evidence.errors.push('Overall 80 second deadline exceeded');cleanup().finally(()=>process.exit(2));},80000);
 for(const signal of ['SIGINT','SIGTERM']) process.once(signal,()=>{fatal=true;evidence.errors.push(signal);clearTimeout(timer);cleanup().finally(()=>process.exit(2));});

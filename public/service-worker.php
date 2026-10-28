@@ -3,7 +3,7 @@ header('Content-Type: application/javascript');
 header('Service-Worker-Allowed: /');
 header('Cache-Control: no-cache');
 ?>
-const CACHE_NAME = 'lsc-public-v2';
+const CACHE_NAME = 'lsc-public-v3';
 const OFFLINE_URL = '/offline.php';
 // Only application-owned, non-personal resources may enter Cache Storage.
 const PUBLIC_ASSETS = ['/icons/lsc-icon.svg', '/icons/lsc-og.jpg'];
@@ -32,6 +32,9 @@ self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
     if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+    // Let the browser handle authentication redirects, including lscapp://.
+    // Wrapping these navigations in fetch() can replace a native redirect with offline HTML.
+    if (url.pathname === '/app-auth.php' || url.pathname === '/oauth.php') return;
 
     if (request.mode === 'navigate' || request.headers.get('Accept')?.includes('text/html')) {
         // Never store or replay documents, including login/reset pages.
