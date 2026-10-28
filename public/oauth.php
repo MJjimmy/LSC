@@ -61,7 +61,7 @@ try {
         $appSignIn->validateCallback($flow);
     }
     $identity = OAuthProvider::exchange($provider, $code, $flow['verifier']);
-    $user = (new OAuthAccounts($database))->resolve($provider, $identity, $flow['link_user_id']);
+    $user = (new OAuthAccounts($database))->resolve($provider, $identity, $flow['link_user_id'], $flow['link_fingerprint'] ?? null);
     if ($auth->login((int)$user['user_id'], $user['name'], $user['role'], $user['avatar_path'], $user['password_hash']) !== true) {
         throw new RuntimeException('Unable to complete sign-in. Please try again.');
     }

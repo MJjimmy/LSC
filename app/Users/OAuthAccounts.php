@@ -14,13 +14,31 @@ final class OAuthAccounts
     {
     }
 
-    public function resolve(string $provider, array $identity, ?int $linkUserId): array
+    public function resolve(string $provider, array $identity, ?int $linkUserId, ?string $linkFingerprint = null): array
     {
         if ($provider !== 'google') {
             throw new RuntimeException('Unsupported sign-in provider.');
         }
         $this->database->beginTransaction();
         try {
+            $linkedUser = null;
+            if ($linkUserId !== null) {
+                if ($linkFingerprint === null || preg_match('/^[a-f0-9]{64}$/D', $linkFingerprint) !== 1) {
+                    throw new RuntimeException('Sign in again before connecting Google.');
+                }
+                // Serialize attachment with password reset; checks before provider I/O are insufficient.
+                $sqlite = $this->database->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
+                if ($sqlite) {
+                    $this->database->prepare('UPDATE users SET user_id = user_id WHERE user_id = ?')->execute([$linkUserId]);
+                }
+                $statement = $this->database->prepare('SELECT * FROM users WHERE user_id = ?' . ($sqlite ? '' : ' FOR UPDATE'));
+                $statement->execute([$linkUserId]);
+                $linkedUser = $statement->fetch(PDO::FETCH_ASSOC);
+                if (!$linkedUser || (int)$linkedUser['is_active'] !== 1
+                    || !hash_equals(hash('sha256', $linkedUser['password_hash']), $linkFingerprint)) {
+                    throw new RuntimeException('Sign in again before connecting Google.');
+                }
+            }
             $statement = $this->database->prepare(
                 'SELECT u.* FROM oauth_identities o JOIN users u ON u.user_id = o.user_id WHERE o.provider = ? AND o.subject = ? FOR UPDATE'
             );
@@ -31,12 +49,7 @@ final class OAuthAccounts
                     throw new RuntimeException('This Google account is already connected to another LSC account.');
                 }
             } elseif ($linkUserId !== null) {
-                $statement = $this->database->prepare('SELECT * FROM users WHERE user_id = ? FOR UPDATE');
-                $statement->execute([$linkUserId]);
-                $user = $statement->fetch(PDO::FETCH_ASSOC);
-                if (!$user || (int)$user['is_active'] !== 1) {
-                    throw new RuntimeException('Please sign in to an active LSC account before connecting Google.');
-                }
+                $user = $linkedUser;
                 $statement = $this->database->prepare('SELECT subject FROM oauth_identities WHERE user_id = ? AND provider = ? FOR UPDATE');
                 $statement->execute([$linkUserId, $provider]);
                 if ($statement->fetchColumn() !== false) {
