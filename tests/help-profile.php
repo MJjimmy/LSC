@@ -23,6 +23,7 @@ foreach ([true, false] as $isOwnProfile) {
     ob_start(); // Profile view consumes the inner buffer and renders its real layout.
     require LSC_ROOT . '/views/users/profile.php';
     $html = ob_get_clean();
+    checkUi(!str_contains($html, 'id="lsc-consent"'), 'Profile renders without the cookie popup');
     checkUi(!str_contains($html, 'oauth.php?provider=google'), 'Profile has no Google form');
     checkUi(!str_contains($html, 'Connect Google') && !str_contains($html, 'Continue with Google'), 'Profile has no extra Google button');
     checkUi(str_contains($html, 'href="help.php"'), 'Profile layout includes Help');
@@ -36,6 +37,7 @@ foreach (['', 'android'] as $app) {
     ob_start();
     require LSC_ROOT . '/public/help.php';
     $html = ob_get_clean();
+    checkUi(!str_contains($html, 'id="lsc-consent"'), 'Help renders without the cookie popup');
     checkUi(str_contains($html, '<h1>Help &amp; getting started</h1>'), 'Guest Help renders');
     foreach (['account','groups','invitations','tasks','files','settings','android','troubleshooting'] as $topic) {
         checkUi(str_contains($html, 'id="'.$topic.'"') && str_contains($html, 'href="#'.$topic.'"'), 'Help topic has a matching anchor: '.$topic);
