@@ -2,7 +2,7 @@ name: Combined LSC admin and authentication checks (no deployment)
 
 on:
   push:
-    branches: [security/lsc-final-integration-2026-10-27, deploy/railpack]
+    branches: [ui-fix, security/lsc-final-integration-2026-10-27, deploy/railpack]
 
 permissions:
   contents: read
@@ -18,6 +18,8 @@ jobs:
           persist-credentials: false
       - name: Refuse source environment files before application execution
         run: python -c "import os,pathlib; root=pathlib.Path.cwd(); assert not any(p.name=='.env' or p.is_symlink() for p in root.rglob('*')), 'Source environment/symlink refused'; assert not os.path.lexists(root/'.env')"
+      - name: UI fix - self-service group membership regression
+        run: python -I tests/final-auth-runner.py ui-fix.php
       - name: Credential session, reset, native ticket and signup regressions
         run: python -I tests/final-auth-runner.py stage3-rehash.php final-auth.php final-auth-controllers.php app-sign-in.php security_csrf_regression.php security_scalar_boundary.php google-sign-in.php resend-mailer.php resend-worker.php resend-password-reset.php help-profile.php oauth-link-revocation.php
       - name: Administrator and nearest offline regressions on the same source
