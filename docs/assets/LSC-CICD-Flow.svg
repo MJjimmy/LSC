@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-labelledby="title description">
+<title id="title">LSC GitHub CI and Railway delivery flow</title>
+<desc id="description">Developer changes are pushed to two GitHub repositories. Android GitHub Actions builds and tests the debug APK, publishes APK and test reports, and leads to manual phone testing. Backend GitHub Actions runs validation workflows and reports results. Failed checks require fixing code and pushing again. A separate configured-source or release action feeds Railway deployment of the PHP web service connected to private MySQL. A CI-blocking Railway deployment gate has not been verified.</desc>
+<defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#294152" stroke-width="0.5" opacity="0.35"/></pattern>
+<marker id="arrow-source" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#94a3b8"/></marker>
+<marker id="arrow-ci" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#34d399"/></marker>
+<marker id="arrow-manual" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#22d3ee"/></marker>
+<marker id="arrow-cloud" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#fbbf24"/></marker>
+<marker id="arrow-db" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#a78bfa"/></marker>
+<marker id="arrow-fail" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8Z" fill="#fb7185"/></marker>
+</defs>
+<rect width="1920" height="1080" fill="#071725"/><rect width="1920" height="1080" fill="url(#grid)"/>
+<g font-family="Aptos, Segoe UI, Arial, sans-serif">
+<text x="56" y="66" font-size="42" font-weight="700" fill="#f2f7fa" text-anchor="start">LSC | GitHub CI &amp; Railway delivery</text>
+<text x="58" y="111" font-size="23" font-weight="400" fill="#abc0ce" text-anchor="start">Two repositories. Automated checks. A separate production deployment path.</text>
+<rect x="706" y="166" width="780" height="580" rx="20" fill="#34d399" fill-opacity="0.025" stroke="#34d399" stroke-opacity="0.5" stroke-width="1.4" stroke-dasharray="9 6"/>
+<text x="730" y="203" font-size="17" font-weight="700" fill="#34d399" text-anchor="start">CONTINUOUS INTEGRATION / GITHUB ACTIONS</text>
+<rect x="706" y="786" width="1158" height="202" rx="20" fill="#fbbf24" fill-opacity="0.035" stroke="#fbbf24" stroke-opacity="0.7" stroke-width="1.4" stroke-dasharray="9 6"/>
+<text x="730" y="821" font-size="17" font-weight="700" fill="#fbbf24" text-anchor="start">PRODUCTION DELIVERY / RAILWAY - SEPARATE FROM CI</text>
+<path d="M280 415 H314 V302 H350" fill="none" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrow-source)"/>
+<path d="M280 415 H314 V622 H350" fill="none" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arrow-source)"/>
+<path d="M650 302 H735" fill="none" stroke="#34d399" stroke-width="2.5" marker-end="url(#arrow-ci)"/>
+<path d="M1080 302 H1145" fill="none" stroke="#34d399" stroke-width="2.5" marker-end="url(#arrow-ci)"/>
+<path d="M1450 302 H1515" fill="none" stroke="#22d3ee" stroke-width="2.5" marker-end="url(#arrow-manual)"/>
+<path d="M650 622 H735" fill="none" stroke="#34d399" stroke-width="2.5" marker-end="url(#arrow-ci)"/>
+<path d="M1080 622 H1145" fill="none" stroke="#34d399" stroke-width="2.5" marker-end="url(#arrow-ci)"/>
+<path d="M910 364 V412" fill="none" stroke="#fb7185" stroke-width="2.5" stroke-dasharray="8 6" marker-end="url(#arrow-fail)"/>
+<path d="M910 540 V498" fill="none" stroke="#fb7185" stroke-width="2.5" stroke-dasharray="8 6" marker-end="url(#arrow-fail)"/>
+<path d="M502 684 V760 H680 V901 H735" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="8 6" marker-end="url(#arrow-cloud)"/>
+<path d="M1080 901 H1145" fill="none" stroke="#fbbf24" stroke-width="2.5" marker-end="url(#arrow-cloud)"/>
+<path d="M1450 901 H1515" fill="none" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#arrow-db)"/>
+<text x="694" y="285" font-size="15" font-weight="400" fill="#abc0ce" text-anchor="middle">trigger</text>
+<text x="1115" y="285" font-size="15" font-weight="400" fill="#34d399" text-anchor="middle">pass</text>
+<text x="1485" y="285" font-size="15" font-weight="400" fill="#22d3ee" text-anchor="middle">manual</text>
+<text x="694" y="605" font-size="15" font-weight="400" fill="#abc0ce" text-anchor="middle">trigger</text>
+<text x="1115" y="605" font-size="15" font-weight="400" fill="#34d399" text-anchor="middle">results</text>
+<text x="1115" y="884" font-size="15" font-weight="400" fill="#fbbf24" text-anchor="middle">deploy</text>
+<text x="1485" y="884" font-size="15" font-weight="400" fill="#a78bfa" text-anchor="middle">SQL</text>
+<text x="60" y="753" font-size="18" font-weight="700" fill="#fbbf24" text-anchor="start">Separate source / release action</text>
+<text x="60" y="795" font-size="18" font-weight="400" fill="#abc0ce" text-anchor="start">Source branch: deploy/railpack</text>
+<g id="developer" class="node" data-x="60" data-y="330" data-w="220" data-h="176">
+<rect x="60" y="330" width="220" height="176" rx="15" fill="#0f2132"/>
+<rect x="60" y="330" width="220" height="176" rx="15" fill="#94a3b8" fill-opacity="0.08" stroke="#94a3b8" stroke-width="1.8"/>
+<text x="82" y="365" font-size="24" font-weight="700" fill="#94a3b8" text-anchor="start">Code change</text>
+<text x="82" y="407" font-size="19" font-weight="400" fill="#abc0ce" text-anchor="start">Commit, then push</text>
+<text x="82" y="443" font-size="18" font-weight="400" fill="#abc0ce" text-anchor="start">Versioned source</text>
+</g>
+<g id="android-repository" class="node" data-x="355" data-y="240" data-w="295" data-h="124">
+<rect x="355" y="240" width="295" height="124" rx="15" fill="#0f2132"/>
+<rect x="355" y="240" width="295" height="124" rx="15" fill="#94a3b8" fill-opacity="0.08" stroke="#94a3b8" stroke-width="1.8"/>
+<text x="377" y="275" font-size="24" font-weight="700" fill="#94a3b8" text-anchor="start">MJjimmy/LSC-APP</text>
+<text x="377" y="312" font-size="20" font-weight="400" fill="#abc0ce" text-anchor="start">Android source</text>
+<text x="377" y="342" font-size="18" font-weight="400" fill="#abc0ce" text-anchor="start">Branch: master</text>
+</g>
+<g id="android-ci" class="node" data-x="740" data-y="240" data-w="340" data-h="124">
+<rect x="740" y="240" width="340" height="124" rx="15" fill="#0f2132"/>
+<rect x="740" y="240" width="340" height="124" rx="15" fill="#34d399" fill-opacity="0.08" stroke="#34d399" stroke-width="1.8"/>
+<text x="762" y="275" font-size="24" font-weight="700" fill="#34d399" text-anchor="start">Android build &amp; tests</text>
+<text x="762" y="312" font-size="19" font-weight="400" fill="#abc0ce" text-anchor="start">Checkout + verify tools</text>
+<text x="762" y="342" font-size="19" font-weight="400" fill="#abc0ce" text-anchor="start">JVM tests + debug APK</text>
+</g>
+<g id="android-artifacts" class="node" data-x="1150" data-y="240" data-w="300" data-h="124">
+<rect x="1150" y="240" width="300" height="124" rx="15" fill="#0f2132"/>
+<rect x="1150" y="240" width="300" height="124" rx="15" fill="#34d399" fill-opacity="0.08" stroke="#34d399" stroke-width="1.8"/>
+<text x="1172" y="275" font-size="24" font-weight="700" fill="#34d399" text-anchor="start">Publish artifacts</text>
+<text x="1172" y="312" font-size="20" font-weight="400" fill="#abc0ce" text-anchor="start">Debug APK</text>
+<text x="1172" y="342" font-size="19" font-weight="400" fill="#abc0ce" text-anchor="start">JUnit / HTML reports</text>
+</g>
+<g id="phone-testing" class="node" data-x="1520" data-y="240" data-w="300" data-h="124">
+<rect x="1520" y="240" width="300" height="124" rx="15" fill="#0f2132"/>
+<rect x="1520" y="240" width="300" height="124" rx="15" fill="#22d3ee" fill-opacity="0.08" stroke="#22d3ee" stroke-width="1.8"/>
+<text x="1542" y="275" font-size="23" font-weight="700" fill="#22d3ee" text-anchor="start">Manual phone testing</text>
+<text x="1542" y="312" font-size="19" font-weight="400" fill="#abc0ce" text-anchor="start">Install compatible APK</text>
+<text x="1542" y="342" font-size="19" font-weight="400" fill="#abc0ce" text-anchor="start">Verify app features</text>
+</g>
+<g id="backend-repository" class="node" data-x="355" data-y="560" data-w="295" data-h="124">
+<rect x="355" y="560" width="295" height="124" rx="15" fill="#0f2132"/>
+<rect x="355" y="560" width="295" height="124" rx="15" fill="#94a3b8" fill-opacity="0.08" stroke="#94a3b8" stroke-width="1.8"/>
+<text x="377" y="595" font-size="24" font-weight="700" fill="#94a3b8" text-anchor="start">MJjimmy/LSC</text>
+<text x="377" y="632" font-size="20" font-weight="400" fill="#abc0ce" text-anchor="start">PHP backend source</text>
+<text x="377" y="662" font-size="17" font-weight="400" fill="#abc0ce" text-anchor="start">Branch: deploy/railpack</text>
+</g>
+<g id="backend-ci" class="node" data-x="740" data-y="540" data-w="340" data-h="164">
+<rect x="740" y="540" width="340" height="164" rx="15" fill="#0f2132"/>
+<rect x="740" y="540" width="340" height="164" rx="15" fill="#34d399" fill-opacity="0.08" stroke="#34d399" stroke-width="1.8"/>
+<text x="762" y="575" font-size="24" font-weight="700" fill="#34d399" text-anchor="start">Backend regressions</text>
+<text x="762" y="612" font-size="18" font-weight="400" fill="#abc0ce" text-anchor="start">Administrator + authentication</text>
+<text x="762" y="640" font-size="17" font-weight="400" fill="#abc0ce" text-anchor="start">PHP/provider checks (offline)</text>
+<text x="762" y="668" font-size="17" font-weight="400" fill="#abc0ce" text-anchor="start">Security/cache, when triggered</text>
+</g>
+<g id="backend-results" class="node" data-x="1150" data-y="560" data-w="300" data-h="124">
+<rect x="1150" y="560" width="300" height="124" rx="15" fill="#0f2132"/>
+<rect x="1150" y="560" width="300" height="124" rx="15" fill="#34d399" fill-opacity="0.08" stroke="#34d399" stroke-width="1.8"/>
+<text x="1172" y="595" font-size="24" font-weight="700" fill="#34d399" text-anchor="start">Inspect run results</text>
+<text x="1172" y="632" font-size="18" font-weight="400" fill="#abc0ce" text-anchor="start">Exact commit + job status</text>
+<text x="1172" y="662" font-size="18" font-weight="400" fill="#abc0ce" text-anchor="start">Passed / failed / skipped</text>
+</g>
+<g id="failure-feedback" class="node" data-x="740" data-y="418" data-w="710" data-h="74">
+<rect x="740" y="418" width="710" height="74" rx="15" fill="#0f2132"/>
+<rect x="740" y="418" width="710" height="74" rx="15" fill="#fb7185" fill-opacity="0.08" stroke="#fb7185" stroke-width="1.8"/>
+<text x="762" y="453" font-size="23" font-weight="700" fill="#fb7185" text-anchor="start">Failed check? Fix the code and push again.</text>
+<text x="762" y="477" font-size="17" font-weight="400" fill="#abc0ce" text-anchor="start">Keep the failing run in the history; verify the new result.</text>
+</g>
+<g id="railway-build" class="node" data-x="740" data-y="846" data-w="340" data-h="110">
+<rect x="740" y="846" width="340" height="110" rx="15" fill="#0f2132"/>
+<rect x="740" y="846" width="340" height="110" rx="15" fill="#fbbf24" fill-opacity="0.08" stroke="#fbbf24" stroke-width="1.8"/>
+<text x="762" y="881" font-size="24" font-weight="700" fill="#fbbf24" text-anchor="start">Railway build &amp; deploy</text>
+<text x="762" y="921" font-size="18" font-weight="400" fill="#abc0ce" text-anchor="start">Configured deployment source</text>
+</g>
+<g id="live-web" class="node" data-x="1150" data-y="846" data-w="300" data-h="110">
+<rect x="1150" y="846" width="300" height="110" rx="15" fill="#0f2132"/>
+<rect x="1150" y="846" width="300" height="110" rx="15" fill="#fbbf24" fill-opacity="0.08" stroke="#fbbf24" stroke-width="1.8"/>
+<text x="1172" y="881" font-size="23" font-weight="700" fill="#fbbf24" text-anchor="start">Live PHP web service</text>
+<text x="1172" y="921" font-size="19" font-weight="400" fill="#abc0ce" text-anchor="start">lsc.up.railway.app</text>
+</g>
+<g id="mysql" class="node" data-x="1520" data-y="846" data-w="300" data-h="110">
+<rect x="1520" y="846" width="300" height="110" rx="15" fill="#0f2132"/>
+<rect x="1520" y="846" width="300" height="110" rx="15" fill="#a78bfa" fill-opacity="0.08" stroke="#a78bfa" stroke-width="1.8"/>
+<text x="1542" y="881" font-size="24" font-weight="700" fill="#a78bfa" text-anchor="start">MySQL database</text>
+<text x="1542" y="921" font-size="18" font-weight="400" fill="#abc0ce" text-anchor="start">Private DB + existing volume</text>
+</g>
+<text x="730" y="729" font-size="15" font-weight="400" fill="#abc0ce" text-anchor="start">Checks: final-integration.yml / railpack-review.yml / stage2-security.yml</text>
+<g id="release-caveat">
+<text x="1520" y="471" font-size="17" font-weight="700" fill="#fbbf24" text-anchor="start">IMPORTANT DISTINCTION</text>
+<text x="1520" y="512" font-size="19" font-weight="400" fill="#abc0ce" text-anchor="start">CI checks do not deploy.</text>
+<text x="1520" y="548" font-size="19" font-weight="400" fill="#abc0ce" text-anchor="start">Railway deploys separately.</text>
+<text x="1520" y="584" font-size="19" font-weight="400" fill="#abc0ce" text-anchor="start">A CI-blocking release gate</text>
+<text x="1520" y="614" font-size="19" font-weight="400" fill="#abc0ce" text-anchor="start">has not been verified.</text>
+<text x="1520" y="670" font-size="19" font-weight="400" fill="#abc0ce" text-anchor="start">Phone acceptance is manual.</text>
+</g>
+<text x="60" y="872" font-size="20" font-weight="600" fill="#f2f7fa" text-anchor="start">GitHub Actions = automated integration checks.</text>
+<text x="60" y="910" font-size="20" font-weight="400" fill="#abc0ce" text-anchor="start">Railway = the separate hosting / deployment path.</text>
+<circle cx="68" cy="1027" r="6" fill="#94a3b8"/>
+<text x="86" y="1034" font-size="17" font-weight="400" fill="#abc0ce" text-anchor="start">Source control</text>
+<circle cx="338" cy="1027" r="6" fill="#34d399"/>
+<text x="356" y="1034" font-size="17" font-weight="400" fill="#abc0ce" text-anchor="start">GitHub CI</text>
+<circle cx="563" cy="1027" r="6" fill="#22d3ee"/>
+<text x="581" y="1034" font-size="17" font-weight="400" fill="#abc0ce" text-anchor="start">Manual delivery</text>
+<circle cx="858" cy="1027" r="6" fill="#fbbf24"/>
+<text x="876" y="1034" font-size="17" font-weight="400" fill="#abc0ce" text-anchor="start">Railway hosting</text>
+<circle cx="1148" cy="1027" r="6" fill="#a78bfa"/>
+<text x="1166" y="1034" font-size="17" font-weight="400" fill="#abc0ce" text-anchor="start">MySQL</text>
+<circle cx="1363" cy="1027" r="6" fill="#fb7185"/>
+<text x="1381" y="1034" font-size="17" font-weight="400" fill="#abc0ce" text-anchor="start">Failure feedback</text>
+<text x="60" y="1069" font-size="16" font-weight="400" fill="#abc0ce" text-anchor="start">CI evidence is tied to a source revision; it does not by itself prove live-provider login, phone acceptance or production deployment.</text>
+</g></svg>
