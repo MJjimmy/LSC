@@ -111,6 +111,17 @@ final class GroupController
         bool $canManageGroup,
         bool $isMember
     ): void {
+        if (isset($_POST['leave_group'])) {
+            // The target member comes only from the authenticated session.
+            // Handle this before manager actions, even if extra fields are posted.
+            if ($isMember && $this->service->leaveGroup($groupId, $userId)) {
+                $_SESSION['group_flash'] = ['type' => 'success', 'message' => 'You have left the group. Shared tasks, files and messages have been kept.'];
+                $this->redirect('groups.php');
+            }
+            $_SESSION['group_flash'] = ['type' => 'error', 'message' => 'Unable to leave this group. Group creators cannot leave their own group.'];
+            $this->redirect("group.php?id={$groupId}");
+        }
+
         if (isset($_POST['delete_group']) && $canManageGroup) {
             // Remove the stored files before the database rows disappear,
             // so a deleted group does not leave orphan files on disk.

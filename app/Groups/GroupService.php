@@ -146,6 +146,40 @@ final class GroupService
         return $ok;
     }
 
+    public function leaveGroup(int $groupId, int $userId): bool
+    {
+        if ($groupId <= 0 || $userId <= 0) {
+            return false;
+        }
+        try {
+            $this->database->beginTransaction();
+            // Self-service only: recheck active identity and creator protection
+            // in the mutation itself, not just the page's earlier snapshot.
+            $statement = $this->database->prepare(<<<'SQL'
+                DELETE FROM group_members
+                WHERE group_id = ? AND user_id = ?
+                  AND EXISTS (
+                      SELECT 1 FROM study_groups sg
+                      WHERE sg.group_id = group_members.group_id AND sg.created_by <> ?
+                  )
+                  AND EXISTS (SELECT 1 FROM users actor WHERE actor.user_id = ? AND actor.is_active = 1)
+                SQL);
+            $statement->execute([$groupId, $userId, $userId, $userId]);
+            if ($statement->rowCount() !== 1 || !$this->groups->deleteRequestsForMember($groupId, $userId)) {
+                $this->database->rollBack();
+                return false;
+            }
+            $this->database->commit();
+            return true;
+        } catch (Throwable $exception) {
+            if ($this->database->inTransaction()) {
+                $this->database->rollBack();
+            }
+            error_log('GroupService::leaveGroup failed.');
+            return false;
+        }
+    }
+
     public function removeMember(
         int $groupId,
         int $memberId,
