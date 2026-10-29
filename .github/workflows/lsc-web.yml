@@ -1,0 +1,156 @@
+name: LSC Web Release
+
+# Railway owns production deployment after this complete workflow succeeds.
+on:
+  push:
+    branches: [ui-fix, deploy/railpack]
+  pull_request:
+    branches: [deploy/railpack]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lsc-web-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    name: Check code
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact source without stored credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify existing tools and refuse environment files or source symlinks
+        run: |
+          php --version
+          python --version
+          node --version
+          python - <<'PY'
+          from pathlib import Path
+          assert not any(p.is_symlink() or p.name == '.env' for p in Path.cwd().rglob('*')), 'Source symlink or environment file refused'
+          print('Source preflight passed; no packages, secrets or database images required')
+          PY
+      - name: Lint application and fixture PHP; check Python syntax
+        run: |
+          python - <<'PY'
+          import ast, subprocess
+          from pathlib import Path
+          files = [p for d in ('app', 'bin', 'config', 'public', 'views', 'tests') for p in Path(d).rglob('*.php')]
+          for path in files:
+              result = subprocess.run(['php', '-l', str(path)], capture_output=True, text=True, timeout=10)
+              assert result.returncode == 0 and not result.stderr, 'PHP syntax failed: ' + str(path)
+          scripts = list(Path('tests').glob('*.py'))
+          for path in scripts:
+              ast.parse(path.read_text(), filename=str(path))
+          print('Syntax passed:', len(files), 'PHP files and', len(scripts), 'Python scripts')
+          PY
+      - name: Check deployment configuration and patched runtime pin
+        run: |
+          python -I tests/railpack_config_test.py
+          python -I tests/runtime_config_test.py
+          python -I tests/php_runtime_patch_test.py
+
+  tests:
+    name: Test website
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      APP_ENV: testing
+      APP_DEBUG: '0'
+      EMAIL_DELIVERY_ENABLED: '0'
+      NOTIFICATION_PROCESSOR_ENABLED: '0'
+      NOTIFICATION_WORKER_ENABLED: '0'
+    steps:
+      - name: Check out source and browser regression history without stored credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Authentication, reset, Google linking and Leave group fixtures
+        run: python -I tests/final-auth-runner.py stage3-rehash.php final-auth.php final-auth-controllers.php app-sign-in.php security_csrf_regression.php security_scalar_boundary.php google-sign-in.php resend-mailer.php resend-worker.php resend-password-reset.php help-profile.php oauth-link-revocation.php ui-fix.php
+      - name: Administrator, profile, task membership and CSRF boundaries
+        run: python -I tests/admin-guarded-regressions.py
+      - name: Navigation, task filters and light-only theme
+        run: |
+          python -I tests/ui_navigation_test.py
+          python -I tests/app_auth_navigation_test.py
+          node tests/stage2-filter.cjs
+          node tests/light-theme-test.cjs
+      - name: Browser privacy, offline account switching and worker upgrades
+        run: |
+          google-chrome --version
+          node tests/stage2-browser.cjs --candidate-root "$PWD" --browser "$(command -v google-chrome)" --output "$RUNNER_TEMP/stage2-browser.json"
+      - name: Record browser report even when a check fails
+        if: always()
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          report = Path(os.environ['RUNNER_TEMP']) / 'stage2-browser.json'
+          if report.is_file():
+              with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+                  summary.write('## Browser regression report\n```json\n' + report.read_text()[:120000] + '\n```\n')
+          PY
+
+  build:
+    name: Verify web build
+    needs: tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out exact source without stored credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Build the existing pinned web runtime - not the paused database image
+        run: docker build --progress=plain --tag lsc-runtime-fixed:review --file Dockerfile.railway .
+      - name: Verify PHP CLI, FPM and required extensions on the built runtime
+        run: |
+          docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true --entrypoint /bin/php lsc-runtime-fixed:review -r 'if (PHP_VERSION !== "8.5.12") exit(1); foreach (["pdo_mysql","pdo_sqlite","mbstring","curl","session","openssl"] as $e) {if (!extension_loaded($e)) throw new RuntimeException("Missing ".$e);} if (!function_exists("getimagesize")) exit(1); $h=password_hash("isolated-test-password", PASSWORD_DEFAULT); if (!password_verify("isolated-test-password",$h)) exit(1); echo "PHP ".PHP_VERSION."; runtime extensions, image inspection and password hashing OK\n";'
+          docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true --entrypoint /usr/sbin/php-fpm lsc-runtime-fixed:review -v
+      - name: Preserve auth and fake-mail fixtures on the actual built PHP runtime
+        run: |
+          for test in tests/app-sign-in.php tests/resend-mailer.php tests/resend-password-reset.php; do
+            docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true --pids-limit 128 --memory 512m --tmpfs /tmp:rw,nosuid,nodev,size=64m --mount "type=bind,source=$PWD,target=/review,readonly" --workdir /review --env APP_ENV=testing --env APP_DEBUG=0 --env EMAIL_DELIVERY_ENABLED=0 --entrypoint /bin/php lsc-runtime-fixed:review "$test"
+          done
+      - name: Verify HTTP, supervision, upload storage and the maintenance gate
+        run: |
+          python -I tests/runtime_smoke_test.py
+          python -I tests/volume_runtime_test.py
+          python -I tests/cutover_gate_runtime_test.py
+
+  release-gate:
+    name: Release gate
+    if: always()
+    needs: [checks, tests, build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Block release unless every required stage succeeded
+        env:
+          REQUIRED_JOB_RESULTS: ${{ toJSON(needs) }}
+        run: |
+          python - <<'PY_RELEASE_GATE'
+          import json, os
+          results = json.loads(os.environ['REQUIRED_JOB_RESULTS'])
+          required = {'checks', 'tests', 'build'}
+          passed = (
+              isinstance(results, dict)
+              and set(results) == required
+              and all(isinstance(results[name], dict) and results[name].get('result') == 'success' for name in required)
+          )
+          if not passed:
+              raise SystemExit('Release blocked: required website stages did not all succeed.')
+          print('All required website stages passed. Deployment remains restricted to deploy/railpack.')
+          PY_RELEASE_GATE
+      - name: Explain deployment ownership and the paused suite
+        if: always()
+        env:
+          GATE_STATUS: ${{ job.status }}
+        run: |
+          printf '## LSC Web Release\nRelease gate: **%s**\n\nRailway deploys only `deploy/railpack`, after this complete workflow succeeds with Wait for CI enabled. Review branches and pull requests do not deploy.\n\nDatabase-image and real-database integration tests remain **paused**, not passed. GitHub logs and browser summaries are retained.\n' "$GATE_STATUS" >> "$GITHUB_STEP_SUMMARY"
