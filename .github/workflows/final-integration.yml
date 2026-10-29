@@ -96,11 +96,6 @@ jobs:
               with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
                   summary.write('## Browser regression report\n```json\n' + report.read_text()[:120000] + '\n```\n')
           PY
-      - name: Gate safety proof - deliberate failure on the review branch only
-        if: github.ref == 'refs/heads/ui-fix'
-        run: |
-          echo 'EXPECTED REVIEW-ONLY FAILURE: prove web build and release are blocked. Removed before release.'
-          exit 1
 
   build:
     name: Verify web build
