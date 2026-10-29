@@ -15,6 +15,7 @@
     <section class="help-section" id="groups">
         <h2>Study groups</h2>
         <ol><li>Open <a href="groups.php">Study Groups</a> from the main menu.</li><li>Create a group for your course or browse existing groups.</li><li>Under Discover Public Groups, choose <strong>Request to Join</strong> and wait for the group creator or an authorised manager to approve it. For a private group, ask its creator for an invitation.</li><li>Open your group to find its members, tasks, files and chat. Group management actions depend on your membership and permissions.</li></ol>
+        <p><strong>Leave a group:</strong> Open the group, choose <strong>Leave group</strong> and confirm. Your membership is removed, but shared tasks, files and chat history stay with the group. Group creators cannot leave their own group.</p>
     </section>
     <section class="help-section" id="invitations">
         <h2>Invitations &amp; notifications</h2>
@@ -33,7 +34,7 @@
     <section class="help-section" id="settings">
         <h2>Profile &amp; settings</h2>
         <p>Open <a href="profile.php">My Profile</a> to edit your name, picture, institution, course and bio. Save profile changes. Notification preferences have their own <strong>Save notifications</strong> button.</p>
-        <p>Use the theme control to switch between light and dark appearance. On a phone, open the menu using the menu icon to reach Help, Profile and the other sections. Sign out on shared devices.</p>
+        <p>LSC uses a consistent light appearance, including when your device or a previous preference uses dark mode. On a phone, open the menu using the menu icon to reach Help, Profile and the other sections. Sign out on shared devices.</p>
     </section>
     <section class="help-section" id="android">
         <h2>Android app</h2>

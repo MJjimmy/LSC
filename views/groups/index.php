@@ -4,7 +4,7 @@ $isSiteAdmin = ($_SESSION['user_role'] ?? '') === 'admin';
 ?>
 
 <!-- ── PAGE HEADER ───────────────────────────────────────── -->
-<?php if ($groupFlash): ?>
+<?php if (!empty($groupFlash)): ?>
 <div role="status" style="margin-bottom:18px;padding:13px 15px;border-radius:10px;
      background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);">
     <?= htmlspecialchars($groupFlash['message']) ?>
