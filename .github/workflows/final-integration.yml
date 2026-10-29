@@ -109,9 +109,17 @@ jobs:
           persist-credentials: false
       - name: Build the existing pinned web runtime - not the paused database image
         run: docker build --progress=plain --tag lsc-runtime-fixed:review --file Dockerfile.railway .
-      - name: Verify built PHP version and runtime hardening
+      - name: Verify PHP CLI, FPM and required extensions on the built runtime
         run: |
-          docker run --rm --network none --read-only --cap-drop ALL --tmpfs /tmp:rw,nosuid,nodev,noexec,size=64m lsc-runtime-fixed:review /bin/php -r 'if (PHP_VERSION !== "8.5.12") { exit(1); } echo PHP_VERSION, PHP_EOL;'
+          docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true --entrypoint /bin/php lsc-runtime-fixed:review -r 'if (PHP_VERSION !== "8.5.12") exit(1); foreach (["pdo_mysql","pdo_sqlite","mbstring","curl","session","openssl"] as $e) {if (!extension_loaded($e)) throw new RuntimeException("Missing ".$e);} if (!function_exists("getimagesize")) exit(1); $h=password_hash("isolated-test-password", PASSWORD_DEFAULT); if (!password_verify("isolated-test-password",$h)) exit(1); echo "PHP ".PHP_VERSION."; runtime extensions, image inspection and password hashing OK\n";'
+          docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true --entrypoint /usr/sbin/php-fpm lsc-runtime-fixed:review -v
+      - name: Preserve auth and fake-mail fixtures on the actual built PHP runtime
+        run: |
+          for test in tests/app-sign-in.php tests/resend-mailer.php tests/resend-password-reset.php; do
+            docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges:true --pids-limit 128 --memory 512m --tmpfs /tmp:rw,nosuid,nodev,size=64m --mount "type=bind,source=$PWD,target=/review,readonly" --workdir /review --env APP_ENV=testing --env APP_DEBUG=0 --env EMAIL_DELIVERY_ENABLED=0 --entrypoint /bin/php lsc-runtime-fixed:review "$test"
+          done
+      - name: Verify HTTP, supervision, upload storage and the maintenance gate
+        run: |
           python -I tests/runtime_smoke_test.py
           python -I tests/volume_runtime_test.py
           python -I tests/cutover_gate_runtime_test.py
