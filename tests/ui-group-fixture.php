@@ -14,6 +14,7 @@ foreach (['views/groups', 'views/layouts', 'sessions', 'storage/group-files'] as
     mkdir($fixture . '/' . $dir, 0700, true);
 }
 file_put_contents($fixture . '/views/groups/show.php', '<?php require ' . var_export($source . '/views/groups/show.php', true) . ';');
+file_put_contents($fixture . '/views/groups/index.php', '<?php require ' . var_export($source . '/views/groups/index.php', true) . ';');
 file_put_contents($fixture . '/views/layouts/app.php', '<?php echo $page_content;');
 file_put_contents($fixture . '/storage/group-files/kept.txt', 'Synthetic shared file: must survive leaving.');
 define('LSC_ROOT', $fixture);
@@ -24,7 +25,22 @@ spl_autoload_register(static function (string $class) use ($source): void {
     }
 });
 function csrfToken(): string { return LSC\Core\Csrf::token(); }
-$db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+// Only the existing MySQL ensure-table DDL is substituted. All membership,
+// authority, task reads and mutations run their original SQL against SQLite.
+final class UiFixturePDO extends PDO
+{
+    public function exec(string $statement): int|false
+    {
+        if (preg_match('/^\s*CREATE TABLE IF NOT EXISTS group_join_requests\s*\(/', $statement)) {
+            if ((int)$this->query("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='group_join_requests'")->fetchColumn() !== 1) {
+                throw new RuntimeException('Synthetic join-request table was not initialized.');
+            }
+            return 0;
+        }
+        return parent::exec($statement);
+    }
+}
+$db = new UiFixturePDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
 $db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT, role TEXT, is_active INTEGER, avatar_path TEXT, password_hash TEXT);
     CREATE TABLE study_groups (group_id INTEGER PRIMARY KEY, group_name TEXT, description TEXT, created_by INTEGER, is_private INTEGER);
     CREATE TABLE group_members (group_id INTEGER, user_id INTEGER, joined_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(group_id,user_id));
@@ -60,6 +76,19 @@ if (empty($config['anonymous'])) {
         throw new RuntimeException('Synthetic trusted login failed.');
     }
 }
+if (!empty($config['pre_left'])) {
+    $db->prepare('DELETE FROM group_members WHERE group_id = 10 AND user_id = ?')->execute([$actorId]);
+}
+if (!empty($config['inactive'])) {
+    $db->prepare('UPDATE users SET is_active = 0 WHERE user_id = ?')->execute([$actorId]);
+}
+if (!empty($config['tamper_role'])) { $_SESSION['user_role'] = 'admin'; }
+if (isset($config['flash'])) { $_SESSION['group_flash'] = $config['flash']; }
+if (!empty($config['fail_cleanup'])) {
+    // A deliberate, isolated fault must roll back membership removal.
+    ini_set('error_log', $fixture . '/expected-failure.log');
+    $db->exec("CREATE TRIGGER fail_owned_cleanup BEFORE DELETE ON group_join_requests BEGIN SELECT RAISE(ABORT, 'Owned synthetic cleanup fault'); END;");
+}
 $_SESSION['csrf_token'] = 'owned-fixture-csrf';
 $_SERVER['REQUEST_METHOD'] = $config['method'] ?? 'POST';
 $_SERVER['PHP_SELF'] = '/group.php';
@@ -93,14 +122,20 @@ register_shutdown_function(static function () use ($db, $groups, $tasks, $before
         'shared_file_preserved' => is_file($fixture . '/storage/group-files/kept.txt'),
         'visible_task_ids' => array_map(static fn(array $task): int => (int)$task['task_id'], $tasks->forUser($actorId)),
         'flash' => $_SESSION['group_flash'] ?? null,
+        'expected_failure_log' => is_file($fixture . '/expected-failure.log')
+            && count(file($fixture . '/expected-failure.log', FILE_IGNORE_NEW_LINES)) === 1
+            && preg_match('/^\[[^\r\n]+\] GroupService::leaveGroup failed\.\r?\n?$/', file_get_contents($fixture . '/expected-failure.log')) === 1,
     ];
     if (session_status() === PHP_SESSION_ACTIVE) { session_write_close(); }
     foreach (glob($fixture . '/sessions/sess_*') ?: [] as $file) { unlink($file); }
     if (is_file($fixture . '/storage/group-files/kept.txt')) { unlink($fixture . '/storage/group-files/kept.txt'); }
-    foreach (['views/groups/show.php', 'views/layouts/app.php'] as $file) { unlink($fixture . '/' . $file); }
+    if (is_file($fixture . '/expected-failure.log')) { unlink($fixture . '/expected-failure.log'); }
+    foreach (['views/groups/show.php', 'views/groups/index.php', 'views/layouts/app.php'] as $file) { unlink($fixture . '/' . $file); }
     foreach (['views/groups', 'views/layouts', 'views', 'sessions', 'storage/group-files', 'storage'] as $dir) { rmdir($fixture . '/' . $dir); }
     rmdir($fixture);
     echo json_encode($record, JSON_THROW_ON_ERROR);
 });
-(new LSC\Groups\GroupController($auth, $groups, $service, new LSC\Core\UploadStorage($fixture . '/storage'), $tasks,
-    new LSC\Files\FileRepository($db), new LSC\Chat\MessageRepository($db), $invitations, new LSC\Core\RateLimiter($db)))->show();
+$controller = new LSC\Groups\GroupController($auth, $groups, $service, new LSC\Core\UploadStorage($fixture . '/storage'), $tasks,
+    new LSC\Files\FileRepository($db), new LSC\Chat\MessageRepository($db), $invitations, new LSC\Core\RateLimiter($db));
+if (($config['route'] ?? 'show') === 'index') { $controller->index(); }
+else { $controller->show(); }

@@ -18,6 +18,8 @@ jobs:
           persist-credentials: false
       - name: Refuse source environment files before application execution
         run: python -c "import os,pathlib; root=pathlib.Path.cwd(); assert not any(p.name=='.env' or p.is_symlink() for p in root.rglob('*')), 'Source environment/symlink refused'; assert not os.path.lexists(root/'.env')"
+      - name: UI fix - light-only preference and control regressions
+        run: node tests/light-theme-test.cjs
       - name: UI fix - self-service group membership regression
         run: python -I tests/final-auth-runner.py ui-fix.php
       - name: Credential session, reset, native ticket and signup regressions
