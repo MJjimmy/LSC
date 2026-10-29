@@ -25,6 +25,7 @@ final class TaskRepository
             SELECT t.*, sg.group_name
             FROM tasks t
             JOIN study_groups sg ON t.group_id = sg.group_id
+            JOIN group_members gm ON gm.group_id = t.group_id AND gm.user_id = t.assigned_to
             WHERE t.assigned_to = ?
             ORDER BY t.due_date ASC
             SQL);

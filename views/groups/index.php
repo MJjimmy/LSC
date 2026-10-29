@@ -4,6 +4,12 @@ $isSiteAdmin = ($_SESSION['user_role'] ?? '') === 'admin';
 ?>
 
 <!-- ── PAGE HEADER ───────────────────────────────────────── -->
+<?php if ($groupFlash): ?>
+<div role="status" style="margin-bottom:18px;padding:13px 15px;border-radius:10px;
+     background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);">
+    <?= htmlspecialchars($groupFlash['message']) ?>
+</div>
+<?php endif; ?>
 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap;">
     <div>
         <div style="font-family:'Inter',system-ui,sans-serif;font-size:26px;font-weight:800;letter-spacing:-0.5px;">Study Groups</div>

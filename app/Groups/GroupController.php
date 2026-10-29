@@ -54,6 +54,8 @@ final class GroupController
             exit;
         }
 
+        $groupFlash = $_SESSION['group_flash'] ?? null;
+        unset($_SESSION['group_flash']);
         $myGroups = $this->groups->forUser($userId);
         $publicGroups = $this->groups->publicGroupsAvailableTo($userId);
         ob_start();
