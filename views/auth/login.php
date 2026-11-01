@@ -47,7 +47,6 @@
 
 </form>
 
-<div class="auth-footer"><a href="verify-email.php">Verify email / request another link</a></div>
 <?php require LSC_ROOT . '/views/auth/google.php'; ?>
 
 <div class="auth-footer">
