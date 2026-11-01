@@ -3,7 +3,10 @@ declare(strict_types=1);
 // Real services, synthetic in-memory SQLite; no bootstrap or external transport.
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 spl_autoload_register(static function(string $class): void {
-    if (str_starts_with($class, 'LSC\\')) require_once dirname(__DIR__).'/app/'.str_replace('\\','/',substr($class,4)).'.php';
+    if (str_starts_with($class, 'LSC\\')) {
+        $path=dirname(__DIR__).'/app/'.str_replace('\\','/',substr($class,4)).'.php';
+        if (is_file($path)) require_once $path;
+    }
 });
 define('LSC_ROOT',dirname(__DIR__));
 session_start(); ob_start();
