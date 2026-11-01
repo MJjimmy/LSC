@@ -2,7 +2,7 @@ name: PHP runtime security patch (no deployment)
 
 on:
   push:
-    branches: [security/php-runtime-2026-10-22, deploy/railpack]
+    branches: [deploy/railpack]
     paths:
       - Dockerfile.railway
       - tests/php_runtime_patch_test.py
