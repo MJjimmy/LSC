@@ -133,7 +133,7 @@ scenario('real reset revokes local resolved-OAuth native sessions and completed 
     $proof=(string)$db->query('SELECT password_hash FROM users WHERE user_id='.$id)->fetchColumn();
     $_SESSION=[]; assertion($auth->login($id,'Forged','admin',null,$proof),'local session'); $sessions=[$_SESSION];
     $db->prepare('INSERT INTO oauth_identities VALUES(?,?,?)')->execute(['google','offline-subject',$id]);
-    $resolved=(new LSC\Users\OAuthAccounts($db))->resolve('google',['subject'=>'offline-subject'],null);
+    $resolved=(new LSC\Users\OAuthAccounts($db))->resolve('google',['subject'=>'offline-subject','email'=>'reset@example.invalid','name'=>'Synthetic reset'],null);
     $_SESSION=[]; assertion($auth->login((int)$resolved['user_id'],$resolved['name'],$resolved['role'],$resolved['avatar_path'],$resolved['password_hash']),'resolved OAuth session'); $sessions[]=$_SESSION;
     $make=function() use($app,$id): void {
         $intent=$app->createIntent(hash('sha256',str_repeat('a',64)),str_repeat('b',64));
