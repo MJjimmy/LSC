@@ -46,7 +46,10 @@ if (($argv[1]??'') === 'register') {
     $_SESSION=[];
     $_SERVER=['REQUEST_METHOD'=>'POST','REMOTE_ADDR'=>'192.0.2.19']; $_GET=[];
     $_POST=['csrf_token'=>LSC\Core\Csrf::token(),'name'=>'Synthetic','email'=>'quota'.(int)$argv[2].'@example.invalid','password'=>'SyntheticPass123!','confirm_password'=>'SyntheticPass123!','role'=>'student'];
-    (new LSC\Users\AccountController(new LSC\Core\Auth($db),new LSC\Users\AccountService(new LSC\Users\UserRepository($db)),new LSC\Users\PasswordResetService($db),new LSC\Core\RateLimiter($db)))->register();
+    putenv('EMAIL_DELIVERY_ENABLED=1'); putenv('RESEND_API_KEY=synthetic-not-a-credential'); putenv('RESEND_FROM_EMAIL=sender@example.invalid');
+    $mailer=new LSC\Notifications\ResendMailer(static fn()=>['status'=>200,'body'=>'{"id":"synthetic-receipt"}']);
+    $verification=new LSC\Users\EmailVerificationService($db,$mailer);
+    (new LSC\Users\AccountController(new LSC\Core\Auth($db),new LSC\Users\AccountService(new LSC\Users\UserRepository($db)),new LSC\Users\PasswordResetService($db),new LSC\Core\RateLimiter($db),null,$verification))->register();
     exit;
 }
 if (file_exists($path)) throw new RuntimeException('refuse existing fixture');
@@ -57,6 +60,7 @@ $db->exec('CREATE TABLE rate_limits(rl_key TEXT PRIMARY KEY, attempts INTEGER, e
 $db->exec('CREATE TABLE password_reset_tokens(reset_id INTEGER PRIMARY KEY,user_id INTEGER REFERENCES users(user_id),token_hash TEXT UNIQUE,expires_at TEXT,used_at TEXT)');
 $db->exec('CREATE TABLE app_auth_codes(code_hash TEXT PRIMARY KEY,challenge TEXT,user_id INTEGER REFERENCES users(user_id),expires_at INTEGER)');
 $db->exec('CREATE TABLE oauth_identities(provider TEXT, subject TEXT, user_id INTEGER REFERENCES users(user_id), UNIQUE(provider,subject))');
+LSC\Users\EmailVerificationSchema::prepare($db);
 $pass=$fail=0;
 function assertion(bool $ok,string $label): void { if (!$ok) throw new RuntimeException($label); }
 function scenario(string $label,callable $run): void { global $pass,$fail; try { $run(); ++$pass; echo "PASS: $label\n"; } catch(Throwable $e) { ++$fail; echo 'FAIL: '.$label.' ('.get_class($e).': '.$e->getMessage().")\n"; } }
