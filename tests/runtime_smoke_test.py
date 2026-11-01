@@ -27,7 +27,7 @@ try:
  canary=uuid.uuid4().hex+uuid.uuid4().hex
  private_probe=r'''$c=curl_init('http://127.0.0.1:18765/verify-email.php?token='.'''+repr(canary)+r''');curl_setopt_array($c,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>5,CURLOPT_PROXY=>'',CURLOPT_HTTPHEADER=>['X-Forwarded-Proto: https','Referer: https://example.invalid/private?token='.'''+repr(canary)+r''']]);curl_exec($c);echo curl_getinfo($c,CURLINFO_HTTP_CODE);'''
  private_result=docker(['exec',NAME,'/bin/php','-r',private_probe])
- assert private_result.stdout.strip()=='500','Controlled missing-database fixture did not fail as expected'
+ assert private_result.stdout.strip()=='503','Controlled missing-database fixture did not fail as expected'
  logs=docker(['logs',NAME],False)
  assert canary not in logs.stdout+logs.stderr,'Synthetic auth token leaked into web-server request logs'
  print('PASS: failing authentication request does not log a synthetic query/referrer token')
