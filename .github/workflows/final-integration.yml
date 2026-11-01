@@ -2,7 +2,7 @@ name: Combined LSC admin and authentication checks (no deployment)
 
 on:
   push:
-    branches: [ui-fix, security/lsc-final-integration-2026-10-27, deploy/railpack]
+    branches: [ui-fix, deploy/railpack]
 
 permissions:
   contents: read

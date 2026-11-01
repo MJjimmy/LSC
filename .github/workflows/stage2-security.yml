@@ -2,7 +2,7 @@ name: Stage 2 backend security and cache checks (no deployment)
 
 on:
   push:
-    branches: [security/stage2-backend-2026-10-26, deploy/railpack]
+    branches: [deploy/railpack]
     paths:
       - app/Core/Csrf.php
       - app/Tasks/**

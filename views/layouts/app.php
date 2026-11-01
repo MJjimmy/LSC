@@ -269,6 +269,10 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         transition: background .15s, color .15s;
     }
 
+    .lsc-signout-form, .lsc-icon-form { margin: 0; padding: 0; }
+    .lsc-signout-form { width: 100%; }
+    button.lsc-signout, button.lsc-icon-btn { appearance: none; font: inherit; }
+    button.lsc-signout { font-size: 12.5px; font-weight: 500; line-height: 1.2; }
     .lsc-signout:hover {
         background: rgba(255,255,255,.08);
         color: rgba(255,255,255,.65);
@@ -787,9 +791,12 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
                     <div class="lsc-user-role"><?= ($_SESSION['user_role'] ?? '') === 'student' ? 'Learner' : ucfirst($_SESSION['user_role'] ?? '') ?></div>
                 </div>
             </a>
-            <a href="logout.php" class="lsc-signout">
-                <i class="bi bi-box-arrow-right"></i> Sign Out
-            </a>
+            <form method="post" action="logout.php" class="lsc-signout-form">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\LSC\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
+                <button type="submit" class="lsc-signout">
+                    <i class="bi bi-box-arrow-right"></i> Sign Out
+                </button>
+            </form>
         </div>
 
     </aside>
@@ -812,9 +819,12 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
                     <i class="bi bi-bell"></i>
                     <?php if ($unreadNotificationCount): ?><span class="lsc-notification-badge"><?= min($unreadNotificationCount, 99) ?></span><?php endif; ?>
                 </a>
-                <a href="logout.php" class="lsc-icon-btn" title="Sign out">
-                    <i class="bi bi-box-arrow-right" style="font-size:14px;"></i>
-                </a>
+                <form method="post" action="logout.php" class="lsc-icon-form">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(\LSC\Core\Csrf::token(), ENT_QUOTES, 'UTF-8') ?>">
+                    <button type="submit" class="lsc-icon-btn" title="Sign out" aria-label="Sign out">
+                        <i class="bi bi-box-arrow-right" style="font-size:14px;"></i>
+                    </button>
+                </form>
             </div>
         </header>
 

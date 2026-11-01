@@ -47,6 +47,13 @@ final class Database
     private static function unavailable(string $reason): never
     {
         error_log('Database connection failed: ' . $reason);
+        if (PHP_SAPI === 'cli') {
+            // Operators and supervisors read the exit code: a zero here made
+            // bin/prepare-deployment.php and the queue worker report success
+            // while nothing had touched the database.
+            fwrite(STDERR, "LSC database unavailable; check the MYSQL* environment variables.\n");
+            exit(1);
+        }
         http_response_code(503);
         exit('LSC is temporarily unavailable. Please try again later.');
     }

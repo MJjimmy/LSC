@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LSC\Users;
 
+use LSC\Core\AppUrl;
 use LSC\Core\Auth;
 use LSC\Core\Csrf;
 use LSC\Core\RateLimiter;
@@ -122,10 +123,16 @@ final class AccountController
                 $mailer = $this->mailer ?? new ResendMailer();
                 $showDevelopmentLink = getenv('APP_SHOW_RESET_LINKS') === '1'
                     && strtolower((string)getenv('APP_ENV')) !== 'production';
-                if (!$mailer->enabled() && !$showDevelopmentLink) {
+                $resetBase = AppUrl::base();
+                if ($resetBase === null) {
+                    // Never build a reset link from the Host header: a missing
+                    // or invalid APP_URL would otherwise mail a valid token to
+                    // whatever host the request claimed to be.
+                    $error = 'Password reset links are unavailable because this site has no configured public URL. Contact an administrator.';
+                } elseif (!$mailer->enabled() && !$showDevelopmentLink) {
                     $error = 'Password reset email is temporarily unavailable. Please try again later.';
                 } elseif (filter_var($email, FILTER_VALIDATE_EMAIL) && ($token = $this->passwordResets->createToken($email))) {
-                    $resetUrl = $this->resetUrl($token);
+                    $resetUrl = $resetBase . '/reset-password.php?token=' . rawurlencode($token);
                     $accepted = false;
                     if ($mailer->enabled()) {
                         $result = $mailer->send($email, 'Reset your LSC password',
@@ -178,21 +185,29 @@ final class AccountController
         require \LSC_ROOT . '/views/auth/reset-password.php';
     }
 
+    /**
+     * Sign-out is a state change, so it requires a POST carrying a CSRF token.
+     * A bare link (or an <img src="logout.php"> on any other site) must not be
+     * able to end a session.
+     */
     public function logout(): never
     {
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            http_response_code(405);
+            header('Allow: POST');
+            header('Content-Type: text/html; charset=UTF-8');
+            $loginUrl = htmlspecialchars(AppUrl::link('/login.php') ?? 'login.php', ENT_QUOTES, 'UTF-8');
+            exit(
+                '<!doctype html><meta charset="utf-8"><title>Sign out</title>'
+                . '<p>Signing out requires the sign-out button inside LSC.</p>'
+                . '<p><a href="' . $loginUrl . '">Go to sign in</a></p>'
+            );
+        }
+
+        Csrf::verify();
         $this->auth->logout();
         header('Location: login.php');
         exit;
     }
 
-    private function resetUrl(string $token): string
-    {
-        $baseUrl = rtrim((string)getenv('APP_URL'), '/');
-        if ($baseUrl === '') {
-            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-            $host = preg_replace('/[^a-zA-Z0-9.:-]/', '', (string)($_SERVER['HTTP_HOST'] ?? 'localhost'));
-            $baseUrl = $scheme . '://' . $host;
-        }
-        return $baseUrl . '/reset-password.php?token=' . rawurlencode($token);
-    }
 }
