@@ -41,8 +41,8 @@
     </div>
 
     <div class="auth-field">
-        <input type="password" name="password" placeholder="Password (min 8 chars)"
-               class="auth-input" required>
+        <input type="password" name="password" placeholder="Password (8+ chars, include a symbol)"
+               class="auth-input" required minlength="8" autocomplete="new-password">
     </div>
 
     <div class="auth-field">

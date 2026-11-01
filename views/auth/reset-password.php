@@ -1,7 +1,7 @@
 <?php // Variables are provided by AccountController::resetPassword(). ?>
 
 <div class="auth-card-title">Create New Password</div>
-<div class="auth-card-sub">Use at least eight characters</div>
+<div class="auth-card-sub">Use at least eight characters, including a special character. Avoid common passwords.</div>
 
 <?php if ($error): ?><div class="auth-alert auth-alert-error"><i class="bi bi-exclamation-circle" style="margin-right:6px;"></i><?= htmlspecialchars($error) ?></div><?php endif; ?>
 <?php if ($success): ?><div class="auth-alert auth-alert-success"><i class="bi bi-check-circle" style="margin-right:6px;"></i><?= htmlspecialchars($success) ?></div><?php endif; ?>

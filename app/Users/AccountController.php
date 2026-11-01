@@ -155,8 +155,8 @@ final class AccountController
             } else {
                 $password = (string)($_POST['password'] ?? '');
                 $confirmation = (string)($_POST['confirm_password'] ?? '');
-                if (strlen($password) < 8) {
-                    $error = 'Password must be at least 8 characters.';
+                if (($passwordError = PasswordPolicy::error($password)) !== null) {
+                    $error = $passwordError;
                 } elseif ($password !== $confirmation) {
                     $error = 'Passwords do not match.';
                 } elseif ($this->passwordResets->reset($token, $password)) {

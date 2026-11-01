@@ -52,5 +52,20 @@ hardeningTest('reset rejects a common predictable password with a symbol', funct
     hardeningCheck(is_string($token) && !$resets->reset($token, '12345678!'), 'predictable reset password was accepted');
     hardeningCheck($db->query('SELECT password_hash FROM users')->fetchColumn() === $before, 'rejected reset changed the account');
 });
+hardeningTest('eight-character symbol password and long passphrase remain usable', function (): void {
+    foreach (['Orbit!29', 'a longer lowercase study phrase!'] as $password) {
+        $db = hardeningDb(); $accounts = new LSC\Users\AccountService(new LSC\Users\UserRepository($db));
+        $result = $accounts->register('Synthetic learner', 'learner@example.invalid', $password, $password, 'student');
+        hardeningCheck($result['ok'] === true && (int)$db->query('SELECT COUNT(*) FROM users')->fetchColumn() === 1, 'valid password rejected');
+    }
+});
+hardeningTest('valid password reset still changes the hash and consumes the token', function (): void {
+    $db = hardeningDb(); $before = password_hash('Synthetic-old-password!', PASSWORD_DEFAULT);
+    $db->prepare('INSERT INTO users(name,email,password_hash,role) VALUES(?,?,?,?)')->execute(['Synthetic learner','learner@example.invalid',$before,'student']);
+    $resets = new LSC\Users\PasswordResetService($db); $token = $resets->createToken('learner@example.invalid');
+    hardeningCheck(is_string($token) && $resets->reset($token, 'Orbit!29'), 'valid reset rejected');
+    hardeningCheck(password_verify('Orbit!29', (string)$db->query('SELECT password_hash FROM users')->fetchColumn()), 'new hash mismatch');
+    hardeningCheck(!$resets->reset($token, 'Different!29'), 'reset token replay accepted');
+});
 echo json_encode(['passed'=>$passed,'failed'=>$failed,'production_changed'=>false,'real_email_sent'=>false], JSON_THROW_ON_ERROR) . "\n";
 exit($failed ? 1 : 0);

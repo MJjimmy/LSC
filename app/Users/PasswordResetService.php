@@ -68,6 +68,7 @@ final class PasswordResetService
 
     public function reset(string $token, string $newPassword): bool
     {
+        if (PasswordPolicy::error($newPassword) !== null) return false;
         if ($this->database->inTransaction()) return false;
         try {
             // Discovery only. Acceptance is re-read under user-first locks.

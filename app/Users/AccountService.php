@@ -53,8 +53,8 @@ final class AccountService
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ['ok' => false, 'error' => 'Please enter a valid email address.'];
         }
-        if (strlen($password) < 8) {
-            return ['ok' => false, 'error' => 'Password must be at least 8 characters.'];
+        if (($passwordError = PasswordPolicy::error($password)) !== null) {
+            return ['ok' => false, 'error' => $passwordError];
         }
         if ($password !== $confirmation) {
             return ['ok' => false, 'error' => 'Passwords do not match.'];
