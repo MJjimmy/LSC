@@ -71,6 +71,15 @@ final class OAuthAccounts
             if ((int)$user['is_active'] !== 1) {
                 throw new RuntimeException('Your account has been deactivated. Contact an administrator.');
             }
+            // Identity has already passed OAuthProvider's strict verified-email check.
+            // A linked subject with a different email never proves this primary email.
+            if (strcasecmp(trim($user['email']), trim($identity['email'])) === 0) {
+                $this->database->prepare('UPDATE users SET email_verified_at = CURRENT_TIMESTAMP WHERE user_id = ? AND email_verified_at IS NULL')->execute([(int)$user['user_id']]);
+                $user = (new UserRepository($this->database))->findByEmail($user['email']);
+            }
+            if (empty($user['email_verified_at'])) {
+                throw new RuntimeException('Verify your primary LSC email before signing in.');
+            }
             $this->database->commit();
             return $user;
         } catch (Throwable $exception) {

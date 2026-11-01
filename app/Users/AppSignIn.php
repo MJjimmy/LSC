@@ -101,7 +101,7 @@ final class AppSignIn
         if ($this->sqlite()) {
             $this->database->prepare('UPDATE users SET user_id = user_id WHERE user_id = ?')->execute([$userId]);
         }
-        $statement = $this->database->prepare('SELECT user_id, name, role, avatar_path, is_active, password_hash FROM users WHERE user_id = ?' . ($this->sqlite() ? '' : ' FOR UPDATE'));
+        $statement = $this->database->prepare('SELECT user_id, name, role, avatar_path, is_active, password_hash, email_verified_at FROM users WHERE user_id = ?' . ($this->sqlite() ? '' : ' FOR UPDATE'));
         $statement->execute([$userId]);
         return $statement->fetch(PDO::FETCH_ASSOC);
     }
@@ -119,7 +119,7 @@ final class AppSignIn
         try {
             $this->database->beginTransaction();
             $user = $this->lockUser($userId);
-            if (!$user || (int)$user['is_active'] !== 1 || !hash_equals(Auth::fingerprint($user['password_hash']), $proof)) {
+            if (!$user || (int)$user['is_active'] !== 1 || empty($user['email_verified_at']) || !hash_equals(Auth::fingerprint($user['password_hash']), $proof)) {
                 throw new RuntimeException(self::ERROR);
             }
             $code = bin2hex(random_bytes(32));
@@ -155,7 +155,7 @@ final class AppSignIn
             $statement = $this->database->prepare('SELECT challenge, expires_at FROM app_auth_codes WHERE code_hash = ? AND user_id = ?' . ($this->sqlite() ? '' : ' FOR UPDATE'));
             $statement->execute([$hash, $userId]);
             $ticket = $statement->fetch(PDO::FETCH_ASSOC);
-            if (!$user || !$ticket || (int)$ticket['expires_at'] <= time() || (int)$user['is_active'] !== 1
+            if (!$user || !$ticket || (int)$ticket['expires_at'] <= time() || (int)$user['is_active'] !== 1 || empty($user['email_verified_at'])
                 || !hash_equals($ticket['challenge'], hash_hmac('sha256', hash('sha256', $verifier), $user['password_hash']))) {
                 throw new RuntimeException(self::ERROR);
             }

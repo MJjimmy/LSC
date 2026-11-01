@@ -61,6 +61,8 @@ $db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEX
     INSERT INTO tasks VALUES (1,10,2,'Preserved assignment','Keep task data','2030-01-01','pending'),(2,11,2,'Other assignment','Keep other access','2030-01-02','pending');
     INSERT INTO files (file_id,group_id,uploaded_by,file_name,file_path,file_type,file_size) VALUES (1,10,2,'kept.txt','group-files/kept.txt','txt',43);
     INSERT INTO messages (id,group_id,user_id,message,file_id) VALUES (1,10,2,'Preserve prior messages',1);");
+$db->exec('ALTER TABLE users ADD COLUMN email_verified_at TEXT DEFAULT NULL');
+$db->exec('UPDATE users SET email_verified_at=CURRENT_TIMESTAMP');
 $before = [];
 foreach (['study_groups', 'tasks', 'files', 'messages'] as $table) {
     $before[$table] = $db->query('SELECT * FROM ' . $table . ' ORDER BY 1')->fetchAll();

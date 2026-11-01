@@ -52,7 +52,7 @@ if (($argv[1]??'') === 'register') {
 if (file_exists($path)) throw new RuntimeException('refuse existing fixture');
 $db=new AuthFixturePDO('sqlite:'.$path,null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
 $db->exec('PRAGMA foreign_keys=ON');
-$db->exec('CREATE TABLE users(user_id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE, password_hash TEXT, role TEXT, is_active INTEGER DEFAULT 1, avatar_path TEXT)');
+$db->exec('CREATE TABLE users(user_id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE, password_hash TEXT, role TEXT, is_active INTEGER DEFAULT 1, avatar_path TEXT, email_verified_at TEXT DEFAULT NULL)');
 $db->exec('CREATE TABLE rate_limits(rl_key TEXT PRIMARY KEY, attempts INTEGER, expires_at TEXT)');
 $db->exec('CREATE TABLE password_reset_tokens(reset_id INTEGER PRIMARY KEY,user_id INTEGER REFERENCES users(user_id),token_hash TEXT UNIQUE,expires_at TEXT,used_at TEXT)');
 $db->exec('CREATE TABLE app_auth_codes(code_hash TEXT PRIMARY KEY,challenge TEXT,user_id INTEGER REFERENCES users(user_id),expires_at INTEGER)');
@@ -73,6 +73,7 @@ scenario('actual register controller retains six successful reservations; sevent
 // Other scenarios independent of quota failure.
 $db->prepare('INSERT INTO users(name,email,password_hash,role) VALUES(?,?,?,?)')->execute(['Reset','reset@example.invalid',password_hash('Before123!',PASSWORD_DEFAULT),'student']);
 $id=(int)$db->lastInsertId();
+$db->exec('UPDATE users SET email_verified_at=CURRENT_TIMESTAMP WHERE user_id='.$id);
 $service=new LSC\Users\PasswordResetService($db);
 scenario('reset atomically revokes sibling tokens and all issued native codes',function() use($db,$service,$id) {
     $token=$service->createToken('reset@example.invalid'); assertion(is_string($token),'token setup');
