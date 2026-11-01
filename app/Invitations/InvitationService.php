@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace LSC\Invitations;
 
 use PDO;
+use LSC\Core\AppUrl;
 use LSC\Groups\GroupRepository;
 use LSC\Groups\GroupService;
 use LSC\Notifications\NotificationDispatcher;
@@ -31,6 +32,12 @@ final class InvitationService
         }
         if ($this->invitations->memberWithEmail($groupId, $email)) {
             return ['ok' => false, 'error' => 'That person is already a group member.'];
+        }
+        // Fail closed before writing anything: consent links must never be
+        // built from the request Host header.
+        $inviteBase = AppUrl::base();
+        if ($inviteBase === null) {
+            return ['ok' => false, 'error' => 'Invitations are unavailable because this site has no configured public URL. Contact an administrator.'];
         }
 
         if ($this->database->inTransaction()) {
@@ -78,7 +85,7 @@ final class InvitationService
             $groupName = $this->groups->groupName($groupId);
             $subject = "You've been invited to join {$groupName} on LSC";
             $body = "You were invited to join the study group \"{$groupName}\" on LSC.\n\n"
-                . 'Open this link to accept: ' . $this->inviteUrl($token) . "\n\n"
+                . 'Open this link to accept: ' . $inviteBase . '/invite.php?token=' . rawurlencode($token) . "\n\n"
                 . 'If you were not expecting this, you can ignore this email.';
             $queued = $invitedUserId
                 ? $this->dispatcher->queueForUser($invitedUserId, $subject, $body)
@@ -125,16 +132,5 @@ final class InvitationService
             error_log('InvitationService::accept failed: ' . $exception->getMessage());
             return ['ok' => false, 'error' => 'The invitation could not be accepted.'];
         }
-    }
-
-    private function inviteUrl(string $token): string
-    {
-        $baseUrl = rtrim((string)getenv('APP_URL'), '/');
-        if ($baseUrl === '') {
-            $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-            $host = preg_replace('/[^a-zA-Z0-9.:-]/', '', (string)($_SERVER['HTTP_HOST'] ?? 'localhost'));
-            $baseUrl = $scheme . '://' . $host;
-        }
-        return $baseUrl . '/invite.php?token=' . rawurlencode($token);
     }
 }

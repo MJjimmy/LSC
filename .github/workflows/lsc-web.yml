@@ -73,6 +73,8 @@ jobs:
           fetch-depth: 0
       - name: Account and invitation hardening regressions
         run: python -I tests/final-auth-runner.py account-hardening.php invitation-hardening.php email-verification.php
+      - name: Public URL, trusted proxy and account recovery regressions
+        run: python -I tests/final-auth-runner.py app-url-hardening.php client-ip.php account-recovery.php
       - name: Authentication, reset, Google linking and Leave group fixtures
         run: python -I tests/final-auth-runner.py stage3-rehash.php final-auth.php final-auth-controllers.php app-sign-in.php security_csrf_regression.php security_scalar_boundary.php google-sign-in.php resend-mailer.php resend-worker.php resend-password-reset.php help-profile.php oauth-link-revocation.php ui-fix.php
       - name: Administrator, profile, task membership and CSRF boundaries

@@ -22,7 +22,7 @@ LSC is a responsive PHP and MySQL collaboration platform for student groups. It 
 
 ## Requirements
 
-- PHP 8.2 or newer with PDO MySQL, `mbstring`, and `curl` (curl is used by the outbound email/SMS notification dispatcher)
+- PHP 8.3 or newer for development (CI uses the distribution default) with PDO MySQL, `mbstring`, `curl` and `fileinfo`; the production image pins a patched PHP 8.5 and `composer.json` declares `^8.4`
 - MySQL 8 or MariaDB 10.4+
 - A web server whose document root is the `public` directory
 - Write permission for `storage/uploads`
@@ -36,15 +36,29 @@ LSC is a responsive PHP and MySQL collaboration platform for student groups. It 
 | `MYSQLDATABASE` | Yes | Database name |
 | `MYSQLUSER` | Yes | Database user |
 | `MYSQLPASSWORD` | Yes | Database password |
-| `APP_URL` | Recommended | Public base URL used in password-reset links |
-| `APP_ENV` | Required in production | Set to `production` to enforce production session and error settings |
-| `APP_DEBUG` | No | Set to `1` only during local debugging; never enable it in production |
-| `MAIL_FROM` | For email reset delivery | Sender address used by PHP `mail()` |
-| `TRUSTED_PROXY` | No | Set to `cloudflare` when LSC sits behind Cloudflare so rate limiting reads the real client IP |
+| `APP_URL` | **Yes in production** | Absolute public origin, e.g. `https://lsc.example.ac.za`. Emailed links (password reset, invitation, email proof) are built only from this value. If it is missing or invalid the server refuses to create those links instead of trusting the request `Host` header. |
+| `APP_ENV` | Yes in production | `production` enables the HTTPS redirect, HSTS, secure cookies and the strict link rules. |
+| `APP_DEBUG` | No | `1` shows PHP errors outside production only. Never enable on a live deployment. |
+| `APP_SHOW_RESET_LINKS` | Local only | `1` renders password-reset links on screen instead of emailing them. Ignored when `APP_ENV=production`. |
+| `EMAIL_DELIVERY_ENABLED` | For any email | Must be `1` for verification, reset and invitation email to be sent. |
+| `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | With email delivery | Resend credentials and the verified sender address. |
+| `AFRICASTALKING_USERNAME`, `AFRICASTALKING_API_KEY`, `AFRICASTALKING_SENDER_ID` | For SMS | Africa's Talking credentials; the sender ID is optional. |
+| `NOTIFICATION_PROCESSOR_ENABLED` | For the queue worker | `1` starts the supervised queue worker. |
+| `NOTIFICATION_WORKER_ENABLED` | For the queue worker | Second switch the worker checks before sending. |
+| `NOTIFICATION_SEND_AFTER`, `NOTIFICATION_MIN_QUEUE_ID` | Optional | Queue cutover guards: only rows created at/after this UTC timestamp and at/above this ID are sent. |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | For Google sign-in | OAuth client; the redirect URI is `APP_URL/oauth.php?provider=google`. Leave unset to hide the button. |
+| `TRUSTED_PROXIES` | Behind a proxy | Comma-separated IPs/CIDRs (`10.0.0.0/8`), or the keywords `cloudflare` and `loopback`. Forwarded client-IP headers are ignored unless the direct peer matches. `TRUSTED_PROXY=cloudflare` still works for older deployments. |
+| `PORT` | Runtime | Port the managed nginx/FPM runtime listens on. |
 
 A `.env.example` file at the project root is provided: copy it to `.env` and
 adjust — `config/bootstrap.php` loads `.env` automatically, and variables
 already set in the real environment always take precedence.
+
+Sign-in requires a proven mailbox (`users.email_verified_at`), and the proof
+email needs working delivery. If delivery is misconfigured, or an upgrade
+leaves existing accounts unverified, nobody — including the administrator —
+can sign in. `bin/account-recovery.php` is the audited way out of that state;
+see `docs/ACCOUNT_RECOVERY.md`.
 
 ## Database setup
 
@@ -71,15 +85,19 @@ database/2026_07_31_add_notification_channels.sql # phone number, email/SMS pref
 database/2026_08_11_add_rate_limits.sql           # rate-limiting tables
 ```
 
-To promote the designated administrator, first register `jimmyadmin@gmail.com`
-with a password you control, then run:
+Administrator access is never a public registration role. Create the first
+administrator from the server:
 
 ```text
-database/2026_07_07_promote_jimmy_admin.sql
+php bin/account-recovery.php create-admin --email=you@example.ac.za --name="Site administrator" --password-stdin
 ```
 
-Use that email and the same registration password to sign in. Admin remains
-unavailable as a public registration role.
+The account is created already verified and active, so it can sign in even
+before outbound email is configured. Existing accounts can be promoted with
+`promote-admin`, and a mailbox can be proven with `verify-email` — see
+`docs/ACCOUNT_RECOVERY.md`. `database/2026_07_07_promote_jimmy_admin.sql` only
+grants the role to a hard-coded personal address and is kept for compatibility
+history, not for new deployments.
 
 ## Application structure
 
@@ -97,7 +115,7 @@ unavailable as a public registration role.
 4. Import the correct SQL file for a fresh or existing database — `docker compose -f database/docker-compose.yml up -d` gives you MySQL 8 + phpMyAdmin with the consolidated schema already imported.
 5. Start the PHP/web-server process of your choice, e.g. `php -S 0.0.0.0:8000 -t public`.
 
-The repository includes Railway/Nixpacks configuration that serves `/app/public` (through `public/router.php` so missing URLs render the application 404 page; Apache uses `ErrorDocument`, nginx uses `error_page`).
+Local development only: `php -S 0.0.0.0:8000 -t public` is single-threaded and unsuitable for serving real users. The production runtime is the managed nginx + php-fpm + s6 image built from `Dockerfile.railway` and started by `railpack.json`, which serves `/app/public` and answers `/healthz`.
 
 For a custom domain: Railway → service → **Networking → Add Domain**, then point a `CNAME` (apex domains use Railway's NS or an `A` record per Railway's dialog) at the target shown there, and set `APP_URL=https://yourdomain` so links in emails and invitations use it.
 
@@ -119,7 +137,7 @@ Open **Profile → Notifications** to set your phone number (international forma
 
 ### Password recovery
 
-The sign-in page links to **Forgot password?**. Reset tokens are random, stored only as SHA-256 hashes, expire after 60 minutes, and become invalid after one successful use. Configure `APP_URL`, `MAIL_FROM`, and a working PHP mail transport for production email delivery.
+The sign-in page links to **Forgot password?**. Reset tokens are random, stored only as SHA-256 hashes, expire after 60 minutes, and become invalid after one successful use. Delivery needs `APP_URL`, `EMAIL_DELIVERY_ENABLED=1` and the Resend credentials; with no usable `APP_URL` the form refuses to issue a link rather than inventing one.
 
 ## Security notes
 
@@ -153,7 +171,19 @@ Before opening the service to public traffic, replace the repository's `php -S` 
 
 ## Verification
 
-All PHP files pass PHP 8.2 syntax lint. Before release, run the acceptance checklist in `docs/LSC_Project_Documentation.docx` against a staging database and verify desktop and mobile layouts.
+The `LSC Web Release` workflow (`.github/workflows/lsc-web.yml`) is the release gate; Railway deploys `deploy/railpack` only after it passes. It lints every PHP file, then runs the regression suite in `tests/` — controller fixtures on isolated SQLite, HTTP probes, browser checks and the runtime image build:
+
+```text
+php tests/account-hardening.php        # password policy, registration
+php tests/email-verification.php       # mailbox proof, session revocation
+php tests/app-url-hardening.php        # emailed links never trust Host
+php tests/client-ip.php                # rate limiting behind a proxy
+php tests/account-recovery.php         # break-glass admin recovery
+```
+
+Run one of them directly, or use `python tests/final-auth-runner.py <script>` to reproduce the harness (isolated php.ini, no network, no `mail`/`curl_exec`). Database-image integration tests remain paused; SQLite fixtures adapt MySQL dialect and do not prove MySQL locking behaviour.
+
+Before release, also run the acceptance checklist in `docs/LSC_Project_Documentation.docx` against a staging database and verify desktop and mobile layouts.
 
 ## Documentation
 
