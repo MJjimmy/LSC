@@ -68,7 +68,7 @@ final class Auth
 
     private function activeUser(int $userId): array|false
     {
-        $statement = $this->database->prepare('SELECT user_id, name, role, avatar_path, password_hash FROM users WHERE user_id = ? AND is_active = 1');
+        $statement = $this->database->prepare('SELECT user_id, name, role, avatar_path, password_hash FROM users WHERE user_id = ? AND is_active = 1 AND email_verified_at IS NOT NULL');
         $statement->execute([$userId]);
         return $statement->fetch(PDO::FETCH_ASSOC);
     }

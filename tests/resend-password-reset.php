@@ -17,8 +17,8 @@ final class ResetFixtureDb extends PDO {
  public function exec(string $q):int|false {return parent::exec(str_replace('DATE_SUB(NOW(), INTERVAL 1 DAY)',"datetime('now','-1 day')",$q));}
 }
 $db=new ResetFixtureDb('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
-$db->exec('CREATE TABLE users(user_id INTEGER PRIMARY KEY,name TEXT,email TEXT UNIQUE,password_hash TEXT,role TEXT,is_active INTEGER,avatar_path TEXT)');
-$db->exec("INSERT INTO users VALUES(1,'Fixture','person@example.invalid','fixture-hash','student',1,NULL)");
+$db->exec('CREATE TABLE users(user_id INTEGER PRIMARY KEY,name TEXT,email TEXT UNIQUE,password_hash TEXT,role TEXT,is_active INTEGER,avatar_path TEXT, email_verified_at TEXT DEFAULT NULL)');
+$db->exec("INSERT INTO users VALUES(1,'Fixture','person@example.invalid','fixture-hash','student',1,NULL,CURRENT_TIMESTAMP)");
 $db->exec('CREATE TABLE password_reset_tokens(reset_id INTEGER PRIMARY KEY,user_id INTEGER,token_hash TEXT,expires_at TEXT,used_at TEXT)');
 $db->exec('CREATE TABLE rate_limits(rl_key TEXT PRIMARY KEY,attempts INTEGER,expires_at TEXT)');
 putenv('RESEND_API_KEY=fixture-not-a-real-key');putenv('RESEND_FROM_EMAIL=sender@example.invalid');putenv('EMAIL_DELIVERY_ENABLED=1');

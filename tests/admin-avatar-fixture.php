@@ -30,7 +30,7 @@ $db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_
 $db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT, role TEXT,
     password_hash TEXT NOT NULL DEFAULT 'synthetic-avatar-proof',
     is_active INTEGER, bio TEXT, institution TEXT, course TEXT, avatar_path TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP, phone_number TEXT, notify_email INTEGER, notify_sms INTEGER);
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP, phone_number TEXT, notify_email INTEGER, notify_sms INTEGER, email_verified_at TEXT DEFAULT NULL);
     CREATE TABLE group_members (group_id INTEGER,user_id INTEGER);
     CREATE TABLE files (uploaded_by INTEGER);
     CREATE TABLE tasks (assigned_to INTEGER,status TEXT);
@@ -40,6 +40,7 @@ $db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEX
         (3,'Inactive learner','inactive@example.invalid','student',0,'/uploads/avatars/fixture.png'),
         (4,'Demoted administrator','demoted@example.invalid','lecturer',1,NULL),
         (5,'Inactive administrator','disabled@example.invalid','admin',0,NULL);");
+$db->exec('UPDATE users SET email_verified_at=CURRENT_TIMESTAMP');
 (new ReflectionProperty(LSC\Core\Database::class, 'connection'))->setValue(null, $db);
 $image = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', true);
 file_put_contents($fixture . '/storage/uploads/avatars/fixture.png', $image);

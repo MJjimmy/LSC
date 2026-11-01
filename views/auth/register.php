@@ -1,7 +1,7 @@
 <?php // Variables are provided by AccountController::register(). ?>
 
 <div class="auth-card-title">Create Account</div>
-<div class="auth-card-sub">Join LSC today</div>
+<div class="auth-card-sub">Join LSC today. Confirm your email before signing in.</div>
 
 <?php if ($error): ?>
     <div class="auth-alert auth-alert-error">
@@ -15,6 +15,9 @@
     </div>
 <?php endif; ?>
 
+<div class="auth-footer"><a href="verify-email.php">Request another verification email</a></div>
+
+<?php if (!$success): ?>
 <form method="POST">
     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
     <input type="hidden" name="next" value="<?= htmlspecialchars($_GET['next'] ?? '') ?>">
@@ -41,8 +44,8 @@
     </div>
 
     <div class="auth-field">
-        <input type="password" name="password" placeholder="Password (min 8 chars)"
-               class="auth-input" required>
+        <input type="password" name="password" placeholder="Password (8+ chars, include a symbol)"
+               class="auth-input" required minlength="8" autocomplete="new-password">
     </div>
 
     <div class="auth-field">
@@ -53,6 +56,7 @@
     <button type="submit" class="auth-btn">Create Account</button>
 
 </form>
+<?php endif; ?>
 
 <?php require LSC_ROOT . '/views/auth/google.php'; ?>
 

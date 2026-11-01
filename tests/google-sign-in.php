@@ -85,7 +85,7 @@ final class TestDatabase extends PDO
 }
 $db = new TestDatabase('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
 $db->exec('PRAGMA foreign_keys = ON');
-$db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT UNIQUE, password_hash TEXT, role TEXT, is_active INTEGER DEFAULT 1, avatar_path TEXT)");
+$db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT UNIQUE, password_hash TEXT, role TEXT, is_active INTEGER DEFAULT 1, avatar_path TEXT, email_verified_at TEXT DEFAULT NULL)");
 $db->exec('CREATE TABLE oauth_identities (user_id INTEGER REFERENCES users(user_id), provider TEXT, subject TEXT, UNIQUE(provider, subject), UNIQUE(user_id, provider))');
 $accounts = new OAuthAccounts($db);
 $student = $accounts->resolve('google', $identity, null);

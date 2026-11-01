@@ -16,7 +16,8 @@ final class AccountController
         private readonly AccountService $accounts,
         private readonly PasswordResetService $passwordResets,
         private readonly RateLimiter $limiter,
-        private readonly ?ResendMailer $mailer = null
+        private readonly ?ResendMailer $mailer = null,
+        private readonly ?EmailVerificationService $emailVerification = null
     ) {
     }
 
@@ -72,6 +73,8 @@ final class AccountController
             if (!$this->limiter->consume($ipKey, 6, 3600)) {
                 $wait = $this->limiter->availableInSeconds($ipKey);
                 $error = 'Too many signup attempts from this connection. Try again in ' . RateLimiter::humanDuration($wait) . '.';
+            } elseif ($this->emailVerification === null || !$this->emailVerification->available()) {
+                $error = 'Email verification is temporarily unavailable. Please try again later.';
             } else {
                 $result = $this->accounts->register(
                     (string)($_POST['name'] ?? ''),
@@ -81,11 +84,14 @@ final class AccountController
                     (string)($_POST['role'] ?? '')
                 );
                 if ($result['ok']) {
-                    $next = $this->auth->safeLocalRedirect($_POST['next'] ?? $_GET['next'] ?? null);
-                    header('Location: login.php?registered=1&next=' . rawurlencode($next));
-                    exit;
+                    if ($this->emailVerification->request((string)($_POST['email'] ?? ''))) {
+                        $success = 'Check your inbox and spam folder. Confirm your email using the verification link before signing in. Your account does not have access yet.';
+                    } else {
+                        $error = 'Your account is pending verification, but the email could not be sent. Request another verification email using the link below, or try again later.';
+                    }
+                } else {
+                    $error = $result['error'];
                 }
-                $error = $result['error'];
             }
         }
         ob_start();
@@ -155,8 +161,8 @@ final class AccountController
             } else {
                 $password = (string)($_POST['password'] ?? '');
                 $confirmation = (string)($_POST['confirm_password'] ?? '');
-                if (strlen($password) < 8) {
-                    $error = 'Password must be at least 8 characters.';
+                if (($passwordError = PasswordPolicy::error($password)) !== null) {
+                    $error = $passwordError;
                 } elseif ($password !== $confirmation) {
                     $error = 'Passwords do not match.';
                 } elseif ($this->passwordResets->reset($token, $password)) {

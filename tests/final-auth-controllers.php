@@ -46,17 +46,21 @@ if (($argv[1]??'') === 'register') {
     $_SESSION=[];
     $_SERVER=['REQUEST_METHOD'=>'POST','REMOTE_ADDR'=>'192.0.2.19']; $_GET=[];
     $_POST=['csrf_token'=>LSC\Core\Csrf::token(),'name'=>'Synthetic','email'=>'quota'.(int)$argv[2].'@example.invalid','password'=>'SyntheticPass123!','confirm_password'=>'SyntheticPass123!','role'=>'student'];
-    (new LSC\Users\AccountController(new LSC\Core\Auth($db),new LSC\Users\AccountService(new LSC\Users\UserRepository($db)),new LSC\Users\PasswordResetService($db),new LSC\Core\RateLimiter($db)))->register();
+    putenv('EMAIL_DELIVERY_ENABLED=1'); putenv('RESEND_API_KEY=synthetic-not-a-credential'); putenv('RESEND_FROM_EMAIL=sender@example.invalid');
+    $mailer=new LSC\Notifications\ResendMailer(static fn()=>['status'=>200,'body'=>'{"id":"synthetic-receipt"}']);
+    $verification=new LSC\Users\EmailVerificationService($db,$mailer);
+    (new LSC\Users\AccountController(new LSC\Core\Auth($db),new LSC\Users\AccountService(new LSC\Users\UserRepository($db)),new LSC\Users\PasswordResetService($db),new LSC\Core\RateLimiter($db),null,$verification))->register();
     exit;
 }
 if (file_exists($path)) throw new RuntimeException('refuse existing fixture');
 $db=new AuthFixturePDO('sqlite:'.$path,null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);
 $db->exec('PRAGMA foreign_keys=ON');
-$db->exec('CREATE TABLE users(user_id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE, password_hash TEXT, role TEXT, is_active INTEGER DEFAULT 1, avatar_path TEXT)');
+$db->exec('CREATE TABLE users(user_id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE, password_hash TEXT, role TEXT, is_active INTEGER DEFAULT 1, avatar_path TEXT, email_verified_at TEXT DEFAULT NULL)');
 $db->exec('CREATE TABLE rate_limits(rl_key TEXT PRIMARY KEY, attempts INTEGER, expires_at TEXT)');
 $db->exec('CREATE TABLE password_reset_tokens(reset_id INTEGER PRIMARY KEY,user_id INTEGER REFERENCES users(user_id),token_hash TEXT UNIQUE,expires_at TEXT,used_at TEXT)');
 $db->exec('CREATE TABLE app_auth_codes(code_hash TEXT PRIMARY KEY,challenge TEXT,user_id INTEGER REFERENCES users(user_id),expires_at INTEGER)');
 $db->exec('CREATE TABLE oauth_identities(provider TEXT, subject TEXT, user_id INTEGER REFERENCES users(user_id), UNIQUE(provider,subject))');
+LSC\Users\EmailVerificationSchema::prepare($db);
 $pass=$fail=0;
 function assertion(bool $ok,string $label): void { if (!$ok) throw new RuntimeException($label); }
 function scenario(string $label,callable $run): void { global $pass,$fail; try { $run(); ++$pass; echo "PASS: $label\n"; } catch(Throwable $e) { ++$fail; echo 'FAIL: '.$label.' ('.get_class($e).': '.$e->getMessage().")\n"; } }
@@ -73,6 +77,7 @@ scenario('actual register controller retains six successful reservations; sevent
 // Other scenarios independent of quota failure.
 $db->prepare('INSERT INTO users(name,email,password_hash,role) VALUES(?,?,?,?)')->execute(['Reset','reset@example.invalid',password_hash('Before123!',PASSWORD_DEFAULT),'student']);
 $id=(int)$db->lastInsertId();
+$db->exec('UPDATE users SET email_verified_at=CURRENT_TIMESTAMP WHERE user_id='.$id);
 $service=new LSC\Users\PasswordResetService($db);
 scenario('reset atomically revokes sibling tokens and all issued native codes',function() use($db,$service,$id) {
     $token=$service->createToken('reset@example.invalid'); assertion(is_string($token),'token setup');
@@ -132,7 +137,7 @@ scenario('real reset revokes local resolved-OAuth native sessions and completed 
     $proof=(string)$db->query('SELECT password_hash FROM users WHERE user_id='.$id)->fetchColumn();
     $_SESSION=[]; assertion($auth->login($id,'Forged','admin',null,$proof),'local session'); $sessions=[$_SESSION];
     $db->prepare('INSERT INTO oauth_identities VALUES(?,?,?)')->execute(['google','offline-subject',$id]);
-    $resolved=(new LSC\Users\OAuthAccounts($db))->resolve('google',['subject'=>'offline-subject'],null);
+    $resolved=(new LSC\Users\OAuthAccounts($db))->resolve('google',['subject'=>'offline-subject','email'=>'reset@example.invalid','name'=>'Synthetic reset'],null);
     $_SESSION=[]; assertion($auth->login((int)$resolved['user_id'],$resolved['name'],$resolved['role'],$resolved['avatar_path'],$resolved['password_hash']),'resolved OAuth session'); $sessions[]=$_SESSION;
     $make=function() use($app,$id): void {
         $intent=$app->createIntent(hash('sha256',str_repeat('a',64)),str_repeat('b',64));

@@ -19,7 +19,8 @@ class AccountRouteWiring(unittest.TestCase):
             with self.subTest(route=route):
                 source = (ROOT / 'public' / route).read_text()
                 self.assertIn('use LSC\\Core\\RateLimiter;', source)
-                self.assertRegex(source, r'new AccountController\([\s\S]*new PasswordResetService\(\$database\),\s*\$limiter\)')
+                verification = r',\s*null,\s*new EmailVerificationService\(\$database\)' if route == 'register.php' else ''
+                self.assertRegex(source, r'new AccountController\([\s\S]*new PasswordResetService\(\$database\),\s*\$limiter' + verification + r'\)')
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

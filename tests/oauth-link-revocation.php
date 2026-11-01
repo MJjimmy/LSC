@@ -25,11 +25,12 @@ class LinkFixturePDO extends PDO {
 function fixture(): LinkFixturePDO {
     $db = new LinkFixturePDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
     $db->exec('PRAGMA foreign_keys = ON');
-    $db->exec("CREATE TABLE users(user_id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE, password_hash TEXT NOT NULL, role TEXT, is_active INTEGER DEFAULT 1, avatar_path TEXT)");
+    $db->exec("CREATE TABLE users(user_id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE, password_hash TEXT NOT NULL, role TEXT, is_active INTEGER DEFAULT 1, avatar_path TEXT, email_verified_at TEXT DEFAULT NULL)");
     $db->exec("INSERT INTO users(user_id,name,email,password_hash,role) VALUES(1,'Synthetic user','victim@example.invalid','synthetic-old-hash','student')");
     $db->exec('CREATE TABLE oauth_identities(provider TEXT,subject TEXT,user_id INTEGER REFERENCES users(user_id), UNIQUE(provider,subject), UNIQUE(user_id,provider))');
     $db->exec('CREATE TABLE password_reset_tokens(reset_id INTEGER PRIMARY KEY,user_id INTEGER REFERENCES users(user_id),token_hash TEXT UNIQUE,expires_at TEXT,used_at TEXT)');
     $db->exec('CREATE TABLE app_auth_codes(code_hash TEXT PRIMARY KEY,user_id INTEGER REFERENCES users(user_id),challenge TEXT,expires_at INTEGER)');
+    $db->exec('UPDATE users SET email_verified_at=CURRENT_TIMESTAMP');
     $_SESSION = ['user_id' => 1, 'auth_fingerprint' => hash('sha256', 'synthetic-old-hash')];
     return $db;
 }

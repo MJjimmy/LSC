@@ -20,7 +20,7 @@ function csrfToken(): string { return LSC\Core\Csrf::token(); }
 $db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
 $db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT, password_hash TEXT,
     role TEXT, is_active INTEGER, bio TEXT, institution TEXT, course TEXT, avatar_path TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP, phone_number TEXT, notify_email INTEGER, notify_sms INTEGER);
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP, phone_number TEXT, notify_email INTEGER, notify_sms INTEGER, email_verified_at TEXT DEFAULT NULL);
     CREATE TABLE group_members (group_id INTEGER,user_id INTEGER);
     CREATE TABLE files (uploaded_by INTEGER);
     CREATE TABLE tasks (assigned_to INTEGER,status TEXT);
@@ -30,6 +30,7 @@ $db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEX
     (3,'Group creator','creator@example.invalid','synthetic-not-a-password-hash','lecturer',1,'Creator bio','Fixture College','Math',NULL,NULL,1,0),
     (4,'Inactive learner','inactive@example.invalid','synthetic-not-a-password-hash','student',0,'Inactive bio','Fixture College','Physics',NULL,NULL,1,0),
     (5,'Inactive admin','disabled@example.invalid','synthetic-not-a-password-hash','admin',0,'Disabled bio','Fixture College','CS',NULL,NULL,1,0);");
+$db->exec('UPDATE users SET email_verified_at=CURRENT_TIMESTAMP');
 $before = $db->query('SELECT user_id,email,password_hash,role,is_active,phone_number,notify_email,notify_sms FROM users ORDER BY user_id')->fetchAll();
 ini_set('session.use_cookies', '0');
 ini_set('session.save_path', $fixture . '/sessions');

@@ -216,6 +216,7 @@ CREATE TABLE `users` (
   `user_id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
   `email` varchar(150) NOT NULL,
+  `email_verified_at` datetime DEFAULT NULL,
   `password_hash` varchar(255) NOT NULL,
   `role` enum('student','lecturer','admin') NOT NULL DEFAULT 'student',
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
