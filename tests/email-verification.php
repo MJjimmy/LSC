@@ -22,6 +22,24 @@ function emailDb(): PDO {
     $db->prepare('INSERT INTO users(name,email,password_hash,role) VALUES(?,?,?,?)')->execute(['Synthetic learner','learner@example.invalid',password_hash('Orbit!29',PASSWORD_DEFAULT),'student']);
     return $db;
 }
+if (($argv[1]??'')==='register-probe' || ($argv[1]??'')==='csrf-probe') {
+    $owned=realpath((string)getenv('FINAL_AUTH_TEMP'));
+    if (!$owned || file_get_contents($owned.'/owned')!=='lsc-auth-offline') throw new RuntimeException('owned fixture required');
+    $db=emailDb(); LSC\Users\EmailVerificationSchema::prepare($db); $messages=[]; $service=emailService($db,$messages);
+    $mode=$argv[1];
+    register_shutdown_function(static function() use($db,&$messages,$owned,$mode): void {
+        file_put_contents($owned.'/'.$mode.'.json',json_encode(['status'=>http_response_code()?:200,'messages'=>count($messages),'users'=>(int)$db->query('SELECT COUNT(*) FROM users')->fetchColumn(),'verified'=>(int)$db->query('SELECT COUNT(*) FROM users WHERE email_verified_at IS NOT NULL')->fetchColumn(),'logged_in'=>isset($_SESSION['user_id'])],JSON_THROW_ON_ERROR));
+    });
+    $_SERVER=['REQUEST_METHOD'=>'POST','REMOTE_ADDR'=>'192.0.2.18']; $_GET=[];
+    if ($mode==='register-probe') {
+        $_POST=['csrf_token'=>LSC\Core\Csrf::token(),'name'=>'Synthetic signup','email'=>'signup@example.invalid','password'=>'Orbit!29','confirm_password'=>'Orbit!29','role'=>'student'];
+        (new LSC\Users\AccountController(new LSC\Core\Auth($db),new LSC\Users\AccountService(new LSC\Users\UserRepository($db)),new LSC\Users\PasswordResetService($db),new LSC\Core\RateLimiter($db),null,$service))->register();
+    } else {
+        $_POST=['action'=>'resend','email'=>'learner@example.invalid','csrf_token'=>''];
+        (new LSC\Users\EmailVerificationController($service,new LSC\Core\RateLimiter($db)))->show();
+    }
+    exit;
+}
 $passed=$failed=0;
 function emailCheck(bool $ok,string $message): void { if (!$ok) throw new RuntimeException($message); }
 function emailTest(string $name,callable $test): void {
@@ -111,6 +129,39 @@ emailTest('verification controller GET is scanner safe and POST confirms ownersh
     emailCheck(str_contains($html,'Email verified') && $db->query('SELECT email_verified_at FROM users')->fetchColumn()!==null,'CSRF confirmation failed');
     emailCheck(!isset($_SESSION['user_id']),'verification silently signed in');
 });
+emailTest('real registration sends proof and shows pending rather than access',function(): void {
+    [$report,$html]=emailProbe('register-probe');
+    emailCheck($report['users']===2 && $report['verified']===0 && !$report['logged_in'],'registration granted access');
+    emailCheck($report['messages']===1 && str_contains($html,'Check your inbox'),'registration did not send inbox proof and render pending status');
+});
+emailTest('verification resend rejects absent CSRF without sending',function(): void {
+    [$report,$html]=emailProbe('csrf-probe');
+    emailCheck($report['status']===403 && $report['messages']===0 && $report['verified']===0,'missing CSRF mutated verification state');
+});
+emailTest('delivery failures and unsafe APP_URL never expose a usable proof',function(): void {
+    $db=emailDb(); LSC\Users\EmailVerificationSchema::prepare($db); $messages=[]; $service=emailService($db,$messages);
+    foreach (['http://offline.example.invalid','https://user@offline.example.invalid','https://offline.example.invalid?x=1','https://offline.example.invalid/#x'] as $url) {
+        putenv('APP_URL='.$url); emailCheck(!$service->available() && !$service->request('learner@example.invalid'),'unsafe APP_URL accepted');
+    }
+    emailCheck(count($messages)===0,'unsafe URL sent proof');
+    putenv('APP_URL=https://offline.example.invalid');
+    $fail=new LSC\Users\EmailVerificationService($db,new LSC\Notifications\ResendMailer(static fn()=>['status'=>503,'body'=>'']));
+    emailCheck(!$fail->request('learner@example.invalid') && (int)$db->query('SELECT COUNT(*) FROM email_verification_tokens')->fetchColumn()===0,'failed delivery left usable proof or reported success');
+});
+emailTest('native exchange denies a code after ownership revocation',function(): void {
+    $db=emailDb(); $hash=$db->query('SELECT password_hash FROM users')->fetchColumn(); $verifier=str_repeat('a',64); $code=str_repeat('b',64);
+    $db->prepare('INSERT INTO app_auth_codes VALUES(?,?,?,?)')->execute([hash('sha256',$code),1,hash_hmac('sha256',hash('sha256',$verifier),$hash),time()+120]);
+    $denied=false; try { (new LSC\Users\AppSignIn($db))->exchange($code,$verifier); } catch(RuntimeException) { $denied=true; }
+    emailCheck($denied && !isset($_SESSION['user_id']),'unverified native exchange authenticated');
+});
+function emailProbe(string $mode): array {
+    $pipes=[]; $p=proc_open([PHP_BINARY,__FILE__,$mode],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+    emailCheck(is_resource($p),'probe failed to start'); fclose($pipes[0]);
+    $out=stream_get_contents($pipes[1]); $err=stream_get_contents($pipes[2]); fclose($pipes[1]); fclose($pipes[2]);
+    emailCheck(proc_close($p)===0 && $err==='','probe did not run cleanly');
+    $path=getenv('FINAL_AUTH_TEMP').'/'.$mode.'.json'; $report=json_decode(file_get_contents($path),true,flags:JSON_THROW_ON_ERROR); unlink($path);
+    return [$report,$out];
+}
 function csrfToken(): string { return LSC\Core\Csrf::token(); }
 function emailService(PDO $db,array &$messages): LSC\Users\EmailVerificationService {
     putenv('APP_URL=https://offline.example.invalid'); putenv('EMAIL_DELIVERY_ENABLED=1');
