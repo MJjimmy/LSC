@@ -23,6 +23,14 @@ try:
   assert not v['poweredBy'],(p,v)
  print('PASS: eight HTTP paths, private paths blocked, non-default PORT, no PHP version header')
  print(json.dumps(results))
+ # Synthetic bearer canary: even a failing auth request must not log its URL.
+ canary=uuid.uuid4().hex+uuid.uuid4().hex
+ private_probe=r'''$c=curl_init('http://127.0.0.1:18765/verify-email.php?token='.'''+repr(canary)+r''');curl_setopt_array($c,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>5,CURLOPT_PROXY=>'',CURLOPT_HTTPHEADER=>['X-Forwarded-Proto: https','Referer: https://example.invalid/private?token='.'''+repr(canary)+r''']]);curl_exec($c);echo curl_getinfo($c,CURLINFO_HTTP_CODE);'''
+ private_result=docker(['exec',NAME,'/bin/php','-r',private_probe])
+ assert private_result.stdout.strip()=='500','Controlled missing-database fixture did not fail as expected'
+ logs=docker(['logs',NAME],False)
+ assert canary not in logs.stdout+logs.stderr,'Synthetic auth token leaked into web-server request logs'
+ print('PASS: failing authentication request does not log a synthetic query/referrer token')
  code=r'''foreach(['pdo_mysql','mbstring','curl'] as $e){if(!extension_loaded($e))exit(1);} echo 'PHP '.PHP_VERSION.'; required extensions loaded; libxml extension='.(extension_loaded('libxml')?'present':'absent')."\n"; $s=file_get_contents('/lib/apk/db/installed');foreach(explode("\n\n",$s) as $p){if(preg_match('/^P:(zlib|libxml2)$/m',$p)){preg_match('/^P:(.+)$/m',$p,$n);preg_match('/^V:(.+)$/m',$p,$v);echo $n[1].' '.$v[1]."\n";}}'''
  print(docker(['exec',NAME,'/bin/php','-r',code]).stdout)
  lint=r'''$n=0;foreach(['app','bin','config','public','views','runtime'] as $d){$it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator('/app/'.$d,FilesystemIterator::SKIP_DOTS));foreach($it as $f){if($f->getExtension()!=='php')continue;$proc=proc_open(['/bin/php','-l',$f->getPathname()],[1=>['pipe','w'],2=>['pipe','w']],$pipes);if(!is_resource($proc))exit(1);$out=stream_get_contents($pipes[1]).stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);$status=proc_close($proc);if($status){fwrite(STDERR,$out);exit(1);}$n++;}}echo 'PHP files linted: '.$n."\n";'''
