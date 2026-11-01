@@ -185,8 +185,26 @@ final class AccountController
         require \LSC_ROOT . '/views/auth/reset-password.php';
     }
 
+    /**
+     * Sign-out is a state change, so it requires a POST carrying a CSRF token.
+     * A bare link (or an <img src="logout.php"> on any other site) must not be
+     * able to end a session.
+     */
     public function logout(): never
     {
+        if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+            http_response_code(405);
+            header('Allow: POST');
+            header('Content-Type: text/html; charset=UTF-8');
+            $loginUrl = htmlspecialchars(AppUrl::link('/login.php') ?? 'login.php', ENT_QUOTES, 'UTF-8');
+            exit(
+                '<!doctype html><meta charset="utf-8"><title>Sign out</title>'
+                . '<p>Signing out requires the sign-out button inside LSC.</p>'
+                . '<p><a href="' . $loginUrl . '">Go to sign in</a></p>'
+            );
+        }
+
+        Csrf::verify();
         $this->auth->logout();
         header('Location: login.php');
         exit;

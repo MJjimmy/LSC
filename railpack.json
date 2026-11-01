@@ -1,7 +1,12 @@
 {
   "$schema": "https://schema.railpack.com",
   "provider": "php",
-  "buildAptPackages": ["...", "curl", "libcurl4t64", "libxml2", "zlib1g"],
+  "buildAptPackages": [
+    "curl",
+    "libcurl4t64",
+    "libxml2",
+    "zlib1g"
+  ],
   "exclude": [
     "**/.git",
     "**/.env",
