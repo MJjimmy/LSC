@@ -38,10 +38,8 @@ final class TaskService
 
     public function markDone(int $taskId, int $userId): bool
     {
-        $task = $this->tasks->find($taskId);
-        return $task && (int)$task['assigned_to'] === $userId
-            ? $this->tasks->updateStatus($taskId, 'done')
-            : false;
+        return $taskId > 0 && $userId > 0
+            && $this->tasks->markDoneForCurrentMember($taskId, $userId);
     }
 
     public function deleteIfAllowed(int $taskId, int $userId, string $role): bool

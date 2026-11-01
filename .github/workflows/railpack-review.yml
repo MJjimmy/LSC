@@ -1,0 +1,122 @@
+name: Runtime review checks (no deployment)
+
+on:
+  push:
+    branches: [deploy/railpack, feat/google-resend, fix/android-sign-in, fix/notification-worker, fix/help-profile, fix/app-auth-direct, fix/mobile-session-diagnostics]
+  pull_request:
+    paths:
+      - composer.json
+      - railpack.json
+      - Caddyfile
+      - php.ini
+      - tests/railpack_config_test.py
+      - tests/runtime_config_test.py
+      - tests/group_wiring_test.py
+      - public/groups.php
+      - public/logout.php
+      - public/login.php
+      - public/register.php
+      - public/forgot-password.php
+      - public/reset-password.php
+      - public/group.php
+      - app/Groups/GroupController.php
+      - tests/runtime_smoke_test.py
+      - tests/volume_runtime_test.py
+      - tests/database_runtime_test.py
+      - tests/mysql_transfer_runtime_test.py
+      - tests/cutover_gate_runtime_test.py
+      - tests/provider_schema_runtime_test.py
+      - tests/google-sign-in.php
+      - tests/resend-*.php
+      - app/Users/**
+      - app/Notifications/**
+      - views/auth/**
+      - views/users/profile.php
+      - public/help.php
+      - views/help/**
+      - views/layouts/**
+      - tests/help-profile.php
+      - tests/ui_navigation_test.py
+      - public/oauth.php
+      - public/app-auth.php
+      - tests/app-sign-in.php
+      - tests/app_auth_http_probe.php
+      - tests/app_auth_navigation_test.py
+      - bin/prepare-provider-schema.php
+      - bin/audit-notification-queue.php
+      - bin/notification-worker.php
+      - bin/transfer-to-mysql.php
+      - config/bootstrap.php
+      - Dockerfile.database
+      - Dockerfile.database.dockerignore
+      - database/init.sql
+      - Dockerfile.railway
+      - Dockerfile.railway.dockerignore
+      - runtime/**
+      - .github/workflows/railpack-review.yml
+
+permissions:
+  contents: read
+
+jobs:
+  php-integrations:
+    name: PHP Google and Resend regression checks
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the exact review commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Verify existing runner PHP extensions
+        run: |
+          php --version
+          php -r 'foreach (["curl", "mbstring", "pdo_sqlite"] as $e) { if (!extension_loaded($e)) { fwrite(STDERR, "Missing extension: $e\n"); exit(1); } }'
+      - name: Test Resend without contacting a provider
+        run: php tests/resend-mailer.php
+      - name: Test email worker safety without sending
+        run: php tests/resend-worker.php
+      - name: Test real password-reset controller with a fake provider
+        run: php tests/resend-password-reset.php
+      - name: Test Google sign-in without real credentials
+        run: php tests/google-sign-in.php
+      - name: Test Android browser return without real credentials
+        run: php tests/app-sign-in.php
+      - name: Verify Help navigation and Profile UI
+        run: |
+          python tests/ui_navigation_test.py
+          python tests/app_auth_navigation_test.py
+          php tests/help-profile.php
+      - name: Lint PHP source
+        run: python -c "import pathlib,subprocess; files=[p for d in ('app','bin','config','public','views') for p in pathlib.Path(d).rglob('*.php')]; [subprocess.run(['php','-l',str(p)],check=True) for p in files]"
+  deployment-contract:
+    # User-approved pause: do not execute database-image tests on live releases.
+    if: github.ref != 'refs/heads/deploy/railpack'
+
+    name: Runtime and database verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the exact review commit
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Verify configuration without cloud credentials or deployment
+        run: |
+          python3 tests/railpack_config_test.py
+          python3 tests/runtime_config_test.py
+          python3 tests/group_wiring_test.py
+      - name: Build the pinned production runtime locally
+        run: docker build --platform linux/amd64 --network default -f Dockerfile.railway -t lsc-runtime-fixed:review .
+      - name: Exercise the isolated runtime without deploying
+        run: python3 tests/runtime_smoke_test.py
+      - name: Verify root-owned upload storage and privilege drop
+        run: python3 tests/volume_runtime_test.py
+      - name: Build the pinned database with the fresh-install schema
+        run: docker build --platform linux/amd64 --network default -f Dockerfile.database -t lsc-database:review .
+      - name: Verify database initialization and restart persistence
+        run: python3 tests/database_runtime_test.py
+      - name: Rehearse additive OAuth schema without touching live data
+        run: python3 tests/provider_schema_runtime_test.py
+      - name: Verify the optional cutover maintenance gate
+        run: python3 tests/cutover_gate_runtime_test.py
+      - name: Rehearse MariaDB to MySQL preservation without cloud access
+        run: python3 tests/mysql_transfer_runtime_test.py

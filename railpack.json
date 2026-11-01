@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "php",
+  "buildAptPackages": ["...", "curl", "libcurl4t64", "libxml2", "zlib1g"],
+  "exclude": [
+    "**/.git",
+    "**/.env",
+    "**/.env.*",
+    ".github/**",
+    "docs/**",
+    "tests/**",
+    "database/**",
+    "storage/uploads/**",
+    "**/*.log",
+    "**/*.docx",
+    "**/__pycache__",
+    "Dockerfile*",
+    "docker/**",
+    "docker-compose*.yml"
+  ],
+  "deploy": {
+    "startCommand": "/start-container.sh",
+    "variables": {
+      "APP_ENV": "production",
+      "APP_DEBUG": "0"
+    }
+  }
+}

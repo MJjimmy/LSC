@@ -4,7 +4,7 @@
 <div class="auth-card-sub">Sign in to your account</div>
 
 <?php if (isset($_GET['registered'])): ?>
-    <div class="auth-alert auth-alert-success"><i class="bi bi-check-circle" style="margin-right:6px;"></i>Account created. Sign in to continue.</div>
+    <div class="auth-alert auth-alert-success"><i class="bi bi-check-circle" style="margin-right:6px;"></i>Account created. Verify your email before signing in.</div>
 <?php endif; ?>
 
 <?php if (isset($_GET['deactivated'])): ?>
@@ -46,6 +46,9 @@
     <button type="submit" class="auth-btn">Sign In</button>
 
 </form>
+
+<div class="auth-footer"><a href="verify-email.php">Verify email / request another link</a></div>
+<?php require LSC_ROOT . '/views/auth/google.php'; ?>
 
 <div class="auth-footer">
     Don't have an account? <a href="register.php<?= !empty($_GET['next']) ? '?next=' . rawurlencode($_GET['next']) : '' ?>">Register</a>

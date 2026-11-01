@@ -39,7 +39,7 @@
 <div class="card" style="margin-bottom:18px;padding:16px 20px;">
     <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
 
-        <select onchange="window.location='tasks.php?group_id='+this.value+'&status=<?= htmlspecialchars($selected_status) ?>'"
+        <select id="task-group-filter" aria-label="Filter by group"
                 class="lsc-input" style="width:auto;">
             <option value="all">All Groups</option>
             <?php foreach ($myGroups as $g): ?>
@@ -49,7 +49,7 @@
             <?php endforeach; ?>
         </select>
 
-        <select onchange="window.location='tasks.php?group_id=<?= $selected_group ?>&status='+this.value"
+        <select id="task-status-filter" aria-label="Filter by status"
                 class="lsc-input" style="width:auto;">
             <option value="all"    <?= $selected_status==='all'     ? 'selected':'' ?>>All Statuses</option>
             <option value="pending"<?= $selected_status==='pending'  ? 'selected':'' ?>>Pending</option>
@@ -148,7 +148,7 @@
                 </div>
 
                 <div style="font-size:12px;color:var(--text-muted);margin-top:8px;">
-                    Task will be assigned to you. Group members can reassign later.
+                    Task will be assigned to you.
                 </div>
 
                 <div class="lsc-modal-footer" style="padding:16px 0 0;border:none;">
@@ -162,6 +162,15 @@
 </div>
 
 <script>
+// Values come from the selects, never from server values in executable strings.
+const taskGroupFilter = document.getElementById('task-group-filter');
+const taskStatusFilter = document.getElementById('task-status-filter');
+function applyTaskFilters() {
+    const query = new URLSearchParams({group_id: taskGroupFilter.value, status: taskStatusFilter.value});
+    window.location = 'tasks.php?' + query.toString();
+}
+taskGroupFilter.addEventListener('change', applyTaskFilters);
+taskStatusFilter.addEventListener('change', applyTaskFilters);
 function openTaskModal()  {
     document.getElementById('createTaskModal').style.display = 'flex';
     document.getElementById('taskForm').reset();

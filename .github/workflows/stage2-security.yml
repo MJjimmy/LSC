@@ -1,0 +1,65 @@
+name: Stage 2 backend security and cache checks (no deployment)
+
+on:
+  push:
+    branches: [security/stage2-backend-2026-10-26, deploy/railpack]
+    paths:
+      - app/Core/Csrf.php
+      - app/Tasks/**
+      - config/bootstrap.php
+      - public/service-worker.php
+      - public/offline.php
+      - views/tasks/index.php
+      - tests/security_*.php
+      - tests/stage2-*
+      - .github/workflows/stage2-security.yml
+
+permissions:
+  contents: read
+
+jobs:
+  security-cache:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      APP_ENV: testing
+      APP_DEBUG: '0'
+      EMAIL_DELIVERY_ENABLED: '0'
+    steps:
+      - name: Check out exact source without retaining credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify preinstalled tools and extensions; do not install
+        run: |
+          node --version
+          php --version
+          php -r 'foreach (["pdo_sqlite", "curl", "mbstring"] as $e) { if (!extension_loaded($e)) throw new RuntimeException("Missing preinstalled extension: ".$e); }'
+          google-chrome --version
+      - name: Lint application and regression PHP
+        run: python -c "import pathlib,subprocess; files=[p for d in ('app','bin','config','public','views','tests') for p in pathlib.Path(d).rglob('*.php')]; [subprocess.run(['php','-l',str(p)],check=True) for p in files]; print('Linted',len(files),'PHP files')"
+      - name: Preserve patched PHP runtime pin
+        run: python tests/php_runtime_patch_test.py
+      - name: Shared CSRF and malformed request boundaries
+        run: |
+          php tests/security_csrf_regression.php
+          php tests/security_scalar_boundary.php
+      - name: Membership-constrained task completion on disposable SQLite
+        run: php tests/security_task_membership.php
+      - name: Actual task rendering, status allowlist and expanded CSRF cases
+        run: php tests/stage2-php.php
+      - name: Actual task-filter listeners and inert hostile values
+        run: node tests/stage2-filter.cjs
+      - name: Existing offline auth, mail, Help and navigation regressions
+        run: |
+          php tests/app-sign-in.php
+          php tests/google-sign-in.php
+          php tests/resend-mailer.php
+          php tests/resend-worker.php
+          php tests/resend-password-reset.php
+          php tests/help-profile.php
+          python tests/ui_navigation_test.py
+          python tests/app_auth_navigation_test.py
+      - name: Real browser old-worker upgrade and account-switch offline regression
+        run: node tests/stage2-browser.cjs --candidate-root "$PWD" --browser "$(command -v google-chrome)" --output "$RUNNER_TEMP/stage2-browser.json"

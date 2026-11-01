@@ -22,23 +22,35 @@ final class ProfileController
         $this->auth->requireLogin();
         $profileUserId = (int)($_GET['user_id'] ?? $_SESSION['user_id']);
         $isOwnProfile = $profileUserId === (int)$_SESSION['user_id'];
+        $isSiteAdmin = ($_SESSION['user_role'] ?? '') === 'admin';
+        $canEditProfile = $isOwnProfile || $isSiteAdmin;
+        $canViewContact = $isOwnProfile || $isSiteAdmin;
         $error = '';
         $success = '';
 
+        if (!$this->users->findProfile($profileUserId, $isSiteAdmin)) {
+            http_response_code(404);
+            exit('Profile not found.');
+        }
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             Csrf::verify();
-            if (!$isOwnProfile) {
+            if (!$canEditProfile) {
                 http_response_code(403);
-                exit('You can only edit your own profile.');
+                exit('You do not have permission to edit this profile.');
             }
             if (isset($_POST['update_notifications'])) {
+                if (!$isOwnProfile) {
+                    http_response_code(403);
+                    exit('Notification preferences can only be changed by the account owner.');
+                }
                 [$error, $success] = $this->updateNotificationSettings($profileUserId);
             } else {
                 [$error, $success] = $this->update($profileUserId);
             }
         }
 
-        $profile = $this->users->findActive($profileUserId);
+        $profile = $this->users->findProfile($profileUserId, $isSiteAdmin);
         if (!$profile) {
             http_response_code(404);
             exit('Profile not found.');
@@ -61,7 +73,7 @@ final class ProfileController
             return ['One or more profile fields are too long.', ''];
         }
 
-        $current = $this->users->findActive($userId);
+        $current = $this->users->findProfile($userId, true);
         $newAvatar = $current['avatar_path'] ?? null;
         if (isset($_FILES['avatar']) && ($_FILES['avatar']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
             $stored = $this->storage->store($_FILES['avatar'], 'avatars');
@@ -87,8 +99,10 @@ final class ProfileController
             }
         }
 
-        $_SESSION['user_name'] = $name;
-        $_SESSION['user_avatar'] = $newAvatar;
+        if ($userId === (int)$_SESSION['user_id']) {
+            $_SESSION['user_name'] = $name;
+            $_SESSION['user_avatar'] = $newAvatar;
+        }
         return ['', 'Profile updated successfully.'];
     }
 

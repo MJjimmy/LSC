@@ -761,6 +761,10 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
                 <i class="bi bi-person-circle"></i> My Profile
             </a>
 
+            <a href="help.php" onclick="closeSidebar()" class="<?= $current_page === 'help' ? 'active' : '' ?>">
+                <i class="bi bi-question-circle"></i> Help
+            </a>
+
             <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
             <div class="lsc-nav-label" style="margin-top:8px;">Administration</div>
             <a href="admin.php" onclick="closeSidebar()" class="<?= $current_page === 'admin' ? 'active' : '' ?>">

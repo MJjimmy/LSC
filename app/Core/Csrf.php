@@ -17,11 +17,16 @@ final class Csrf
 
     public static function verify(): void
     {
+        $expected = $_SESSION['csrf_token'] ?? null;
+        $submitted = $_POST['csrf_token'] ?? null;
         if (
-            $_SERVER['REQUEST_METHOD'] === 'POST'
+            ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST'
             && (
-                !isset($_POST['csrf_token'])
-                || !hash_equals($_SESSION['csrf_token'] ?? '', (string)$_POST['csrf_token'])
+                !is_string($expected)
+                || $expected === ''
+                || !is_string($submitted)
+                || $submitted === ''
+                || !hash_equals($expected, $submitted)
             )
         ) {
             http_response_code(403);

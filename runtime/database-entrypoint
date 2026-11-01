@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+# Prepare only fixed mount/runtime roots, then use the unchanged vendor initializer.
+if [ "$(id -u)" = 0 ]; then
+    [ ! -L /var/lib/mysql ] && [ "$(readlink -f /var/lib/mysql)" = /var/lib/mysql ]
+    [ "$(id -u mysql)" = 65532 ] && [ "$(id -g mysql)" = 65532 ]
+    mkdir -p /run/mysqld
+    chown 65532:65532 /var/lib/mysql /run/mysqld
+    chmod 0700 /var/lib/mysql
+    exec /usr/bin/su-exec mysql /usr/local/bin/docker-entrypoint.sh "$@"
+fi
+exec /usr/local/bin/docker-entrypoint.sh "$@"

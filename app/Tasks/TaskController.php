@@ -53,7 +53,7 @@ final class TaskController
         if ($selected_group !== 'all' && !in_array($selected_group, $groupIds, true)) {
             $selected_group = 'all';
         }
-        $selected_status = (string)($_GET['status'] ?? 'all');
+        $selected_status = self::normalizeStatus($_GET['status'] ?? 'all');
         $tasks = $selected_group === 'all'
             ? $this->tasks->visibleToUser($userId)
             : $this->tasks->forGroup($selected_group);
@@ -73,10 +73,15 @@ final class TaskController
         require LSC_ROOT . '/views/tasks/index.php';
     }
 
+    private static function normalizeStatus(mixed $status): string
+    {
+        return in_array($status, ['all', 'pending', 'done'], true) ? $status : 'all';
+    }
+
     private function redirectAfterPost(): never
     {
         $group = (string)($_POST['group_id'] ?? 'all');
-        $status = (string)($_POST['status'] ?? 'all');
+        $status = self::normalizeStatus($_POST['status'] ?? 'all');
         $target = isset($_POST['mark_done_id'])
             ? 'tasks.php?group_id=' . rawurlencode($group) . '&status=' . rawurlencode($status)
             : 'tasks.php';

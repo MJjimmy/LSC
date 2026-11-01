@@ -39,6 +39,18 @@ define('LSC_STORAGE', LSC_ROOT . DIRECTORY_SEPARATOR . 'storage');
     }
 })(LSC_ROOT . DIRECTORY_SEPARATOR . '.env');
 
+// Explicit, temporary database cutover gate. Default is normal operation.
+// CLI migration tasks bypass this; web reads/writes stop before any DB access.
+if (PHP_SAPI !== 'cli' && getenv('LSC_DB_CUTOVER_MAINTENANCE') === '1') {
+    http_response_code(503);
+    header('Content-Type: text/plain; charset=UTF-8');
+    header('Cache-Control: no-store');
+    header('Retry-After: 60');
+    header('X-Content-Type-Options: nosniff');
+    header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
+    exit('LSC is temporarily unavailable while its database connection is updated. Please try again shortly.');
+}
+
 spl_autoload_register(static function (string $class): void {
     $prefix = 'LSC\\';
     if (!str_starts_with($class, $prefix)) {
@@ -53,6 +65,27 @@ spl_autoload_register(static function (string $class): void {
         require $path;
     }
 });
+
+// Normal query/form fields in this app are scalar strings. File collections
+// arrive in $_FILES and are validated by UploadStorage instead. Reject array
+// shapes before string-only template/controller calls can fail with HTTP 500.
+(static function (): void {
+    $form = $_POST;
+    // Keep CSRF rejection with the fail-closed verifier (HTTP 403).
+    unset($form['csrf_token']);
+    foreach ([$_GET, $form] as $parameters) {
+        foreach ($parameters as $value) {
+            if (!is_string($value)) {
+                http_response_code(400);
+                header('Content-Type: text/plain; charset=UTF-8');
+                header('Cache-Control: no-store');
+                header('X-Content-Type-Options: nosniff');
+                header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
+                exit('Malformed request parameters.');
+            }
+        }
+    }
+})();
 
 function csrfToken(): string
 {

@@ -22,9 +22,16 @@ final class AccountService
         if ((int)$user['is_active'] !== 1) {
             return ['ok' => false, 'error' => 'Your account has been deactivated. Contact an administrator.'];
         }
+        if (empty($user['email_verified_at'])) {
+            return ['ok' => false, 'error' => 'Verify your email before signing in. Use the email verification page to request another link.'];
+        }
         // Keep hashes current if the default algorithm or cost ever changes.
         if (password_needs_rehash($user['password_hash'], PASSWORD_DEFAULT)) {
-            $this->users->updatePasswordHash((int)$user['user_id'], password_hash($password, PASSWORD_DEFAULT));
+            $replacement = password_hash($password, PASSWORD_DEFAULT);
+            if (!$this->users->updatePasswordHash((int)$user['user_id'], $replacement, $user['password_hash'])) {
+                return ['ok' => false, 'error' => 'Invalid email or password.'];
+            }
+            $user['password_hash'] = $replacement;
         }
         return ['ok' => true, 'user' => $user];
     }
@@ -49,8 +56,8 @@ final class AccountService
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ['ok' => false, 'error' => 'Please enter a valid email address.'];
         }
-        if (strlen($password) < 8) {
-            return ['ok' => false, 'error' => 'Password must be at least 8 characters.'];
+        if (($passwordError = PasswordPolicy::error($password)) !== null) {
+            return ['ok' => false, 'error' => $passwordError];
         }
         if ($password !== $confirmation) {
             return ['ok' => false, 'error' => 'Passwords do not match.'];

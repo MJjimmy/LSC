@@ -261,6 +261,7 @@ $pageDescription = 'Create study groups, assign tasks with due dates, share file
         </div>
         <div class="nav-actions">
             <?php require LSC_ROOT . '/views/partials/theme-toggle.php'; ?>
+            <a href="help.php" class="nav-btn nav-btn-outline">Help</a>
             <a href="login.php" class="nav-btn nav-btn-outline">Sign in</a>
             <a href="register.php" class="nav-btn nav-btn-solid">Get started</a>
         </div>
@@ -318,6 +319,7 @@ $pageDescription = 'Create study groups, assign tasks with due dates, share file
     <footer class="footer">
         <div>&copy; <?= date('Y') ?> LSC | Learn. Share. Connect.</div>
         <nav>
+            <a href="help.php">Help</a>
             <a href="privacy.php">Privacy policy</a>
             <a href="terms.php">Terms and conditions</a>
         </nav>

@@ -9,8 +9,9 @@ use LSC\Users\AccountController;
 use LSC\Users\AccountService;
 use LSC\Users\PasswordResetService;
 use LSC\Users\UserRepository;
+use LSC\Users\EmailVerificationService;
 
 $database = Database::connection();
 $users = new UserRepository($database);
 $limiter = new RateLimiter($database);
-(new AccountController(new Auth($database), new AccountService($users), new PasswordResetService($database), $limiter))->register();
+(new AccountController(new Auth($database), new AccountService($users), new PasswordResetService($database), $limiter, null, new EmailVerificationService($database)))->register();

@@ -1,0 +1,15 @@
+{
+  "name": "lsc/learn-share-connect",
+  "description": "LSC PHP web application",
+  "type": "project",
+  "require": {
+    "php": "^8.4",
+    "ext-pdo_mysql": "*",
+    "ext-mbstring": "*",
+    "ext-curl": "*",
+    "ext-fileinfo": "*"
+  },
+  "config": {
+    "allow-plugins": false
+  }
+}

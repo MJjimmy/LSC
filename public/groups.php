@@ -4,6 +4,7 @@ require_once dirname(__DIR__) . '/config/bootstrap.php';
 
 use LSC\Core\Auth;
 use LSC\Core\Database;
+use LSC\Core\RateLimiter;
 use LSC\Core\UploadStorage;
 use LSC\Chat\MessageRepository;
 use LSC\Files\FileRepository;
@@ -30,6 +31,7 @@ $controller = new GroupController(
     new TaskRepository($database),
     new FileRepository($database),
     new MessageRepository($database),
-    new InvitationService($database, $invitations, $groups, $groupService, $notifications, $dispatcher)
+    new InvitationService($database, $invitations, $groups, $groupService, $notifications, $dispatcher),
+    new RateLimiter($database)
 );
 $controller->index();

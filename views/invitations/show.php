@@ -9,9 +9,15 @@
         <?php if (!$invite): ?>
             <div class="page-hero-title" style="color:var(--text-primary);">Invitation not found</div>
             <p style="color:var(--text-secondary);margin-top:10px;">Ask the group owner to create a new invitation.</p>
+        <?php elseif ($invite['status'] === 'accepted'): ?>
+            <div class="page-hero-title" style="color:var(--text-primary);">Invitation already accepted</div>
+            <p style="color:var(--text-secondary);margin-top:10px;">This invitation has already been used. Open your groups to continue.</p>
+        <?php elseif ($invite['status'] === 'declined'): ?>
+            <div class="page-hero-title" style="color:var(--text-primary);">Invitation revoked or replaced</div>
+            <p style="color:var(--text-secondary);margin-top:10px;">This invitation was revoked or replaced. Ask the group owner for a current invitation.</p>
         <?php elseif (!$isAvailable): ?>
-            <div class="page-hero-title" style="color:var(--text-primary);">Invitation unavailable</div>
-            <p style="color:var(--text-secondary);margin-top:10px;">This link has expired or has already been used.</p>
+            <div class="page-hero-title" style="color:var(--text-primary);">Invitation expired</div>
+            <p style="color:var(--text-secondary);margin-top:10px;">This invitation has reached its expiry time. Ask the group owner to send a new invitation.</p>
         <?php else: ?>
             <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brand);margin-bottom:8px;">Group invitation</div>
             <div class="page-hero-title" style="color:var(--text-primary);"><?= htmlspecialchars($invite['group_name']) ?></div>

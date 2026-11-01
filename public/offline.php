@@ -7,8 +7,7 @@
 <title>LSC | Offline</title>
 <link rel="icon" type="image/svg+xml" href="/icons/lsc-icon.svg">
 <meta name="theme-color" content="#123b63">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- System fonts keep the generic fallback independent of the network. -->
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
@@ -49,7 +48,7 @@ h1 {
 
 p {
     font-size: 15px;
-    color: rgba(255,255,255,.5);
+    color: rgba(255,255,255,.78);
     max-width: 320px;
     line-height: 1.6;
     margin-bottom: 32px;
@@ -97,9 +96,9 @@ p {
 <h1>You're offline</h1>
 <p>It looks like you've lost your internet connection. Check your connection and try again.</p>
 
-<button class="btn" onclick="window.location.reload()">
-    ↻ Try Again
-</button>
+<a class="btn" href="/index.php">
+    Back to home
+</a>
 
 </body>
 </html>

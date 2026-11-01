@@ -8,6 +8,21 @@
         <?= htmlspecialchars($group['description'] ?? 'Collaborate, share resources and achieve academic success together.') ?>
     </div>
 
+<?php if ($isMember): ?>
+<?php $isGroupCreator = (int)$group['created_by'] === $userId; ?>
+<form method="POST" onsubmit="return confirm('Leave this group? Shared tasks, files and messages will be kept.');"
+      style="margin-top:15px;">
+    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
+    <button type="submit" name="leave_group" class="btn-ghost"
+            <?= $isGroupCreator ? 'disabled aria-describedby="leave-group-note" style="opacity:.55;cursor:not-allowed;"' : '' ?>>
+        <i class="bi bi-box-arrow-right" aria-hidden="true"></i> Leave group
+    </button>
+    <?php if ($isGroupCreator): ?>
+    <p id="leave-group-note" style="font-size:12px;color:var(--text-secondary);margin:8px 0 0;">Group creators cannot leave their own group.</p>
+    <?php endif; ?>
+</form>
+<?php endif; ?>
+
 <?php if ($canManageGroup): ?>
 <form method="POST"
       onsubmit="return confirm('Delete this group permanently?')"

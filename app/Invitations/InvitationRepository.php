@@ -32,6 +32,19 @@ final class InvitationRepository
         return (int)$statement->fetchColumn();
     }
 
+    /** Called under the invitation transaction and parent-group lock. */
+    public function findPending(int $groupId, string $email): array|false
+    {
+        $statement = $this->database->prepare(<<<'SQL'
+            SELECT * FROM group_invitations
+            WHERE group_id = ? AND LOWER(email) = ? AND status = 'pending'
+              AND expires_at > CURRENT_TIMESTAMP
+            ORDER BY invitation_id DESC LIMIT 1 FOR UPDATE
+            SQL);
+        $statement->execute([$groupId, strtolower(trim($email))]);
+        return $statement->fetch();
+    }
+
     public function declinePending(int $groupId, string $email): void
     {
         $this->database->prepare(<<<'SQL'

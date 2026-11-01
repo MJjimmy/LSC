@@ -1,0 +1,3 @@
+#!/bin/execlineb -P
+if { /bin/php /app/runtime/prepare.php }
+/bin/s6-svscan /tmp/lsc/sv

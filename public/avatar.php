@@ -13,7 +13,9 @@ $users = new UserRepository($database);
 $uploadStorage = new UploadStorage(LSC_STORAGE . DIRECTORY_SEPARATOR . 'uploads');
 
 $userId = (int)($_GET['user_id'] ?? 0);
-$profile = $userId > 0 ? $users->findActive($userId) : false;
+$profile = $userId > 0
+    ? $users->findProfile($userId, ($_SESSION['user_role'] ?? '') === 'admin')
+    : false;
 $absolutePath = $profile ? $uploadStorage->resolve($profile['avatar_path'] ?? null) : null;
 
 if (!$absolutePath) {

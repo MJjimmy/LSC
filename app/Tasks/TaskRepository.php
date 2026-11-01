@@ -25,6 +25,7 @@ final class TaskRepository
             SELECT t.*, sg.group_name
             FROM tasks t
             JOIN study_groups sg ON t.group_id = sg.group_id
+            JOIN group_members gm ON gm.group_id = t.group_id AND gm.user_id = t.assigned_to
             WHERE t.assigned_to = ?
             ORDER BY t.due_date ASC
             SQL);
@@ -82,6 +83,29 @@ final class TaskRepository
         }
         return $this->database->prepare('UPDATE tasks SET status = ? WHERE task_id = ?')
             ->execute([$status, $taskId]);
+    }
+
+    public function markDoneForCurrentMember(int $taskId, int $userId): bool
+    {
+        // Assignment and membership are checked by the mutation itself, not a stale read.
+        $eligible = <<<'SQL'
+            task_id = ? AND assigned_to = ?
+            AND EXISTS (
+                SELECT 1 FROM group_members gm
+                WHERE gm.group_id = tasks.group_id AND gm.user_id = ?
+            )
+            SQL;
+        $statement = $this->database->prepare("UPDATE tasks SET status = 'done' WHERE {$eligible}");
+        $statement->execute([$taskId, $userId, $userId]);
+        if ($statement->rowCount() > 0) {
+            return true;
+        }
+
+        // MySQL reports zero changed rows for an already-completed task. Keep
+        // completion idempotent without granting rights to a removed member.
+        $statement = $this->database->prepare("SELECT 1 FROM tasks WHERE {$eligible} AND status = 'done'");
+        $statement->execute([$taskId, $userId, $userId]);
+        return $statement->fetchColumn() !== false;
     }
 
     public function forCalendar(array $groupIds, int $month, int $year): array
