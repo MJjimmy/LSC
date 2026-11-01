@@ -30,7 +30,7 @@ $db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_
 $db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT, role TEXT,
     password_hash TEXT NOT NULL DEFAULT 'synthetic-avatar-proof',
     is_active INTEGER, bio TEXT, institution TEXT, course TEXT, avatar_path TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP, phone_number TEXT, notify_email INTEGER, notify_sms INTEGER);
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP, phone_number TEXT, notify_email INTEGER, notify_sms INTEGER, email_verified_at TEXT DEFAULT '2026-01-01 00:00:00');
     CREATE TABLE group_members (group_id INTEGER,user_id INTEGER);
     CREATE TABLE files (uploaded_by INTEGER);
     CREATE TABLE tasks (assigned_to INTEGER,status TEXT);

@@ -9,6 +9,19 @@
         <?php if (!$invite): ?>
             <div class="page-hero-title" style="color:var(--text-primary);">Invitation not found</div>
             <p style="color:var(--text-secondary);margin-top:10px;">Ask the group owner to create a new invitation.</p>
+        <?php elseif (!$correctAccount): ?>
+            <div class="page-hero-title">Use the invited account</div>
+            <p>You are signed in as <?= htmlspecialchars($currentEmail) ?>. This invitation belongs to a different account.</p>
+            <p>Sign in or register with the email that received the invitation, and verify that email first.</p>
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
+                <input type="hidden" name="token" value="<?= htmlspecialchars($token) ?>">
+                <button type="submit" name="action" value="switch_account" class="btn-primary btn-brand">Sign in with another account</button>
+            </form>
+        <?php elseif ($invite['status'] === 'accepted'): ?>
+            <div class="page-hero-title">Invitation already accepted</div>
+            <p>If you are still a member, you can open the group. Otherwise, ask the owner for a new invitation.</p>
+            <a class="btn-primary btn-brand" href="group.php?id=<?= (int)$invite['group_id'] ?>">Open group</a>
         <?php elseif (!$isAvailable): ?>
             <div class="page-hero-title" style="color:var(--text-primary);">Invitation unavailable</div>
             <p style="color:var(--text-secondary);margin-top:10px;">This link has expired or has already been used.</p>

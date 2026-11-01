@@ -68,7 +68,8 @@ final class PasswordResetService
 
     public function reset(string $token, string $newPassword): bool
     {
-        if ($this->database->inTransaction()) return false;
+        if ($this->database->inTransaction() || !preg_match('/^[a-f0-9]{64}$/D', $token)
+            || PasswordPolicy::error($newPassword) !== null) return false;
         try {
             // Discovery only. Acceptance is re-read under user-first locks.
             $hash = hash('sha256', $token);

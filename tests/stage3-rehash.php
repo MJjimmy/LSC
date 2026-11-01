@@ -3,12 +3,13 @@ declare(strict_types=1);
 // In-memory fixture only, no bootstrap, sessions, provider, filesystem DB or email.
 require dirname(__DIR__) . '/app/Users/UserRepository.php';
 require dirname(__DIR__) . '/app/Users/AccountService.php';
+require dirname(__DIR__) . '/app/Users/PasswordPolicy.php';
 $db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
-$db->exec('CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE, password_hash TEXT, role TEXT, is_active INTEGER, avatar_path TEXT)');
+$db->exec('CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE, password_hash TEXT, role TEXT, is_active INTEGER, avatar_path TEXT, email_verified_at TEXT DEFAULT \'2026-01-01 00:00:00\')');
 $original = password_hash('SyntheticBefore123!', PASSWORD_BCRYPT, ['cost' => 4]);
 $current = password_hash('SyntheticAfter123!', PASSWORD_DEFAULT);
 $rehash = password_hash('SyntheticBefore123!', PASSWORD_DEFAULT);
-$db->prepare('INSERT INTO users VALUES (1, ?, ?, ?, ?, 1, NULL)')->execute(['Synthetic', 'rehash@example.invalid', $original, 'student']);
+$db->prepare('INSERT INTO users(user_id,name,email,password_hash,role,is_active,avatar_path) VALUES (1, ?, ?, ?, ?, 1, NULL)')->execute(['Synthetic', 'rehash@example.invalid', $original, 'student']);
 $repository = new LSC\Users\UserRepository($db);
 $failures = [];
 $db->prepare('UPDATE users SET password_hash = ? WHERE user_id = 1')->execute([$current]);

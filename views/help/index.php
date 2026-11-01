@@ -9,6 +9,7 @@
     </nav>
     <section class="help-section" id="account">
         <h2>Account &amp; sign-in</h2>
+        <p>Use a unique passphrase of at least 15 characters with uppercase and lowercase letters, a number and a special character (such as !, @ or #). After registration, open the verification email and choose your password to prove mailbox ownership. Existing password accounts must also verify before signing in. Use <a href="verify-email.php">Verify email / resend verification</a> if you need a new link. Links expire after one hour and can be used only once.</p>
         <ol><li>Choose <a href="register.php<?= $authSuffix ?>">Create an account</a> and complete the registration form.</li><li><a href="login.php<?= $authSuffix ?>">Sign in</a> using your LSC email and password. The dashboard opens after sign-in.</li><li>Use <a href="forgot-password.php<?= $authSuffix ?>">Forgot password</a> if you cannot remember your password. Check your inbox and spam folder for the reset email.</li></ol>
         <p><strong>Google:</strong> Continue with Google is available on sign-in and registration. If that email already belongs to a password-based LSC account and is not already connected to Google, sign in with your LSC password instead. Accounts are not automatically linked by matching email.</p>
     </section>
@@ -19,6 +20,7 @@
     </section>
     <section class="help-section" id="invitations">
         <h2>Invitations &amp; notifications</h2>
+        <p>Verify the invited email, sign in, and select <strong>Accept invitation</strong>. If you opened the link under the wrong account, select <strong>Sign in with another account</strong>; the invitation will be kept. An already accepted link offers <strong>Open group</strong>.</p>
         <ol><li>If you manage a group, open the group's member/invitation controls and enter the recipient's correct email address.</li><li>Recipients can open the invitation link and follow the sign-in or registration steps. Use the account matching the invited email.</li><li>Check <a href="notifications.php">Notifications</a> for in-app updates. In <a href="profile.php">My Profile</a>, enable Email notifications and save to receive eligible group invitation emails.</li></ol>
         <p>If an email does not arrive, allow a short time for processing, check spam/junk and verify the address. A created invitation does not guarantee inbox delivery. Ask the group creator for a fresh invitation if the link expired.</p>
     </section>

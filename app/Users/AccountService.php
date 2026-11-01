@@ -22,6 +22,12 @@ final class AccountService
         if ((int)$user['is_active'] !== 1) {
             return ['ok' => false, 'error' => 'Your account has been deactivated. Contact an administrator.'];
         }
+        if (empty($user['email_verified_at'])) {
+            return ['ok' => false, 'error' => 'Verify your email before signing in. Use the Verify email link below.'];
+        }
+        if (PasswordPolicy::error($password) !== null) {
+            return ['ok' => false, 'error' => 'Your password does not meet the security requirements. Use Forgot password. ' . PasswordPolicy::HELP];
+        }
         // Keep hashes current if the default algorithm or cost ever changes.
         if (password_needs_rehash($user['password_hash'], PASSWORD_DEFAULT)) {
             $replacement = password_hash($password, PASSWORD_DEFAULT);
@@ -50,11 +56,11 @@ final class AccountService
         if (!in_array($role, ['student', 'lecturer'], true)) {
             return ['ok' => false, 'error' => 'Please select Student or Lecturer.'];
         }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        if (strlen($email) > 150 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return ['ok' => false, 'error' => 'Please enter a valid email address.'];
         }
-        if (strlen($password) < 8) {
-            return ['ok' => false, 'error' => 'Password must be at least 8 characters.'];
+        if (($error = PasswordPolicy::error($password)) !== null) {
+            return ['ok' => false, 'error' => $error];
         }
         if ($password !== $confirmation) {
             return ['ok' => false, 'error' => 'Passwords do not match.'];

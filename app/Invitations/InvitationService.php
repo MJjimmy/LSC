@@ -71,38 +71,61 @@ final class InvitationService
             : ['ok' => false, 'error' => 'The invitation could not be created.'];
     }
 
+    public static function belongsTo(array $invite, int $userId, string $email): bool
+    {
+        if ($userId < 1 || $email === '') {
+            return false;
+        }
+        // Once tied to an existing account, email matching cannot transfer ownership.
+        return $invite['invited_user_id'] !== null
+            ? (int)$invite['invited_user_id'] === $userId
+            : strcasecmp(trim($invite['email']), trim($email)) === 0;
+    }
+
     public function accept(string $token, int $userId): array
     {
+        if (!preg_match('/^[a-f0-9]{64}$/D', $token) || $userId < 1) {
+            return ['ok' => false, 'error' => 'This invitation link is invalid.'];
+        }
         try {
             $this->database->beginTransaction();
             $invite = $this->invitations->lockForAcceptance($token, $userId);
-            $correctUser = $invite && (
-                (int)($invite['invited_user_id'] ?? 0) === $userId
-                || strtolower($invite['email']) === strtolower($invite['accepting_email'])
-            );
-            if (!$invite || $invite['status'] !== 'pending' || strtotime($invite['expires_at']) < time() || !$correctUser) {
+            if (!$invite || !self::belongsTo($invite, $userId, $invite['accepting_email'])) {
                 $this->database->rollBack();
-                return ['ok' => false, 'error' => 'This invitation is invalid, expired, or belongs to another account.'];
+                return ['ok' => false, 'error' => 'Sign in with the verified account that received this invitation.'];
             }
-
-            $this->groups->join((int)$invite['group_id'], $userId);
-            $this->invitations->markAccepted((int)$invite['invitation_id'], $userId);
+            $groupId = (int)$invite['group_id'];
+            if ($invite['status'] === 'accepted' && $this->groups->isMember($groupId, $userId)) {
+                $this->database->commit();
+                return ['ok' => true, 'group_id' => $groupId];
+            }
+            if ($invite['status'] !== 'pending' || !(bool)$invite['not_expired']) {
+                $this->database->rollBack();
+                return ['ok' => false, 'error' => 'This invitation has expired or is no longer available. Ask the group owner for a new link.'];
+            }
+            if (!$this->groups->join($groupId, $userId) || !$this->groups->isMember($groupId, $userId)
+                || !$this->invitations->markAccepted((int)$invite['invitation_id'], $userId)) {
+                throw new \RuntimeException('Invitation membership was not saved.');
+            }
             $this->database->commit();
-            $this->notifications->create(
-                (int)$invite['invited_by'],
-                'invite_accepted',
-                'Group invitation accepted',
-                'A new member joined ' . $invite['group_name'] . ' through your invitation.',
-                'group.php?id=' . (int)$invite['group_id'] . '&tab=members'
-            );
-            return ['ok' => true, 'group_id' => (int)$invite['group_id']];
         } catch (Throwable $exception) {
             if ($this->database->inTransaction()) {
                 $this->database->rollBack();
             }
-            error_log('InvitationService::accept failed: ' . $exception->getMessage());
-            return ['ok' => false, 'error' => 'The invitation could not be accepted.'];
+            error_log('InvitationService::accept failed: ' . get_class($exception));
+            return ['ok' => false, 'error' => 'The invitation could not be accepted. Please try again later.'];
         }
+        // Membership is already committed. A secondary notification must not turn success into failure.
+        try {
+            $this->notifications->create(
+                (int)$invite['invited_by'], 'invite_accepted', 'Group invitation accepted',
+                'A new member joined ' . $invite['group_name'] . ' through your invitation.',
+                'group.php?id=' . $groupId . '&tab=members'
+            );
+        } catch (Throwable) {
+            error_log('Invitation accepted; owner notification could not be saved.');
+        }
+        return ['ok' => true, 'group_id' => $groupId];
     }
 
     private function inviteUrl(string $token): string

@@ -85,11 +85,12 @@ final class TestDatabase extends PDO
 }
 $db = new TestDatabase('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
 $db->exec('PRAGMA foreign_keys = ON');
-$db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT UNIQUE, password_hash TEXT, role TEXT, is_active INTEGER DEFAULT 1, avatar_path TEXT)");
+$db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT UNIQUE, password_hash TEXT, role TEXT, is_active INTEGER DEFAULT 1, avatar_path TEXT, email_verified_at TEXT DEFAULT NULL)");
 $db->exec('CREATE TABLE oauth_identities (user_id INTEGER REFERENCES users(user_id), provider TEXT, subject TEXT, UNIQUE(provider, subject), UNIQUE(user_id, provider))');
 $accounts = new OAuthAccounts($db);
 $student = $accounts->resolve('google', $identity, null);
 check($student['role'] === 'student', 'Provider sign-up cannot create admins or lecturers.');
+check(!empty($student['email_verified_at']), 'Verified Google email marks its matching local email verified.');
 check(!password_verify('', $student['password_hash']), 'Provider accounts must not have an empty password.');
 check($accounts->resolve('google', $identity, null)['user_id'] === $student['user_id'], 'Repeat sign-in must resolve existing identity.');
 $second = ['subject' => 'google-second', 'email' => $identity['email'], 'name' => 'Student'];
@@ -137,6 +138,12 @@ OAuthProvider::begin('google', 'profile.php', 1);
 $state = $_SESSION['oauth_flow']['state'];
 unset($_SESSION['user_id']);
 rejects(fn() => OAuthProvider::consume('google', $state), 'Logout invalidates account linking.');
+
+// A linked provider must never verify a different local mailbox.
+$db->exec("INSERT INTO users(name,email,password_hash,role) VALUES('Pending','pending-local@example.com','fixture-password','student')");
+$pendingId = (int)$db->lastInsertId();
+rejects(fn() => $accounts->resolve('google', ['subject'=>'different-mailbox','email'=>'different@example.com','name'=>'Pending'], $pendingId, hash('sha256', 'fixture-password')), 'Different provider email cannot verify local mailbox.');
+check((int)$db->query("SELECT COUNT(*) FROM oauth_identities WHERE subject='different-mailbox'")->fetchColumn() === 0, 'Refused mailbox verification rolls back identity attachment.');
 
 // Source-wiring regression checks supplement, not replace, HTTP/MySQL tests.
 $route = file_get_contents(LSC_ROOT . '/public/oauth.php');

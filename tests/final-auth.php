@@ -17,12 +17,12 @@ class AuthCommitFixture extends PDO {
     }
 }
 $db = new AuthCommitFixture('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
-$db->exec('CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT, password_hash TEXT, role TEXT, is_active INTEGER, avatar_path TEXT)');
+$db->exec('CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT, password_hash TEXT, role TEXT, is_active INTEGER, avatar_path TEXT, email_verified_at TEXT DEFAULT \'2026-01-01 00:00:00\')');
 $db->exec('CREATE TABLE app_auth_codes (code_hash CHAR(64) PRIMARY KEY, challenge CHAR(64), user_id INTEGER, expires_at INTEGER)');
 $db->exec('CREATE TABLE rate_limits (rl_key TEXT PRIMARY KEY, attempts INTEGER, expires_at TEXT)');
 $old = password_hash('SyntheticBefore123!', PASSWORD_DEFAULT);
 $new = password_hash('SyntheticAfter123!', PASSWORD_DEFAULT);
-$db->prepare('INSERT INTO users VALUES(1, ?, ?, ?, ?, 1, NULL)')->execute(['Synthetic', 'offline@example.invalid', $old, 'student']);
+$db->prepare('INSERT INTO users(user_id,name,email,password_hash,role,is_active,avatar_path) VALUES(1, ?, ?, ?, ?, 1, NULL)')->execute(['Synthetic', 'offline@example.invalid', $old, 'student']);
 $auth = new LSC\Core\Auth($db);
 $app = new LSC\Users\AppSignIn($db);
 $passed = $failed = 0;

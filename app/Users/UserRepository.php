@@ -38,7 +38,7 @@ final class UserRepository
     public function findByEmail(string $email): array|false
     {
         $statement = $this->database->prepare(<<<'SQL'
-            SELECT user_id, name, email, password_hash, role, is_active, avatar_path
+            SELECT user_id, name, email, password_hash, role, is_active, avatar_path, email_verified_at
             FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1
             SQL);
         $statement->execute([trim($email)]);
@@ -49,7 +49,7 @@ final class UserRepository
     {
         try {
             return $this->database->prepare(
-                'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)'
+                'INSERT INTO users (name, email, password_hash, role, email_verified_at) VALUES (?, ?, ?, ?, NULL)'
             )->execute([$name, $email, $passwordHash, $role]);
         } catch (PDOException $exception) {
             error_log('UserRepository::create failed: ' . $exception->getMessage());

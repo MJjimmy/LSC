@@ -41,7 +41,7 @@ final class UiFixturePDO extends PDO
     }
 }
 $db = new UiFixturePDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
-$db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT, role TEXT, is_active INTEGER, avatar_path TEXT, password_hash TEXT);
+$db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEXT, role TEXT, is_active INTEGER, avatar_path TEXT, password_hash TEXT, email_verified_at TEXT DEFAULT '2026-01-01 00:00:00');
     CREATE TABLE study_groups (group_id INTEGER PRIMARY KEY, group_name TEXT, description TEXT, created_by INTEGER, is_private INTEGER);
     CREATE TABLE group_members (group_id INTEGER, user_id INTEGER, joined_at TEXT DEFAULT CURRENT_TIMESTAMP, UNIQUE(group_id,user_id));
     CREATE TABLE group_join_requests (request_id INTEGER PRIMARY KEY, group_id INTEGER, user_id INTEGER, requested_at TEXT DEFAULT CURRENT_TIMESTAMP);
@@ -50,7 +50,7 @@ $db->exec("CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT, email TEX
     CREATE TABLE messages (id INTEGER PRIMARY KEY, group_id INTEGER, user_id INTEGER, message TEXT, file_id INTEGER, created_at TEXT DEFAULT CURRENT_TIMESTAMP);
     CREATE TABLE notifications (notification_id INTEGER PRIMARY KEY, user_id INTEGER, type TEXT, title TEXT, body TEXT, link TEXT);
     CREATE TABLE rate_limits (rl_key TEXT PRIMARY KEY, attempts INTEGER, expires_at TEXT);
-    INSERT INTO users VALUES (1,'Creator','creator@example.invalid','student',1,NULL,'synthetic-proof-only'),
+    INSERT INTO users(user_id,name,email,role,is_active,avatar_path,password_hash) VALUES (1,'Creator','creator@example.invalid','student',1,NULL,'synthetic-proof-only'),
         (2,'Leaving learner','learner@example.invalid','student',1,NULL,'synthetic-proof-only'),
         (3,'Other member','member@example.invalid','lecturer',1,NULL,'synthetic-proof-only'),
         (4,'Site administrator','admin@example.invalid','admin',1,NULL,'synthetic-proof-only'),

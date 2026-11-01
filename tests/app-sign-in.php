@@ -23,9 +23,9 @@ ini_set('session.use_cookies', '0');
 session_start();
 $db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
 $db->exec('PRAGMA foreign_keys = ON');
-$db->exec('CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT NOT NULL, role TEXT NOT NULL, avatar_path TEXT, is_active INTEGER NOT NULL, password_hash TEXT NOT NULL)');
+$db->exec('CREATE TABLE users (user_id INTEGER PRIMARY KEY, name TEXT NOT NULL, role TEXT NOT NULL, avatar_path TEXT, is_active INTEGER NOT NULL, password_hash TEXT NOT NULL, email_verified_at TEXT)');
 $proof = password_hash('SyntheticOnly123!', PASSWORD_DEFAULT);
-$db->prepare("INSERT INTO users VALUES (1, 'Teacher', 'teacher', NULL, 1, ?), (2, 'Inactive', 'admin', NULL, 0, ?)")->execute([$proof, $proof]);
+$db->prepare("INSERT INTO users VALUES (1, 'Teacher', 'teacher', NULL, 1, ?, '2026-01-01 00:00:00'), (2, 'Inactive', 'admin', NULL, 0, ?, '2026-01-01 00:00:00')")->execute([$proof, $proof]);
 $db->exec('CREATE TABLE app_auth_codes (code_hash CHAR(64) PRIMARY KEY, challenge CHAR(64) NOT NULL, user_id INTEGER NOT NULL REFERENCES users(user_id), expires_at BIGINT NOT NULL)');
 $service = new LSC\Users\AppSignIn($db);
 $checks = 0;
@@ -120,6 +120,11 @@ $inactive = str_repeat('e', 64);
 $insert->execute([hash('sha256', $inactive), $challenge, 2, time() + 120]);
 $reject(fn() => $service->exchange($inactive, $verifier), 'inactive user');
 $assert(!$db->inTransaction(), 'failed exchanges roll back');
+$unverifiedCode = str_repeat('f', 64);
+$db->exec('UPDATE users SET email_verified_at = NULL WHERE user_id = 1');
+$insert->execute([hash('sha256', $unverifiedCode), $challenge, 1, time() + 120]);
+$reject(fn() => $service->exchange($unverifiedCode, $verifier), 'unverified account cannot exchange native code');
+$db->exec("UPDATE users SET email_verified_at = '2026-01-01 00:00:00' WHERE user_id = 1");
 
 // Source/template checks are supplementary: no HTTP/MySQL behavior is inferred.
 function csrfToken(): string { return LSC\Core\Csrf::token(); }

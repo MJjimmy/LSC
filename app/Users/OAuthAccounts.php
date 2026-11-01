@@ -62,7 +62,7 @@ final class OAuthAccounts
                     throw new RuntimeException('An LSC account already uses this email. Sign in with your LSC email and password. If needed, use Forgot password on the sign-in page.');
                 }
                 $statement = $this->database->prepare(
-                    "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'student')"
+                    "INSERT INTO users (name, email, password_hash, role, email_verified_at) VALUES (?, ?, ?, 'student', NULL)"
                 );
                 $statement->execute([$identity['name'], $identity['email'], password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT)]);
                 $user = (new UserRepository($this->database))->findByEmail($identity['email']);
@@ -70,6 +70,17 @@ final class OAuthAccounts
             }
             if ((int)$user['is_active'] !== 1) {
                 throw new RuntimeException('Your account has been deactivated. Contact an administrator.');
+            }
+            // Identity comes from OAuthProvider::exchange, which requires Google's verified email.
+            // Never verify a different local email or implicitly link by email alone.
+            if (empty($user['email_verified_at']) && strcasecmp($user['email'], $identity['email']) === 0) {
+                $verifiedAt = gmdate('Y-m-d H:i:s');
+                $this->database->prepare('UPDATE users SET email_verified_at = ? WHERE user_id = ?')
+                    ->execute([$verifiedAt, (int)$user['user_id']]);
+                $user['email_verified_at'] = $verifiedAt;
+            }
+            if (empty($user['email_verified_at'])) {
+                throw new RuntimeException('Verify your LSC email using Verify email on the sign-in page.');
             }
             $this->database->commit();
             return $user;

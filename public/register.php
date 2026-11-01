@@ -13,4 +13,5 @@ use LSC\Users\UserRepository;
 $database = Database::connection();
 $users = new UserRepository($database);
 $limiter = new RateLimiter($database);
-(new AccountController(new Auth($database), new AccountService($users), new PasswordResetService($database), $limiter))->register();
+(new AccountController(new Auth($database), new AccountService($users), new PasswordResetService($database), $limiter,
+    emailVerification: new \LSC\Users\EmailVerificationService($database, new \LSC\Notifications\ResendMailer())))->register();

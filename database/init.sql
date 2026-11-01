@@ -219,6 +219,7 @@ CREATE TABLE `users` (
   `password_hash` varchar(255) NOT NULL,
   `role` enum('student','lecturer','admin') NOT NULL DEFAULT 'student',
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `email_verified_at` datetime DEFAULT NULL,
   `bio` text DEFAULT NULL,
   `institution` varchar(150) DEFAULT NULL,
   `course` varchar(150) DEFAULT NULL,
@@ -417,6 +418,19 @@ ALTER TABLE `study_groups`
 ALTER TABLE `tasks`
   ADD CONSTRAINT `tasks_ibfk_1` FOREIGN KEY (`group_id`) REFERENCES `study_groups` (`group_id`) ON DELETE CASCADE,
   ADD CONSTRAINT `tasks_ibfk_2` FOREIGN KEY (`assigned_to`) REFERENCES `users` (`user_id`);
+
+CREATE TABLE `email_verification_tokens` (
+  `token_hash` char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `email` varchar(150) NOT NULL,
+  `credential_hash` char(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  `expires_at` bigint unsigned NOT NULL,
+  `next_path` varchar(500) NOT NULL DEFAULT 'dashboard.php',
+  PRIMARY KEY (`token_hash`),
+  KEY `idx_verification_user` (`user_id`),
+  KEY `idx_verification_expiry` (`expires_at`),
+  CONSTRAINT `fk_email_verification_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 COMMIT;
 

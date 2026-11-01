@@ -53,7 +53,7 @@ final class InvitationRepository
     public function findByToken(string $token): array|false
     {
         $statement = $this->database->prepare(<<<'SQL'
-            SELECT gi.*, sg.group_name, sg.description, inviter.name AS inviter_name
+            SELECT gi.*, (gi.expires_at > CURRENT_TIMESTAMP) AS not_expired, sg.group_name, sg.description, inviter.name AS inviter_name
             FROM group_invitations gi
             JOIN study_groups sg ON sg.group_id = gi.group_id
             JOIN users inviter ON inviter.user_id = gi.invited_by
@@ -66,9 +66,9 @@ final class InvitationRepository
     public function lockForAcceptance(string $token, int $userId): array|false
     {
         $statement = $this->database->prepare(<<<'SQL'
-            SELECT gi.*, u.email AS accepting_email, sg.group_name
+            SELECT gi.*, (gi.expires_at > CURRENT_TIMESTAMP) AS not_expired, u.email AS accepting_email, sg.group_name
             FROM group_invitations gi
-            JOIN users u ON u.user_id = ?
+            JOIN users u ON u.user_id = ? AND u.is_active = 1 AND u.email_verified_at IS NOT NULL
             JOIN study_groups sg ON sg.group_id = gi.group_id
             WHERE gi.token = ? FOR UPDATE
             SQL);
@@ -76,10 +76,19 @@ final class InvitationRepository
         return $statement->fetch();
     }
 
+    public function userEmail(int $userId): string
+    {
+        $query = $this->database->prepare('SELECT email FROM users WHERE user_id = ? AND is_active = 1 AND email_verified_at IS NOT NULL');
+        $query->execute([$userId]);
+        return (string)$query->fetchColumn();
+    }
+
     public function markAccepted(int $invitationId, int $userId): bool
     {
-        return $this->database->prepare(<<<'SQL'
-            UPDATE group_invitations SET status = 'accepted', invited_user_id = ? WHERE invitation_id = ?
-            SQL)->execute([$userId, $invitationId]);
+        $statement = $this->database->prepare(<<<'SQL'
+            UPDATE group_invitations SET status = 'accepted', invited_user_id = ? WHERE invitation_id = ? AND status = 'pending'
+            SQL);
+        $statement->execute([$userId, $invitationId]);
+        return $statement->rowCount() === 1;
     }
 }

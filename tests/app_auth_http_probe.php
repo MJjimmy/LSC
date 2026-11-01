@@ -23,9 +23,33 @@ function field(string $html,string $name):string {
 }
 [$status,,$html]=request('/register.php?app=android');check($status===200,'Registration GET');
 check(str_contains($html,'href="lscapp://google"'),'Registration uses native Google trigger');
-$password=bin2hex(random_bytes(16));$email='app-http-fixture@example.invalid';
+$password='Aa7!'.bin2hex(random_bytes(16));$email='app-http-fixture@example.invalid';
 [$status,$headers]=request('/register.php?app=android',['csrf_token'=>field($html,'csrf_token'),'name'=>'Android HTTP fixture','email'=>$email,'password'=>$password,'confirm_password'=>$password,'role'=>'student']);
-check(in_array($status,[302,303],true) && str_contains($headers,'Location: login.php'),'Actual registration POST succeeds');
+// This isolated web fixture deliberately has an HTTP APP_URL, not a usable verification sender.
+// The controller must refuse account creation rather than allow an unverified sign-in.
+check($status===200,'Registration fails closed when verification delivery is unavailable');
+require_once '/app/config/bootstrap.php';
+$db=LSC\Core\Database::connection();
+$accounts=new LSC\Users\AccountService(new LSC\Users\UserRepository($db));
+check($accounts->register('Android HTTP fixture',$email,$password,$password,'student')['ok'],'Fixture account created through registration service');
+[$status,,$html]=request('/login.php?app=android');
+[$status,,$blocked]=request('/login.php?app=android',['csrf_token'=>field($html,'csrf_token'),'email'=>$email,'password'=>$password]);
+check($status===200 && str_contains($blocked,'Verify your email before signing in'),'Real HTTP login rejects the unverified fixture account');
+// Exercise mailbox verification using an injected fixture transport in this CLI process only.
+// No provider request, bypass endpoint, or direct verified-flag update is added.
+$previousUrl=getenv('APP_URL');
+putenv('APP_URL=https://fixture.example.invalid');
+$verificationToken=null;
+$mailer=new LSC\Notifications\ResendMailer(function($url,$payload,$headers)use(&$verificationToken){
+    $mail=json_decode($payload,true);
+    preg_match('/token=([a-f0-9]{64})/',$mail['text'],$match);
+    $verificationToken=$match[1]??null;
+    return ['status'=>200,'body'=>'{"id":"fixture-verification"}','network_error'=>false];
+});
+$verification=new LSC\Users\EmailVerificationService($db,$mailer);
+check($verification->request($email) && is_string($verificationToken),'Verification service sends through fixture transport');
+check($verification->verify($verificationToken,$password,$password)['ok'],'Fixture proves email ownership through verification service');
+putenv($previousUrl===false?'APP_URL':'APP_URL='.$previousUrl);
 [$status,,$html]=request('/login.php?app=android');check($status===200,'Sign-in GET');
 [$status,$headers]=request('/login.php?app=android',['csrf_token'=>field($html,'csrf_token'),'email'=>$email,'password'=>$password,'next'=>'dashboard.php']);
 check(in_array($status,[302,303],true) && str_contains($headers,'Location: dashboard.php'),'Actual password sign-in succeeds');
@@ -72,7 +96,7 @@ $anonymousIntent=field($newHtml,'intent_id');
 check($status===303 && preg_match('/^Location: (https:\/\/accounts\.google\.com\/[^\r\n]+)\r?$/m',$anonymousHeaders,$anonymousLocation)===1,'Valid anonymous confirmation redirects to Google without following it');
 parse_str((string)parse_url($anonymousLocation[1],PHP_URL_QUERY),$anonymousQuery);
 // Complete only the trusted callback hook in this isolated fixture; no real Google exchange is claimed.
-require '/app/config/bootstrap.php';
+require_once '/app/config/bootstrap.php';
 $db=LSC\Core\Database::connection();$s=$db->prepare('SELECT user_id,role FROM users WHERE email = ?');$s->execute([$email]);$user=$s->fetch(PDO::FETCH_ASSOC);
 check(is_array($user) && $user['role']==='student','Registration stored the correct authoritative role');
 $anonymousSessionId=null;
@@ -130,4 +154,4 @@ check(str_contains($html,'id="invitations"') && str_contains($html,'id="android"
 $db->prepare('DELETE FROM app_auth_codes WHERE user_id = ?')->execute([$user['user_id']]);
 $db->prepare('DELETE FROM users WHERE user_id = ? AND email = ?')->execute([$user['user_id'],$email]);
 echo "APP_AUTH_CSRF_FAILURES={$appCsrfFailures}\n";
-echo "PASS: {$n} real HTTP registration/password-login/browser-confirmation/native-exchange checks on a disposable database; no real Google exchange or email.\n";
+echo "PASS: {$n} real HTTP verification-gate/password-login/browser-confirmation/native-exchange checks on a disposable database; no real Google exchange or email.\n";

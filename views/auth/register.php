@@ -41,7 +41,7 @@
     </div>
 
     <div class="auth-field">
-        <input type="password" name="password" placeholder="Password (min 8 chars)"
+        <input type="password" name="password" placeholder="Passphrase (15+ characters)" minlength="15" autocomplete="new-password"
                class="auth-input" required>
     </div>
 
@@ -50,6 +50,7 @@
                class="auth-input" required>
     </div>
 
+    <p class="auth-card-sub"><?= htmlspecialchars(\LSC\Users\PasswordPolicy::HELP) ?></p>
     <button type="submit" class="auth-btn">Create Account</button>
 
 </form>

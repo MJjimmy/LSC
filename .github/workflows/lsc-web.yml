@@ -3,7 +3,7 @@ name: LSC Web Release
 # Railway owns production deployment after this complete workflow succeeds.
 on:
   push:
-    branches: [ui-fix, deploy/railpack]
+    branches: [ui-fix, deploy/railpack, fix/verified-email-password-invitations]
   pull_request:
     branches: [deploy/railpack]
 
@@ -73,6 +73,11 @@ jobs:
           fetch-depth: 0
       - name: Authentication, reset, Google linking and Leave group fixtures
         run: python -I tests/final-auth-runner.py stage3-rehash.php final-auth.php final-auth-controllers.php app-sign-in.php security_csrf_regression.php security_scalar_boundary.php google-sign-in.php resend-mailer.php resend-worker.php resend-password-reset.php help-profile.php oauth-link-revocation.php ui-fix.php
+      - name: Email verification, password policy and invitation regressions (synthetic data only)
+        run: |
+          php tests/password-policy.php
+          php tests/auth-invitations.php
+          python -I tests/auth_invitations_http_test.py "$(command -v php)" "$RUNNER_TEMP"
       - name: Administrator, profile, task membership and CSRF boundaries
         run: python -I tests/admin-guarded-regressions.py
       - name: Navigation, task filters and light-only theme

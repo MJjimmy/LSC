@@ -16,7 +16,8 @@ final class AccountController
         private readonly AccountService $accounts,
         private readonly PasswordResetService $passwordResets,
         private readonly RateLimiter $limiter,
-        private readonly ?ResendMailer $mailer = null
+        private readonly ?ResendMailer $mailer = null,
+        private readonly ?EmailVerificationService $emailVerification = null
     ) {
     }
 
@@ -73,19 +74,24 @@ final class AccountController
                 $wait = $this->limiter->availableInSeconds($ipKey);
                 $error = 'Too many signup attempts from this connection. Try again in ' . RateLimiter::humanDuration($wait) . '.';
             } else {
-                $result = $this->accounts->register(
-                    (string)($_POST['name'] ?? ''),
-                    (string)($_POST['email'] ?? ''),
-                    (string)($_POST['password'] ?? ''),
-                    (string)($_POST['confirm_password'] ?? ''),
-                    (string)($_POST['role'] ?? '')
-                );
-                if ($result['ok']) {
-                    $next = $this->auth->safeLocalRedirect($_POST['next'] ?? $_GET['next'] ?? null);
-                    header('Location: login.php?registered=1&next=' . rawurlencode($next));
-                    exit;
+                if ($this->emailVerification === null || !$this->emailVerification->available()) {
+                    $error = 'Signup is temporarily unavailable because verification email is not configured.';
+                } else {
+                    $result = $this->accounts->register(
+                        (string)($_POST['name'] ?? ''),
+                        (string)($_POST['email'] ?? ''),
+                        (string)($_POST['password'] ?? ''),
+                        (string)($_POST['confirm_password'] ?? ''),
+                        (string)($_POST['role'] ?? '')
+                    );
+                    if ($result['ok']) {
+                        $next = $this->auth->safeLocalRedirect($_POST['next'] ?? $_GET['next'] ?? null);
+                        $this->emailVerification->request((string)($_POST['email'] ?? ''), $next);
+                        header('Location: verify-email.php?registered=1&next=' . rawurlencode($next));
+                        exit;
+                    }
+                    $error = $result['error'];
                 }
-                $error = $result['error'];
             }
         }
         ob_start();
@@ -142,8 +148,8 @@ final class AccountController
 
     public function resetPassword(): void
     {
-        $token = preg_replace('/[^a-f0-9]/i', '', (string)($_GET['token'] ?? $_POST['token'] ?? ''));
-        $error = strlen($token) === 64 ? '' : 'This reset link is invalid.';
+        $token = (string)($_POST['token'] ?? $_GET['token'] ?? '');
+        $error = preg_match('/^[a-f0-9]{64}$/D', $token) ? '' : 'This reset link is invalid.';
         $success = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && $error === '') {
             Csrf::verify();
@@ -155,13 +161,13 @@ final class AccountController
             } else {
                 $password = (string)($_POST['password'] ?? '');
                 $confirmation = (string)($_POST['confirm_password'] ?? '');
-                if (strlen($password) < 8) {
-                    $error = 'Password must be at least 8 characters.';
+                if (($policyError = PasswordPolicy::error($password)) !== null) {
+                    $error = $policyError;
                 } elseif ($password !== $confirmation) {
                     $error = 'Passwords do not match.';
                 } elseif ($this->passwordResets->reset($token, $password)) {
                     $this->limiter->clear($ipKey);
-                    $success = 'Password updated. You can now sign in.';
+                    $success = 'Password updated. Sign in after verifying your email if you have not already done so.';
                 } else {
                     $this->limiter->hit($ipKey, 3600);
                     $error = 'This reset link has expired or has already been used.';
