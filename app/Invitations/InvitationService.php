@@ -33,42 +33,64 @@ final class InvitationService
             return ['ok' => false, 'error' => 'That person is already a group member.'];
         }
 
-        $invitedUserId = $this->invitations->activeUserIdByEmail($email);
-        $token = bin2hex(random_bytes(32));
-        $this->invitations->declinePending($groupId, $email);
-        $ok = $this->invitations->create($groupId, $invitedBy, $invitedUserId ?: null, $email, $token);
-
-        if ($ok && $invitedUserId) {
-            $this->notifications->create(
-                $invitedUserId,
-                'group_invite',
-                'You were invited to a study group',
+        if ($this->database->inTransaction()) {
+            return ['ok' => false, 'error' => 'The invitation could not be created.'];
+        }
+        try {
+            $this->database->beginTransaction();
+            // Serialize resends and recheck the acting account, not submitted role data.
+            $actor = $this->database->prepare('SELECT role FROM users WHERE user_id = ? AND is_active = 1 FOR UPDATE');
+            $actor->execute([$invitedBy]);
+            $actorRole = $actor->fetchColumn();
+            $owner = $this->database->prepare('SELECT created_by FROM study_groups WHERE group_id = ? FOR UPDATE');
+            $owner->execute([$groupId]);
+            $creator = $owner->fetchColumn();
+            if ($actorRole === false || $creator === false
+                || ($actorRole !== 'admin' && (int)$creator !== $invitedBy)) {
+                $this->database->rollBack();
+                return ['ok' => false, 'error' => 'Only the group creator or an administrator may invite members.'];
+            }
+            if ($this->invitations->memberWithEmail($groupId, $email)) {
+                $this->database->rollBack();
+                return ['ok' => false, 'error' => 'That person is already a group member.'];
+            }
+            $invitedUserId = $this->invitations->activeUserIdByEmail($email);
+            $pending = $this->invitations->findPending($groupId, $email);
+            if ($pending) {
+                // Delayed/earlier emails must remain usable until real expiry or acceptance.
+                $token = $pending['token'];
+            } else {
+                $token = bin2hex(random_bytes(32));
+                $this->invitations->declinePending($groupId, $email);
+                if (!$this->invitations->create($groupId, $invitedBy, $invitedUserId ?: null, $email, $token)) {
+                    throw new \RuntimeException('Invitation persistence failed.');
+                }
+            }
+            if ($invitedUserId && !$this->notifications->create(
+                $invitedUserId, 'group_invite', 'You were invited to a study group',
                 'Open the invitation to join ' . $this->groups->groupName($groupId) . '.',
                 'invite.php?token=' . $token
-            );
-        }
-
-        // Outbound email goes through the notification queue. Registered
-        // users receive it on the channels they enabled (profile >
-        // Notifications); unregistered people are always emailed - the link
-        // is how they find out an LSC account is waiting for them.
-        if ($ok) {
+            )) {
+                throw new \RuntimeException('Invitation notification failed.');
+            }
+            // Queueing is a database operation, not an inline provider request.
+            // Preserve the recipient's channel preferences and existing worker safeguards.
             $groupName = $this->groups->groupName($groupId);
-            $inviteUrl = $this->inviteUrl($token);
             $subject = "You've been invited to join {$groupName} on LSC";
             $body = "You were invited to join the study group \"{$groupName}\" on LSC.\n\n"
-                . "Open this link to accept: {$inviteUrl}\n\n"
-                . "If you weren't expecting this, you can ignore this email.";
-            if ($invitedUserId) {
-                $this->dispatcher->queueForUser($invitedUserId, $subject, $body);
-            } else {
-                $this->dispatcher->queueEmail($email, $subject, $body);
-            }
+                . 'Open this link to accept: ' . $this->inviteUrl($token) . "\n\n"
+                . 'If you were not expecting this, you can ignore this email.';
+            $queued = $invitedUserId
+                ? $this->dispatcher->queueForUser($invitedUserId, $subject, $body)
+                : $this->dispatcher->queueEmail($email, $subject, $body);
+            $this->database->commit();
+            return ['ok' => true, 'token' => $token, 'registered' => (bool)$invitedUserId,
+                'reused' => (bool)$pending, 'delivery_queued' => $queued];
+        } catch (Throwable) {
+            if ($this->database->inTransaction()) $this->database->rollBack();
+            error_log('InvitationService::create failed.');
+            return ['ok' => false, 'error' => 'The invitation could not be created. Please try again.'];
         }
-
-        return $ok
-            ? ['ok' => true, 'token' => $token, 'registered' => (bool)$invitedUserId]
-            : ['ok' => false, 'error' => 'The invitation could not be created.'];
     }
 
     public function accept(string $token, int $userId): array
