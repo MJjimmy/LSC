@@ -21,7 +21,12 @@ try {
             }
         }
     }
+    // Railway exports the mount path itself; Render does not, so the
+    // blueprint sets LSC_UPLOAD_VOLUME_PATH to the same fixed path.
     $mount = getenv('RAILWAY_VOLUME_MOUNT_PATH');
+    if ($mount === false || $mount === '') {
+        $mount = getenv('LSC_UPLOAD_VOLUME_PATH');
+    }
     if ($mount !== false && $mount !== '') {
         $path = '/app/storage/uploads';
         if ($mount !== $path || is_link($path) || realpath($path) !== $path || !is_dir($path)) {

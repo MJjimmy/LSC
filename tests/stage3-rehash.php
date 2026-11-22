@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 // In-memory fixture only, no bootstrap, sessions, provider, filesystem DB or email.
+require dirname(__DIR__) . '/app/Core/SqlDialect.php';
 require dirname(__DIR__) . '/app/Users/UserRepository.php';
 require dirname(__DIR__) . '/app/Users/AccountService.php';
 $db = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LSC\Invitations;
 
+use LSC\Core\SqlDialect;
 use PDO;
 
 final class InvitationRepository
@@ -55,11 +56,11 @@ final class InvitationRepository
 
     public function create(int $groupId, int $invitedBy, ?int $invitedUserId, string $email, string $token): bool
     {
-        $statement = $this->database->prepare(<<<'SQL'
-            INSERT INTO group_invitations
+        $statement = $this->database->prepare(
+            'INSERT INTO group_invitations
                 (group_id, invited_by, invited_user_id, email, token, expires_at)
-            VALUES (?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))
-            SQL);
+            VALUES (?, ?, ?, ?, ?, ' . SqlDialect::plusDays($this->database, 7) . ')'
+        );
         return $statement->execute([$groupId, $invitedBy, $invitedUserId, $email, $token]);
     }
 

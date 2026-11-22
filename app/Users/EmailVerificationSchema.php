@@ -10,8 +10,9 @@ final class EmailVerificationSchema
 {
     public static function prepare(PDO $db): void
     {
-        $driver=$db->getAttribute(PDO::ATTR_DRIVER_NAME);
-        if ($driver==='sqlite') { self::sqlite($db); return; }
+        $driver=\LSC\Core\SqlDialect::driver($db);
+        if ($driver===\LSC\Core\SqlDialect::SQLITE) { self::sqlite($db); return; }
+        if ($driver===\LSC\Core\SqlDialect::PGSQL) { self::postgres($db); return; }
         if ($driver!=='mysql') throw new RuntimeException('Unsupported verification schema driver.');
         $schema=(string)$db->query('SELECT DATABASE()')->fetchColumn();
         if ($schema==='') throw new RuntimeException('Existing schema required.');
@@ -61,6 +62,105 @@ final class EmailVerificationSchema
         $q->execute([$schema,'email_verification_tokens']); $foreign=[];
         foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r) $foreign[$r['CONSTRAINT_NAME']][]=[$r['COLUMN_NAME'],$r['REFERENCED_TABLE_SCHEMA'],$r['REFERENCED_TABLE_NAME'],$r['REFERENCED_COLUMN_NAME']];
         if (!in_array([['user_id',$schema,'users','user_id']],$foreign,true)) throw new RuntimeException('Verification token foreign key mismatch.');
+    }
+
+    /**
+     * Postgres port of the checks above. Same contract: additive only, and an
+     * existing table that does not match is refused instead of repaired.
+     */
+    private static function postgres(PDO $db): void
+    {
+        $columns = static function (string $table) use ($db): array {
+            $query = $db->prepare(
+                'SELECT column_name, data_type, is_nullable, column_default, character_maximum_length
+                 FROM information_schema.columns
+                 WHERE table_schema = current_schema() AND table_name = ?'
+            );
+            $query->execute([$table]);
+            $result = [];
+            foreach ($query->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                $result[$row['column_name']] = $row;
+            }
+            return $result;
+        };
+
+        $users = $columns('users');
+        if (!isset($users['user_id'], $users['email'])) {
+            throw new RuntimeException('Existing users required.');
+        }
+        if (!isset($users['email_verified_at'])) {
+            $db->exec('ALTER TABLE users ADD COLUMN email_verified_at timestamp NULL DEFAULT NULL');
+            $users = $columns('users');
+        }
+        $verified = $users['email_verified_at'] ?? [];
+        if (($verified['data_type'] ?? '') !== 'timestamp without time zone'
+            || ($verified['is_nullable'] ?? '') !== 'YES'
+            || ($verified['column_default'] ?? null) !== null) {
+            throw new RuntimeException('Ownership column mismatch.');
+        }
+
+        $userIdType = (string)($users['user_id']['data_type'] ?? '');
+        if (!in_array($userIdType, ['smallint', 'integer', 'bigint'], true)) {
+            throw new RuntimeException('Existing user key required.');
+        }
+
+        $db->exec("CREATE TABLE IF NOT EXISTS email_verification_tokens (
+            token_hash char(64) NOT NULL,
+            user_id {$userIdType} NOT NULL REFERENCES users(user_id),
+            email_hash char(64) NOT NULL,
+            expires_at bigint NOT NULL,
+            used_at timestamp NULL DEFAULT NULL,
+            CONSTRAINT pk_email_verification_tokens PRIMARY KEY (token_hash)
+        )");
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_email_verification_user ON email_verification_tokens(user_id)');
+        $db->exec('CREATE INDEX IF NOT EXISTS idx_email_verification_expiry ON email_verification_tokens(expires_at)');
+
+        $tokens = $columns('email_verification_tokens');
+        foreach (['token_hash' => 'character', 'email_hash' => 'character'] as $name => $type) {
+            $column = $tokens[$name] ?? [];
+            if (($column['data_type'] ?? '') !== $type
+                || (int)($column['character_maximum_length'] ?? 0) !== 64
+                || ($column['is_nullable'] ?? '') !== 'NO') {
+                throw new RuntimeException('Verification hash column mismatch.');
+            }
+        }
+        if (($tokens['user_id']['data_type'] ?? '') !== $userIdType || ($tokens['user_id']['is_nullable'] ?? '') !== 'NO'
+            || ($tokens['expires_at']['data_type'] ?? '') !== 'bigint' || ($tokens['expires_at']['is_nullable'] ?? '') !== 'NO'
+            || ($tokens['used_at']['data_type'] ?? '') !== 'timestamp without time zone'
+            || ($tokens['used_at']['is_nullable'] ?? '') !== 'YES'
+            || ($tokens['used_at']['column_default'] ?? null) !== null) {
+            throw new RuntimeException('Verification token column mismatch.');
+        }
+
+        $primary = $db->query(
+            "SELECT a.attname
+             FROM pg_index i
+             JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY (i.indkey)
+             WHERE i.indrelid = 'email_verification_tokens'::regclass AND i.indisprimary"
+        )->fetchAll(PDO::FETCH_COLUMN);
+        if ($primary !== ['token_hash']) {
+            throw new RuntimeException('Verification token key mismatch.');
+        }
+
+        $foreign = $db->query(
+            "SELECT kcu.column_name AS local_column, ccu.table_name AS target_table,
+                    ccu.column_name AS target_column
+             FROM information_schema.table_constraints tc
+             JOIN information_schema.key_column_usage kcu
+               ON tc.constraint_name = kcu.constraint_name AND tc.table_schema = kcu.table_schema
+             JOIN information_schema.constraint_column_usage ccu
+               ON ccu.constraint_name = tc.constraint_name AND ccu.table_schema = tc.table_schema
+             WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = current_schema()
+               AND tc.table_name = 'email_verification_tokens'"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        $key = $foreign[0] ?? [];
+        $foreignCorrect = count($foreign) === 1
+            && ($key['local_column'] ?? '') === 'user_id'
+            && ($key['target_table'] ?? '') === 'users'
+            && ($key['target_column'] ?? '') === 'user_id';
+        if (!$foreignCorrect) {
+            throw new RuntimeException('Verification token foreign key mismatch.');
+        }
     }
 
     private static function sqlite(PDO $db): void

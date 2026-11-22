@@ -1,41 +1,53 @@
 version: "3.9"
 
+# Local development database for LSC.
+#
+# Production uses a managed Postgres instance (Render). This stack mirrors it
+# so dialect problems show up locally instead of after deployment.
+#
+#   docker compose -f database/docker-compose.yml up -d
+#   PGHOST=127.0.0.1 PGPORT=5432 PGDATABASE=lsc_db PGUSER=lsc_user \
+#       PGPASSWORD=lsc_pass PGSSLMODE=disable php -S 0.0.0.0:8000 -t public
+
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: lsc_mysql
+  postgres:
+    image: postgres:16
+    container_name: lsc_postgres
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: lsc_db
-      MYSQL_USER: lsc_user
-      MYSQL_PASSWORD: lsc_pass
+      POSTGRES_DB: lsc_db
+      POSTGRES_USER: lsc_user
+      POSTGRES_PASSWORD: lsc_pass
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
-      # init.sql is the complete consolidated schema (see README > Database setup)
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+      # init-postgres.sql is the complete consolidated schema (see README).
+      - ./init-postgres.sql:/docker-entrypoint-initdb.d/01-init-postgres.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lsc_user -d lsc_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
     networks:
       - lsc_net
 
-  phpmyadmin:
-    image: phpmyadmin:5
-    container_name: lsc_phpmyadmin
+  adminer:
+    image: adminer:4
+    container_name: lsc_adminer
     restart: unless-stopped
     environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-      MYSQL_ROOT_PASSWORD: root
+      ADMINER_DEFAULT_SERVER: postgres
     ports:
-      - "8080:80"
+      - "8080:8080"
     depends_on:
-      - mysql
+      postgres:
+        condition: service_healthy
     networks:
       - lsc_net
 
 volumes:
-  mysql_data:
+  postgres_data:
 
 networks:
   lsc_net:

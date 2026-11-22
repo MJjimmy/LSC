@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LSC\Groups;
 
+use LSC\Core\SqlDialect;
 use PDO;
 use Throwable;
 
@@ -21,8 +22,29 @@ final class GroupRepository
             return;
         }
 
-        $this->database->exec(<<<'SQL'
-            CREATE TABLE IF NOT EXISTS group_join_requests (
+        // The table also ships in every schema file; this remains for databases
+        // created before join requests existed. The statement shape is fixed
+        // because the offline fixtures substitute the SQLite variant by prefix.
+        $this->database->exec(match (SqlDialect::driver($this->database)) {
+            SqlDialect::PGSQL => 'CREATE TABLE IF NOT EXISTS group_join_requests (
+                request_id SERIAL PRIMARY KEY,
+                group_id integer NOT NULL,
+                user_id integer NOT NULL,
+                requested_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT uq_join_request_group_user UNIQUE (group_id, user_id),
+                CONSTRAINT fk_join_requests_group FOREIGN KEY (group_id) REFERENCES study_groups (group_id) ON DELETE CASCADE,
+                CONSTRAINT fk_join_requests_user FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+            )',
+            SqlDialect::SQLITE => 'CREATE TABLE IF NOT EXISTS group_join_requests (
+                request_id INTEGER PRIMARY KEY,
+                group_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                requested_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE (group_id, user_id),
+                FOREIGN KEY (group_id) REFERENCES study_groups (group_id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
+            )',
+            default => 'CREATE TABLE IF NOT EXISTS group_join_requests (
                 request_id int(11) NOT NULL AUTO_INCREMENT,
                 group_id int(11) NOT NULL,
                 user_id int(11) NOT NULL,
@@ -32,8 +54,8 @@ final class GroupRepository
                 KEY user_id (user_id),
                 CONSTRAINT group_join_requests_ibfk_1 FOREIGN KEY (group_id) REFERENCES study_groups (group_id) ON DELETE CASCADE,
                 CONSTRAINT group_join_requests_ibfk_2 FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
-            SQL);
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci',
+        });
 
         $this->joinRequestsTableChecked = true;
     }
@@ -128,7 +150,7 @@ final class GroupRepository
     public function join(int $groupId, int $userId): bool
     {
         return $this->database->prepare(
-            'INSERT IGNORE INTO group_members (group_id, user_id) VALUES (?, ?)'
+            SqlDialect::insertIgnoringDuplicates($this->database, 'group_members', 'group_id, user_id', '?, ?')
         )->execute([$groupId, $userId]);
     }
 
@@ -136,7 +158,7 @@ final class GroupRepository
     {
         $this->ensureJoinRequestsTable();
         $statement = $this->database->prepare(
-            'INSERT IGNORE INTO group_join_requests (group_id, user_id) VALUES (?, ?)'
+            SqlDialect::insertIgnoringDuplicates($this->database, 'group_join_requests', 'group_id, user_id', '?, ?')
         );
         $ok = $statement->execute([$groupId, $userId]);
         return ['ok' => $ok, 'created' => $ok && $statement->rowCount() > 0];

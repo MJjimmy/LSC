@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 // Disposable SQLite fixtures only. No bootstrap, network, mail or real database.
+require dirname(__DIR__) . '/app/Core/SqlDialect.php';
 require dirname(__DIR__) . '/app/Tasks/TaskRepository.php';
 require dirname(__DIR__) . '/app/Groups/GroupRepository.php';
 require dirname(__DIR__) . '/app/Tasks/TaskService.php';

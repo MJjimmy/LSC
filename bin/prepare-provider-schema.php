@@ -13,6 +13,17 @@ use LSC\Core\Database;
 
 try {
     $db = Database::connection();
+    $driver = \LSC\Core\SqlDialect::driver($db);
+    if ($driver === \LSC\Core\SqlDialect::PGSQL) {
+        \LSC\Users\ProviderSchema::prepare($db);
+        fwrite(STDOUT, "Provider schema ready (Postgres): OAuth keys/FK, app_auth_codes keys/FK/expiry, and nullable queue provider_message_id verified.\n");
+        // Return, not exit: bin/prepare-deployment.php includes this file and
+        // must continue with the mailbox-proof preparation and readiness audit.
+        return;
+    }
+    if ($driver !== \LSC\Core\SqlDialect::MYSQL) {
+        throw new RuntimeException('Unsupported provider schema driver.');
+    }
     $schema = (string)$db->query('SELECT DATABASE()')->fetchColumn();
     if ($schema === '') {
         throw new RuntimeException('No database selected.');

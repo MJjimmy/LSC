@@ -1,4 +1,10 @@
-"""Disposable fresh-schema and restart checks; no real database or credentials."""
+"""LEGACY: rehearses the retired MySQL/MariaDB deployment.
+
+LSC deploys on Postgres, so this rehearsal no longer matches the application and
+is intentionally not executed in CI. Postgres coverage lives in
+tests/postgres-integration.php (release-gate job "Run against Postgres").
+Kept as a record of the previous deployment model.
+"""
 import json
 import os
 from pathlib import Path

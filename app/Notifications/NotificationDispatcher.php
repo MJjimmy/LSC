@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LSC\Notifications;
 
+use LSC\Core\SqlDialect;
 use PDO;
 
 /**
@@ -82,15 +83,17 @@ final class NotificationDispatcher
         $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $cutoff, new \DateTimeZone('UTC'));
         if ($minimum === false || getenv('NOTIFICATION_WORKER_ENABLED') !== '1' || !$mailer->enabled()
             || !$date || $date->format('Y-m-d H:i:s') !== $cutoff) return $results;
-        $name = 'lsc_mail_' . substr(hash('sha256', (string)$this->database->query('SELECT DATABASE()')->fetchColumn()), 0, 32);
-        $lock = $this->database->prepare('SELECT GET_LOCK(?, 0)');
-        $lock->execute([$name]);
-        if ((int)$lock->fetchColumn() !== 1) return $results;
+        $name = 'lsc_mail_' . substr(hash('sha256', SqlDialect::databaseName($this->database)), 0, 32);
+        // MySQL uses named locks, Postgres advisory locks; both live in SqlDialect.
+        $workerLock = SqlDialect::workerLock($this->database, $name);
+        $lock = $this->database->prepare($workerLock['acquire'][0]);
+        $lock->execute($workerLock['acquire'][1]);
+        if (!SqlDialect::isTrue($lock->fetchColumn())) return $results;
         try {
             $statement = $this->database->prepare(
                 "SELECT * FROM notification_queue WHERE status = 'pending' AND channel = 'email'
                  AND attempts < ? AND created_at >= ? AND queue_id >= ?
-                 AND created_at >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 23 HOUR)
+                 AND created_at >= " . SqlDialect::minusHours($this->database, 23) . "
                  ORDER BY created_at, queue_id LIMIT ?"
             );
             $statement->bindValue(1, self::MAX_ATTEMPTS, PDO::PARAM_INT);
@@ -112,7 +115,7 @@ final class NotificationDispatcher
                 }
             }
         } finally {
-            $this->database->prepare('SELECT RELEASE_LOCK(?)')->execute([$name]);
+            $this->database->prepare($workerLock['release'][0])->execute($workerLock['release'][1]);
         }
         // Legacy "sent" means provider-accepted, not inbox-delivered.
         return $results;
@@ -218,7 +221,8 @@ final class NotificationDispatcher
     private function markSent(int $queueId, string $providerId): void
     {
         $this->database->prepare(
-            'UPDATE notification_queue SET status = "sent", sent_at = UTC_TIMESTAMP(), provider_message_id = ?, last_error = NULL WHERE queue_id = ?'
+            'UPDATE notification_queue SET status = \'sent\', sent_at = ' . SqlDialect::utcTimestamp($this->database)
+            . ', provider_message_id = ?, last_error = NULL WHERE queue_id = ?'
         )->execute([$providerId, $queueId]);
     }
 

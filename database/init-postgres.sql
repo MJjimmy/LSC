@@ -1,31 +1,72 @@
--- LSC (Learn Share Connect) — Postgres schema
+-- LSC (Learn Share Connect) — Postgres schema (Render)
 --
--- Converted from database/init.sql for Postgres (Render PaaS).
--- MySQL-specific syntax has been replaced:
---   - ENGINE=InnoDB      -> omitted (Postgres has its own storage engine)
---   - CHARSET=utf8mb4    -> ENCODING='UTF8'
---   - AUTO_INCREMENT     -> SERIAL (Postgres identity column)
---   - enum(...)          -> VARCHAR with CHECK constraint
---   - tinyint(1)         -> SMALLINT
---   - datetime           -> TIMESTAMP
---   - timestamp          -> TIMESTAMP
---   - SET SQL_MODE       -> omitted
---   - @@CHARACTER_SET    -> omitted (Postgres handles encoding automatically)
+-- This is the canonical schema for the shipped deployment. It is the Postgres
+-- port of database/init.sql (MySQL, legacy) and already contains everything the
+-- individual MySQL migrations add: chat-file links, group invitations,
+-- notifications, password-reset tokens, profile fields, join requests, the
+-- lecturer role, the outbound notification queue, rate limits, mailbox-proof
+-- tokens, OAuth identities and native app sign-in codes.
+--
+-- Import into an empty database:
+--   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/init-postgres.sql
+--
+-- Type mapping notes:
+--   * AUTO_INCREMENT -> SERIAL
+--   * enum(...)      -> varchar + CHECK
+--   * datetime       -> timestamp
+--   * tinyint(1)     -> smallint + CHECK (col IN (0,1))
+--     Booleans stay 1/0 integers on purpose: the application (and the SQLite
+--     regression fixtures it is tested with) reads and writes them as integers,
+--     and Postgres `boolean` would return 't'/'f' strings that PHP treats as
+--     truthy. Keeping smallint makes active/inactive and read/unread correct
+--     by construction.
+--   * ENGINE/CHARSET/COLLATE clauses are omitted.
 
---
--- Database: lsc
---
+BEGIN;
 
--- Table structure for table files
-CREATE TABLE files (
-    file_id SERIAL PRIMARY KEY,
+-- Table structure for table users
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    name varchar(100) NOT NULL,
+    email varchar(150) NOT NULL,
+    email_verified_at timestamp DEFAULT NULL,
+    password_hash varchar(255) NOT NULL,
+    role varchar(20) NOT NULL DEFAULT 'student' CHECK (role IN ('student','lecturer','admin')),
+    is_active smallint NOT NULL DEFAULT 1 CHECK (is_active IN (0,1)),
+    bio text DEFAULT NULL,
+    institution varchar(150) DEFAULT NULL,
+    course varchar(150) DEFAULT NULL,
+    phone_number varchar(20) DEFAULT NULL,
+    notify_email smallint NOT NULL DEFAULT 1 CHECK (notify_email IN (0,1)),
+    notify_sms smallint NOT NULL DEFAULT 0 CHECK (notify_sms IN (0,1)),
+    avatar_path varchar(500) DEFAULT NULL,
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table structure for table study_groups
+CREATE TABLE study_groups (
+    group_id SERIAL PRIMARY KEY,
+    group_name varchar(100) NOT NULL,
+    description text DEFAULT NULL,
+    created_by integer NOT NULL,
+    is_private smallint NOT NULL DEFAULT 0 CHECK (is_private IN (0,1)),
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table structure for table group_members
+CREATE TABLE group_members (
+    member_id SERIAL PRIMARY KEY,
     group_id integer NOT NULL,
-    uploaded_by integer NOT NULL,
-    file_name varchar(255) NOT NULL,
-    file_path varchar(500) NOT NULL,
-    file_type varchar(50) NOT NULL,
-    file_size integer NOT NULL,
-    uploaded_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+    user_id integer NOT NULL,
+    joined_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table structure for table group_join_requests
+CREATE TABLE group_join_requests (
+    request_id SERIAL PRIMARY KEY,
+    group_id integer NOT NULL,
+    user_id integer NOT NULL,
+    requested_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Table structure for table group_invitations
@@ -41,20 +82,28 @@ CREATE TABLE group_invitations (
     expires_at timestamp NOT NULL
 );
 
--- Table structure for table group_join_requests
-CREATE TABLE group_join_requests (
-    request_id SERIAL PRIMARY KEY,
+-- Table structure for table tasks
+CREATE TABLE tasks (
+    task_id SERIAL PRIMARY KEY,
     group_id integer NOT NULL,
-    user_id integer NOT NULL,
-    requested_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+    assigned_to integer NOT NULL,
+    title varchar(200) NOT NULL,
+    description text DEFAULT NULL,
+    due_date date NOT NULL,
+    status varchar(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','done')),
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Table structure for table group_members
-CREATE TABLE group_members (
-    member_id SERIAL PRIMARY KEY,
+-- Table structure for table files
+CREATE TABLE files (
+    file_id SERIAL PRIMARY KEY,
     group_id integer NOT NULL,
-    user_id integer NOT NULL,
-    joined_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+    uploaded_by integer NOT NULL,
+    file_name varchar(255) NOT NULL,
+    file_path varchar(500) NOT NULL,
+    file_type varchar(50) NOT NULL,
+    file_size integer NOT NULL,
+    uploaded_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Table structure for table messages
@@ -64,6 +113,18 @@ CREATE TABLE messages (
     user_id integer NOT NULL,
     message text NOT NULL,
     file_id integer REFERENCES files(file_id) ON DELETE SET NULL,
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table structure for table notifications
+CREATE TABLE notifications (
+    notification_id SERIAL PRIMARY KEY,
+    user_id integer NOT NULL,
+    type varchar(40) NOT NULL DEFAULT 'info',
+    title varchar(180) NOT NULL,
+    body varchar(500) DEFAULT NULL,
+    link varchar(500) DEFAULT NULL,
+    is_read smallint NOT NULL DEFAULT 0 CHECK (is_read IN (0,1)),
     created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -78,20 +139,9 @@ CREATE TABLE notification_queue (
     status varchar(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','sent','failed')),
     attempts smallint NOT NULL DEFAULT 0,
     last_error varchar(500) DEFAULT NULL,
+    provider_message_id varchar(255) DEFAULT NULL,
     created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     sent_at timestamp DEFAULT NULL
-);
-
--- Table structure for table notifications
-CREATE TABLE notifications (
-    notification_id SERIAL PRIMARY KEY,
-    user_id integer NOT NULL,
-    type varchar(40) NOT NULL DEFAULT 'info',
-    title varchar(180) NOT NULL,
-    body varchar(500) DEFAULT NULL,
-    link varchar(500) DEFAULT NULL,
-    is_read boolean NOT NULL DEFAULT FALSE,
-    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Table structure for table password_reset_tokens
@@ -111,45 +161,32 @@ CREATE TABLE rate_limits (
     expires_at timestamp NOT NULL
 );
 
--- Table structure for table study_groups
-CREATE TABLE study_groups (
-    group_id SERIAL PRIMARY KEY,
-    group_name varchar(100) NOT NULL,
-    description text DEFAULT NULL,
-    created_by integer NOT NULL,
-    is_private boolean NOT NULL DEFAULT FALSE,
-    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+-- Mailbox proof tokens (bin/prepare-email-verification.php verifies this shape)
+CREATE TABLE email_verification_tokens (
+    token_hash char(64) NOT NULL,
+    user_id integer NOT NULL REFERENCES users(user_id),
+    email_hash char(64) NOT NULL,
+    expires_at bigint NOT NULL,
+    used_at timestamp NULL DEFAULT NULL,
+    CONSTRAINT pk_email_verification_tokens PRIMARY KEY (token_hash)
 );
 
--- Table structure for table tasks
-CREATE TABLE tasks (
-    task_id SERIAL PRIMARY KEY,
-    group_id integer NOT NULL,
-    assigned_to integer NOT NULL,
-    title varchar(200) NOT NULL,
-    description text DEFAULT NULL,
-    due_date date NOT NULL,
-    status varchar(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','done')),
-    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+-- Google identities (bin/prepare-provider-schema.php verifies this shape)
+CREATE TABLE oauth_identities (
+    provider varchar(32) NOT NULL,
+    subject varchar(255) NOT NULL,
+    user_id integer NOT NULL REFERENCES users(user_id),
+    CONSTRAINT uq_oauth_provider_subject UNIQUE (provider, subject),
+    CONSTRAINT uq_oauth_user_provider UNIQUE (user_id, provider)
 );
 
--- Table structure for table users
-CREATE TABLE users (
-    user_id SERIAL PRIMARY KEY,
-    name varchar(100) NOT NULL,
-    email varchar(150) NOT NULL,
-    email_verified_at timestamp DEFAULT NULL,
-    password_hash varchar(255) NOT NULL,
-    role varchar(20) NOT NULL DEFAULT 'student' CHECK (role IN ('student','lecturer','admin')),
-    is_active boolean NOT NULL DEFAULT TRUE,
-    bio text DEFAULT NULL,
-    institution varchar(150) DEFAULT NULL,
-    course varchar(150) DEFAULT NULL,
-    phone_number varchar(20) DEFAULT NULL,
-    notify_email boolean NOT NULL DEFAULT TRUE,
-    notify_sms boolean NOT NULL DEFAULT FALSE,
-    avatar_path varchar(500) DEFAULT NULL,
-    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+-- Native app sign-in tickets (one-time, PKCE-bound)
+CREATE TABLE app_auth_codes (
+    code_hash char(64) NOT NULL,
+    challenge char(64) NOT NULL,
+    user_id integer NOT NULL REFERENCES users(user_id),
+    expires_at bigint NOT NULL,
+    CONSTRAINT pk_app_auth_codes PRIMARY KEY (code_hash)
 );
 
 -- Indexes for table files
@@ -176,12 +213,12 @@ CREATE INDEX idx_messages_group_id ON messages(group_id);
 CREATE INDEX idx_messages_user_id ON messages(user_id);
 CREATE INDEX idx_messages_file_id ON messages(file_id);
 
+-- Indexes for table notifications
+CREATE INDEX idx_notifications_user_read_created ON notifications(user_id, is_read, created_at);
+
 -- Indexes for table notification_queue
 CREATE INDEX idx_notification_queue_status ON notification_queue(status);
 CREATE INDEX idx_notification_queue_user_id ON notification_queue(user_id);
-
--- Indexes for table notifications
-CREATE INDEX idx_notifications_user_read_created ON notifications(user_id, is_read, created_at);
 
 -- Indexes for table password_reset_tokens
 CREATE UNIQUE INDEX uq_password_reset_hash ON password_reset_tokens(token_hash);
@@ -201,8 +238,10 @@ CREATE INDEX idx_tasks_assigned_to ON tasks(assigned_to);
 -- Indexes for table users
 CREATE UNIQUE INDEX uq_users_email ON users(email);
 
--- AUTO_INCREMENT for dumped tables — replaced with SERIAL
--- (SERIAL automatically creates a sequence and sets the default)
+-- Indexes for mailbox proof and native sign-in tables
+CREATE INDEX idx_email_verification_user ON email_verification_tokens(user_id);
+CREATE INDEX idx_email_verification_expiry ON email_verification_tokens(expires_at);
+CREATE INDEX idx_app_auth_expiry ON app_auth_codes(expires_at);
 
 -- Constraints for dumped tables
 ALTER TABLE files
@@ -241,3 +280,5 @@ ALTER TABLE study_groups
 ALTER TABLE tasks
     ADD CONSTRAINT fk_tasks_group FOREIGN KEY (group_id) REFERENCES study_groups(group_id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_tasks_assigned_to FOREIGN KEY (assigned_to) REFERENCES users(user_id);
+
+COMMIT;

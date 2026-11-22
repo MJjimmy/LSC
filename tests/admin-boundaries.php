@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 // In-memory synthetic fixtures only. No bootstrap/.env, providers, uploads or live DB.
 $root = dirname(__DIR__);
+require $root . '/app/Core/SqlDialect.php';
 require $root . '/app/Groups/GroupRepository.php';
 require $root . '/app/Groups/GroupService.php';
 require $root . '/app/Notifications/NotificationRepository.php';

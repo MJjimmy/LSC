@@ -1,3 +1,23 @@
+# Render blueprint for LSC.
+#
+# The web service builds Dockerfile.railway (nginx + php-fpm + s6, pdo_pgsql)
+# and talks to the managed Postgres database below. Import the schema once:
+#   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/init-postgres.sql
+# then run the two preparation scripts from the service shell:
+#   php bin/prepare-deployment.php
+#   php bin/account-recovery.php create-admin --email=you@example.ac.za \
+#       --name="Site administrator" --password-stdin
+#
+# Everything marked sync: false is filled in from the Render dashboard and
+# must never be committed here.
+
+databases:
+  - name: lsc-db
+    databaseName: lsc_db
+    user: lsc_db_user
+    plan: basic-256mb
+    postgresMajorVersion: "16"
+
 services:
   - type: web
     name: lsc-web
@@ -5,20 +25,77 @@ services:
     dockerfilePath: ./Dockerfile.railway
     dockerContext: .
     healthCheckPath: /healthz
+    plan: starter
+    # Uploaded files must survive a deploy; a disk is required on Render
+    # because the container filesystem is ephemeral.
+    disk:
+      name: lsc-uploads
+      mountPath: /app/storage/uploads
+      sizeGB: 1
     envVars:
       - key: PGHOST
-        sync: false
+        fromDatabase:
+          name: lsc-db
+          property: host
       - key: PGPORT
-        value: "5432"
+        fromDatabase:
+          name: lsc-db
+          property: port
       - key: PGDATABASE
-        value: lsc_db
+        fromDatabase:
+          name: lsc-db
+          property: database
       - key: PGUSER
-        value: lsc_db_user
+        fromDatabase:
+          name: lsc-db
+          property: user
       - key: PGPASSWORD
-        sync: false
-      - key: APP_URL
-        sync: false
+        fromDatabase:
+          name: lsc-db
+          property: password
+      # Tells runtime/volume-permissions.php to hand the disk to the
+      # unprivileged application user (Render does not export the mount path).
+      - key: LSC_UPLOAD_VOLUME_PATH
+        value: /app/storage/uploads
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
         value: "0"
+      - key: APP_SHOW_RESET_LINKS
+        value: "0"
+      # Absolute public origin; emailed links are built only from this value.
+      - key: APP_URL
+        sync: false
+      # Render terminates TLS at its proxy and forwards the client address in
+      # X-Forwarded-For. Without this the limiter would see every visitor as
+      # the same proxy address and one attacker could exhaust the shared bucket.
+      - key: TRUSTED_PROXIES
+        value: 10.0.0.0/8
+      # Email delivery. Verification, password reset and invitations are
+      # silently impossible until these are set (see docs/ACCOUNT_RECOVERY.md).
+      - key: EMAIL_DELIVERY_ENABLED
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+      # Supervised outbound queue worker (one email per cycle).
+      - key: NOTIFICATION_PROCESSOR_ENABLED
+        value: "0"
+      - key: NOTIFICATION_WORKER_ENABLED
+        value: "0"
+      - key: NOTIFICATION_SEND_AFTER
+        sync: false
+      - key: NOTIFICATION_MIN_QUEUE_ID
+        sync: false
+      # Optional integrations.
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: AFRICASTALKING_USERNAME
+        sync: false
+      - key: AFRICASTALKING_API_KEY
+        sync: false
+      - key: AFRICASTALKING_SENDER_ID
+        sync: false

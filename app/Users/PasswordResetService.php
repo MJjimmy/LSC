@@ -33,7 +33,7 @@ final class PasswordResetService
             }
             $token = bin2hex(random_bytes(32));
             $this->database->prepare('DELETE FROM password_reset_tokens WHERE user_id = ?')->execute([(int)$userId]);
-            $expires = $this->sqlite() ? "datetime('now', '+60 minutes')" : 'DATE_ADD(NOW(), INTERVAL 60 MINUTE)';
+            $expires = \LSC\Core\SqlDialect::plusSeconds($this->database, 3600);
             $this->database->prepare('INSERT INTO password_reset_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ' . $expires . ')')
                 ->execute([(int)$userId, hash('sha256', $token)]);
             $this->database->commit();
@@ -61,7 +61,7 @@ final class PasswordResetService
         if ($this->sqlite()) {
             $this->database->prepare('UPDATE users SET user_id = user_id WHERE user_id = ?')->execute([$userId]);
         }
-        $statement = $this->database->prepare('SELECT user_id FROM users WHERE user_id = ? AND is_active = 1' . ($this->sqlite() ? '' : ' FOR UPDATE'));
+        $statement = $this->database->prepare('SELECT user_id FROM users WHERE user_id = ? AND is_active = 1' . \LSC\Core\SqlDialect::forUpdate($this->database));
         $statement->execute([$userId]);
         return $statement->fetchColumn() !== false;
     }
@@ -83,7 +83,7 @@ final class PasswordResetService
                 $this->database->rollBack();
                 return false;
             }
-            $statement = $this->database->prepare('SELECT reset_id FROM password_reset_tokens WHERE token_hash = ? AND user_id = ? AND used_at IS NULL AND expires_at > CURRENT_TIMESTAMP' . ($this->sqlite() ? '' : ' FOR UPDATE'));
+            $statement = $this->database->prepare('SELECT reset_id FROM password_reset_tokens WHERE token_hash = ? AND user_id = ? AND used_at IS NULL AND expires_at > CURRENT_TIMESTAMP' . \LSC\Core\SqlDialect::forUpdate($this->database));
             $statement->execute([$hash, $userId]);
             $resetId = $statement->fetchColumn();
             if ($resetId === false) {

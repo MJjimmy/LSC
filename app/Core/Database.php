@@ -27,9 +27,16 @@ final class Database
             self::unavailable('required environment variables are missing');
         }
 
+        // Managed Postgres requires TLS; local and CI servers usually do not.
+        // Only a known sslmode value may reach the DSN.
+        $sslMode = strtolower(trim((string)getenv('PGSSLMODE'))) ?: 'require';
+        if (!in_array($sslMode, ['disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full'], true)) {
+            self::unavailable('PGSSLMODE is not a recognised value');
+        }
+
         try {
             self::$connection = new PDO(
-                "pgsql:host={$host};port={$port};dbname={$database};sslmode=require",
+                "pgsql:host={$host};port={$port};dbname={$database};sslmode={$sslMode}",
                 $username,
                 $password,
                 [
@@ -51,7 +58,7 @@ final class Database
             // Operators and supervisors read the exit code: a zero here made
             // bin/prepare-deployment.php and the queue worker report success
             // while nothing had touched the database.
-            fwrite(STDERR, "LSC database unavailable; check the MYSQL* environment variables.\n");
+            fwrite(STDERR, "LSC database unavailable; check the PGHOST/PGPORT/PGDATABASE/PGUSER/PGPASSWORD environment variables.\n");
             exit(1);
         }
         http_response_code(503);

@@ -1,5 +1,11 @@
 # MariaDB to native Railway MySQL cutover
 
+> **Superseded.** LSC now deploys on Render with managed Postgres and the
+> application no longer runs against MySQL (`database/init-postgres.sql`,
+> `docs/POSTGRES_DEPLOY.md`). This document is retained as a record of the
+> earlier Railway cutover; `bin/transfer-to-mysql.php` is likewise a legacy
+> export tool. Do not follow it for a new deployment.
+
 The native `MySQL` service is kept on its existing image so Railway can retain its built-in database interface. The owner explicitly accepted the reported image vulnerabilities (4 Critical, 45 High advisories in the reviewed `mysql:8` image); this is not a clean security verdict.
 
 ## Preservation boundary

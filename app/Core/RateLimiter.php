@@ -8,8 +8,11 @@ use PDO;
 
 /**
  * Simple DB-backed rate limiter (fixed window). No Redis needed - fine for
- * Hostinger shared hosting, and the table is tiny (one row per active
- * key, self-cleaning as windows expire).
+ * hosted deployments, and the table is tiny (one row per active key,
+ * self-cleaning as windows expire).
+ *
+ * All SQL is built through SqlDialect, so the same limiter runs unchanged on
+ * Postgres (production) and SQLite (offline regression fixtures).
  *
  * Usage pattern for a login-style endpoint:
  *
@@ -25,6 +28,8 @@ use PDO;
  */
 final class RateLimiter
 {
+    private const ACTIVE = 'CASE WHEN expires_at > CURRENT_TIMESTAMP THEN 1 ELSE 0 END';
+
     public function __construct(private readonly PDO $database)
     {
     }
@@ -35,15 +40,18 @@ final class RateLimiter
         if ($maxAttempts < 1 || $decaySeconds < 1 || $this->database->inTransaction()) {
             return false;
         }
-        $sqlite = $this->database->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite';
-        $expires = $sqlite ? "datetime('now', '+' || ? || ' seconds')" : 'DATE_ADD(NOW(), INTERVAL ? SECOND)';
+        $expires = SqlDialect::plusSecondsParameter($this->database, '?');
         try {
             $this->database->beginTransaction();
             // The unique-key write serializes contenders even for a missing row.
-            $this->database->prepare('INSERT INTO rate_limits (rl_key, attempts, expires_at) VALUES (?, 0, ' . $expires . ')'
-                . ($sqlite ? ' ON CONFLICT(rl_key) DO NOTHING' : ' ON DUPLICATE KEY UPDATE rl_key = VALUES(rl_key)'))
-                ->execute([$key, $decaySeconds]);
-            $statement = $this->database->prepare('SELECT attempts, (expires_at > CURRENT_TIMESTAMP) AS active FROM rate_limits WHERE rl_key = ?' . ($sqlite ? '' : ' FOR UPDATE'));
+            $this->database->prepare(
+                'INSERT INTO rate_limits (rl_key, attempts, expires_at) VALUES (?, 0, ' . $expires . ')'
+                . SqlDialect::ignoreConflictSuffix($this->database, 'rl_key')
+            )->execute([$key, $decaySeconds]);
+            $statement = $this->database->prepare(
+                'SELECT attempts, ' . self::ACTIVE . ' AS active FROM rate_limits WHERE rl_key = ?'
+                . SqlDialect::forUpdate($this->database)
+            );
             $statement->execute([$key]);
             $row = $statement->fetch(PDO::FETCH_ASSOC);
             if (!$row || ((int)$row['active'] === 1 && (int)$row['attempts'] >= $maxAttempts)) {
@@ -54,7 +62,9 @@ final class RateLimiter
                 $update = $this->database->prepare('UPDATE rate_limits SET attempts = attempts + 1 WHERE rl_key = ?');
                 $update->execute([$key]);
             } else {
-                $update = $this->database->prepare('UPDATE rate_limits SET attempts = 1, expires_at = ' . $expires . ' WHERE rl_key = ?');
+                $update = $this->database->prepare(
+                    'UPDATE rate_limits SET attempts = 1, expires_at = ' . $expires . ' WHERE rl_key = ?'
+                );
                 $update->execute([$decaySeconds, $key]);
             }
             if ($update->rowCount() !== 1) {
@@ -82,25 +92,18 @@ final class RateLimiter
     /**
      * Record an attempt. Starts a fresh window if none is active or the
      * previous one expired. Single atomic statement, safe under concurrent
-     * requests (relies on the primary key + ON DUPLICATE KEY UPDATE).
+     * requests (relies on the primary key and the dialect's upsert clause).
      */
     public function hit(string $key, int $decaySeconds): void
     {
-        if ($this->database->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
-            $this->database->prepare("INSERT INTO rate_limits (rl_key, attempts, expires_at)
-                VALUES (:key, 1, datetime('now', '+' || :decay || ' seconds'))
-                ON CONFLICT(rl_key) DO UPDATE SET
-                attempts = CASE WHEN rate_limits.expires_at > datetime('now') THEN rate_limits.attempts + 1 ELSE 1 END,
-                expires_at = CASE WHEN rate_limits.expires_at > datetime('now') THEN rate_limits.expires_at ELSE datetime('now', '+' || :decay2 || ' seconds') END")
-                ->execute(['key' => $key, 'decay' => $decaySeconds, 'decay2' => $decaySeconds]);
-            return;
-        }
+        $expires = SqlDialect::plusSecondsParameter($this->database, ':decay');
+        $renewed = SqlDialect::plusSecondsParameter($this->database, ':decay2');
+        $assignments = 'attempts = CASE WHEN rate_limits.expires_at > CURRENT_TIMESTAMP THEN rate_limits.attempts + 1 ELSE 1 END, '
+            . 'expires_at = CASE WHEN rate_limits.expires_at > CURRENT_TIMESTAMP THEN rate_limits.expires_at ELSE ' . $renewed . ' END';
         $statement = $this->database->prepare(
             'INSERT INTO rate_limits (rl_key, attempts, expires_at)
-             VALUES (:key, 1, DATE_ADD(NOW(), INTERVAL :decay SECOND))
-             ON DUPLICATE KEY UPDATE
-                attempts = IF(expires_at > NOW(), attempts + 1, 1),
-                expires_at = IF(expires_at > NOW(), expires_at, DATE_ADD(NOW(), INTERVAL :decay2 SECOND))'
+             VALUES (:key, 1, ' . $expires . ')'
+            . SqlDialect::upsertClause($this->database, 'rl_key', $assignments)
         );
         $statement->execute([
             'key' => $key,
@@ -112,7 +115,7 @@ final class RateLimiter
         // sweeps rows that expired over a day ago, keeping the table small.
         if (random_int(1, 200) === 1) {
             $this->database->exec(
-                'DELETE FROM rate_limits WHERE expires_at < DATE_SUB(NOW(), INTERVAL 1 DAY)'
+                'DELETE FROM rate_limits WHERE expires_at < ' . SqlDialect::minusDays($this->database, 1)
             );
         }
     }
@@ -127,9 +130,8 @@ final class RateLimiter
     public function availableInSeconds(string $key): int
     {
         $statement = $this->database->prepare(
-            $this->database->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite'
-                ? "SELECT CAST(strftime('%s', expires_at) AS INTEGER) - CAST(strftime('%s', 'now') AS INTEGER) FROM rate_limits WHERE rl_key = ? AND expires_at > CURRENT_TIMESTAMP"
-                : 'SELECT TIMESTAMPDIFF(SECOND, NOW(), expires_at) FROM rate_limits WHERE rl_key = ? AND expires_at > NOW()'
+            'SELECT ' . SqlDialect::secondsUntil($this->database, 'expires_at')
+            . ' FROM rate_limits WHERE rl_key = ? AND expires_at > CURRENT_TIMESTAMP'
         );
         $statement->execute([$key]);
         $seconds = $statement->fetchColumn();
@@ -139,13 +141,13 @@ final class RateLimiter
     /**
      * Best-effort client IP for rate-limit keys.
      *
-     * The shipped runtime puts nginx in front of php-fpm, and Railway adds
-     * another proxy hop, so REMOTE_ADDR alone is the *proxy* for every visitor.
-     * That turned per-IP limits into one shared bucket: eight failed logins
-     * from anyone locked out every user. Forwarded headers are therefore read
-     * only when the direct peer is a configured proxy, and the client is the
-     * right-most address in the chain that is not itself trusted - the only
-     * hop a client cannot forge.
+     * The shipped runtime puts nginx in front of php-fpm, and the hosting
+     * platform adds another proxy hop, so REMOTE_ADDR alone is the *proxy* for
+     * every visitor. That turned per-IP limits into one shared bucket: eight
+     * failed logins from anyone locked out every user. Forwarded headers are
+     * therefore read only when the direct peer is a configured proxy, and the
+     * client is the right-most address in the chain that is not itself trusted
+     * - the only hop a client cannot forge.
      *
      * TRUSTED_PROXIES accepts a comma-separated list of IPs, CIDR ranges and
      * the keyword `cloudflare`; `loopback` is always trusted. TRUSTED_PROXY=
