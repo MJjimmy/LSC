@@ -53,6 +53,7 @@ jobs:
           python -I tests/railpack_config_test.py
           python -I tests/runtime_config_test.py
           python -I tests/php_runtime_patch_test.py
+          python -I tests/postgres_dialect_test.py
 
   tests:
     name: Test website
@@ -101,6 +102,57 @@ jobs:
                   summary.write('## Browser regression report\n```json\n' + report.read_text()[:120000] + '\n```\n')
           PY
 
+  postgres:
+    name: Run against Postgres
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: lsc_test
+          POSTGRES_USER: lsc
+          POSTGRES_PASSWORD: lsc-test-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lsc -d lsc_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      APP_ENV: testing
+      APP_DEBUG: '0'
+      EMAIL_DELIVERY_ENABLED: '0'
+      NOTIFICATION_PROCESSOR_ENABLED: '0'
+      NOTIFICATION_WORKER_ENABLED: '0'
+      PGSSLMODE: disable
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGDATABASE: lsc_test
+      PGUSER: lsc
+      PGPASSWORD: lsc-test-only
+      LSC_POSTGRES_TEST: '1'
+    steps:
+      - name: Check out exact source without stored credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Ensure the PHP Postgres driver is available
+        run: |
+          if ! php -m | grep -qi '^pdo_pgsql$'; then
+            sudo apt-get update
+            sudo apt-get install -y "php$(php -r 'echo PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION;')-pgsql"
+          fi
+          php -r 'if (!extension_loaded("pdo_pgsql")) { fwrite(STDERR, "pdo_pgsql missing\n"); exit(1); }'
+      - name: Import the shipped Postgres schema
+        run: psql -h 127.0.0.1 -U lsc -d lsc_test -v ON_ERROR_STOP=1 -f database/init-postgres.sql
+      - name: Verify the alignment migration is a no-op on a fresh schema
+        run: psql -h 127.0.0.1 -U lsc -d lsc_test -v ON_ERROR_STOP=1 -f database/2026_11_22_postgres_alignment.sql
+      - name: Run the Postgres integration suite
+        run: php tests/postgres-integration.php
+
   build:
     name: Verify web build
     needs: tests
@@ -131,7 +183,7 @@ jobs:
   release-gate:
     name: Release gate
     if: always()
-    needs: [checks, tests, build]
+    needs: [checks, tests, postgres, build]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -142,7 +194,7 @@ jobs:
           python - <<'PY_RELEASE_GATE'
           import json, os
           results = json.loads(os.environ['REQUIRED_JOB_RESULTS'])
-          required = {'checks', 'tests', 'build'}
+          required = {'checks', 'tests', 'postgres', 'build'}
           passed = (
               isinstance(results, dict)
               and set(results) == required

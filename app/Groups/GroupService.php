@@ -61,14 +61,13 @@ final class GroupService
         try {
             $this->groups->ensureJoinRequestsTable();
             $this->database->beginTransaction();
-            $driver = $this->database->getAttribute(PDO::ATTR_DRIVER_NAME);
-            if ($driver === 'sqlite') {
+            if (\LSC\Core\SqlDialect::isSqlite($this->database)) {
                 // Acquire the fixture database write lock before the security read.
                 $this->database->prepare('UPDATE users SET user_id = user_id WHERE user_id = ?')->execute([$userId]);
             }
             $actor = $this->database->prepare(
                 'SELECT role FROM users WHERE user_id = ? AND is_active = 1'
-                . ($driver === 'mysql' ? ' FOR UPDATE' : '')
+                . \LSC\Core\SqlDialect::forUpdate($this->database)
             );
             $actor->execute([$userId]);
             if ($actor->fetchColumn() !== 'admin') {

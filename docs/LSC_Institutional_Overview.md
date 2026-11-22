@@ -14,7 +14,7 @@ LSC is a web-based study-group and academic collaboration platform. It gives stu
 
 LSC is designed for institutions that want a practical collaboration layer without forcing academic work into a general-purpose social network. It can be deployed on an institution-controlled domain and hosting environment, with the option to connect institutional email, SMS, and identity providers as part of implementation.
 
-The current release provides the core collaboration experience and a security-hardened PHP/MySQL foundation. Google and Microsoft sign-in are identified as integration work for the institutional rollout rather than being represented as already-live features.
+The current release provides the core collaboration experience and a security-hardened PHP/PostgreSQL foundation. Google and Microsoft sign-in are identified as integration work for the institutional rollout rather than being represented as already-live features.
 
 ## The institutional problem
 
@@ -122,7 +122,7 @@ Administrators have a defined place to manage active accounts and support collab
 
 ### For IT and governance teams
 
-LSC is a relatively small, understandable PHP/MySQL application with no Composer dependency tree. It can be deployed on institution-controlled infrastructure, reviewed from source, and integrated with approved service providers rather than requiring an opaque third-party SaaS contract.
+LSC is a relatively small, understandable PHP/PostgreSQL application with no Composer dependency tree. It can be deployed on institution-controlled infrastructure, reviewed from source, and integrated with approved service providers rather than requiring an opaque third-party SaaS contract.
 
 ## Security and privacy posture
 
@@ -192,7 +192,7 @@ A typical institutional deployment consists of:
 
 - an HTTPS domain, such as `lsc.example.ac.za`;
 - a PHP 8.2+ application server with the `public` directory as document root;
-- MySQL 8 or MariaDB 10.4+;
+- PostgreSQL 14 or newer (Render's managed Postgres);
 - persistent storage for uploads;
 - scheduled notification-queue processing;
 - encrypted environment variables for database, mail, SMS and identity-provider credentials;

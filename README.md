@@ -1,7 +1,7 @@
 # LSC 
 #Learn Share Connect
 
-LSC is a responsive PHP and MySQL collaboration platform for student groups. It combines group workspaces, task tracking, a calendar, file sharing, chat, member profiles, invitations, password recovery, notifications, admin tools, and progressive-web-app support.
+LSC is a responsive PHP and PostgreSQL collaboration platform for student groups. It combines group workspaces, task tracking, a calendar, file sharing, chat, member profiles, invitations, password recovery, notifications, admin tools, and progressive-web-app support.
 
 ## Current feature set
 
@@ -22,20 +22,25 @@ LSC is a responsive PHP and MySQL collaboration platform for student groups. It 
 
 ## Requirements
 
-- PHP 8.3 or newer for development (CI uses the distribution default) with PDO MySQL, `mbstring`, `curl` and `fileinfo`; the production image pins a patched PHP 8.5 and `composer.json` declares `^8.4`
-- MySQL 8 or MariaDB 10.4+
+- PHP 8.3 or newer for development (CI uses the distribution default) with `pdo_pgsql`, `mbstring`, `curl` and `fileinfo`; the production image pins a patched PHP 8.5 and `composer.json` declares `^8.4`
+- PostgreSQL 14 or newer (the shipped deployment is Render's managed Postgres)
 - A web server whose document root is the `public` directory
-- Write permission for `storage/uploads`
+- Write permission for `storage/uploads`, backed by a persistent disk in production
+
+MySQL is no longer a supported target. `database/init.sql` and the dated MySQL
+migrations are kept for historical reference only; a database created from them
+will not run this application.
 
 ## Environment variables
 
 | Variable | Required | Purpose |
 |---|---:|---|
-| `MYSQLHOST` | Yes | MySQL host name |
-| `MYSQLPORT` | Yes | MySQL port |
-| `MYSQLDATABASE` | Yes | Database name |
-| `MYSQLUSER` | Yes | Database user |
-| `MYSQLPASSWORD` | Yes | Database password |
+| `PGHOST` | Yes | Postgres host name |
+| `PGPORT` | Yes | Postgres port |
+| `PGDATABASE` | Yes | Database name |
+| `PGUSER` | Yes | Database user |
+| `PGPASSWORD` | Yes | Database password |
+| `PGSSLMODE` | Optional | Postgres TLS mode. Defaults to `require`, which is what Render needs; use `disable` for a local server without TLS. |
 | `APP_URL` | **Yes in production** | Absolute public origin, e.g. `https://lsc.example.ac.za`. Emailed links (password reset, invitation, email proof) are built only from this value. If it is missing or invalid the server refuses to create those links instead of trusting the request `Host` header. |
 | `APP_ENV` | Yes in production | `production` enables the HTTPS redirect, HSTS, secure cookies and the strict link rules. |
 | `APP_DEBUG` | No | `1` shows PHP errors outside production only. Never enable on a live deployment. |
@@ -62,28 +67,45 @@ see `docs/ACCOUNT_RECOVERY.md`.
 
 ## Database setup
 
-For a new installation, create an empty database and import:
+For a new installation, create an empty Postgres database and import:
 
 ```text
-database/init.sql
+database/init-postgres.sql
 ```
 
 That file is the complete current schema — it already includes everything the
 individual migrations add (chat-file links, group invitations, notifications,
 password-reset tokens, profile fields, join requests, the lecturer role, the
-outbound notification queue, and the rate-limit tables). No further SQL is
-needed for a fresh install.
-
-For an existing StudySync database, back it up first, then run each migration
-you have not applied yet, in this order:
+outbound notification queue, rate limits, mailbox-proof tokens, OAuth
+identities and native app sign-in codes). No further SQL is needed.
 
 ```text
-database/2026_06_29_collaboration_features.sql    # only if the database predates the collaboration features
-database/add_group_join_requests.sql              # join-request moderation (safe to re-run)
-database/2026_07_07_add_lecturer_role.sql         # lecturer registration
-database/2026_07_31_add_notification_channels.sql # phone number, email/SMS preferences, outbound queue
-database/2026_08_11_add_rate_limits.sql           # rate-limiting tables
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/init-postgres.sql
 ```
+
+Flag columns are `smallint` 0/1 rather than `boolean`, because the application
+(and the SQLite fixtures it is tested against) reads and writes them as
+integers. A Postgres `boolean` would return `t`/`f`, and PHP treats `'f'` as
+truthy — an inactive or unread row would render as active.
+
+Databases created from an earlier Postgres export (the one with `boolean`
+columns) should run, once and with a backup:
+
+```text
+database/2026_11_22_postgres_alignment.sql
+```
+
+It converts the flag columns in place (values preserved), adds the range
+checks, and creates the tables added since — `email_verification_tokens`,
+`oauth_identities`, `app_auth_codes` — plus `notification_queue.provider_message_id`.
+
+Then run the preparation step once per deploy that changes schema:
+
+```text
+php bin/prepare-deployment.php
+```
+
+See `docs/POSTGRES_DEPLOY.md` for the full Render walkthrough.
 
 Administrator access is never a public registration role. Create the first
 administrator from the server:
@@ -112,12 +134,12 @@ history, not for new deployments.
 1. Copy `.env.example` to `.env` and adjust it (it is loaded automatically).
 2. Make `public` the web document root.
 3. Ensure `storage/uploads` is writable by PHP and backed by persistent storage in production.
-4. Import the correct SQL file for a fresh or existing database — `docker compose -f database/docker-compose.yml up -d` gives you MySQL 8 + phpMyAdmin with the consolidated schema already imported.
+4. Start a local database with `docker compose -f database/docker-compose.yml up -d` — Postgres 16 + Adminer, with `database/init-postgres.sql` already imported. Set `PGSSLMODE=disable` for this local server.
 5. Start the PHP/web-server process of your choice, e.g. `php -S 0.0.0.0:8000 -t public`.
 
 Local development only: `php -S 0.0.0.0:8000 -t public` is single-threaded and unsuitable for serving real users. The production runtime is the managed nginx + php-fpm + s6 image built from `Dockerfile.railway` and started by `railpack.json`, which serves `/app/public` and answers `/healthz`.
 
-For a custom domain: Railway → service → **Networking → Add Domain**, then point a `CNAME` (apex domains use Railway's NS or an `A` record per Railway's dialog) at the target shown there, and set `APP_URL=https://yourdomain` so links in emails and invitations use it.
+For a custom domain on Render: service → **Settings → Custom Domains**, add the domain, then point the `CNAME` (or `A`/`ALIAS` at the apex) at the value Render shows, and set `APP_URL=https://yourdomain` so links in emails and invitations use it.
 
 ## New collaboration workflows
 
@@ -165,9 +187,11 @@ LSC processes student personal data (names, emails, photos, phone numbers, acade
 
 ## Production considerations
 
-Railway's local filesystem can be ephemeral. Mount a persistent volume at `/app/storage/uploads` or use object storage before relying on uploaded files in production. Configure a transactional email provider or SMTP bridge for dependable reset-email delivery. Back up the database before applying migrations.
+The container filesystem is ephemeral on Render (and Railway). `render.yaml`
+declares a disk at `/app/storage/uploads`; without a persistent disk every
+deploy discards uploaded files. Configure a transactional email provider or SMTP bridge for dependable reset-email delivery. Back up the database before applying migrations.
 
-Before opening the service to public traffic, replace the repository's `php -S` start command with Railway's supported PHP/Nginx runtime (or another production application server), and configure shared rate limiting for login and password-reset routes at the edge or through a shared store. The PHP built-in server and per-process session state are not suitable substitutes for those controls.
+Before opening the service to public traffic, serve it through the managed nginx + php-fpm image (`Dockerfile.railway`), never `php -S`. Rate limiting is already database-backed and shared across processes, so no additional edge limiter is required — but set `TRUSTED_PROXIES` to your provider's proxy range (`render.yaml` sets `10.0.0.0/8`) so per-IP limits see the real client instead of one shared proxy address.
 
 ## Verification
 
@@ -181,7 +205,22 @@ php tests/client-ip.php                # rate limiting behind a proxy
 php tests/account-recovery.php         # break-glass admin recovery
 ```
 
-Run one of them directly, or use `python tests/final-auth-runner.py <script>` to reproduce the harness (isolated php.ini, no network, no `mail`/`curl_exec`). Database-image integration tests remain paused; SQLite fixtures adapt MySQL dialect and do not prove MySQL locking behaviour.
+Run one of them directly, or use `python tests/final-auth-runner.py <script>` to reproduce the harness (isolated php.ini, no network, no `mail`/`curl_exec`).
+
+Against a real Postgres database (the CI job `Run against Postgres` does this
+on a throwaway `postgres:16` service):
+
+```text
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/init-postgres.sql
+LSC_POSTGRES_TEST=1 php tests/postgres-integration.php
+python -I tests/postgres_dialect_test.py   # static guard: no MySQL-only SQL
+```
+
+The SQLite fixtures still do not prove Postgres locking behaviour, but the
+dialect itself is covered: `tests/postgres-integration.php` exercises the rate
+limiter, group and join-request repositories, invitations, password reset, the
+user repository, the notification queue, dashboard aggregates and both schema
+preparers on Postgres.
 
 Before release, also run the acceptance checklist in `docs/LSC_Project_Documentation.docx` against a staging database and verify desktop and mobile layouts.
 

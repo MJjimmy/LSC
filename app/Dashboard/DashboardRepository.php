@@ -19,7 +19,7 @@ final class DashboardRepository
             'total_groups' => (int)$this->database->query('SELECT COUNT(*) FROM study_groups')->fetchColumn(),
             'total_tasks' => (int)$this->database->query('SELECT COUNT(*) FROM tasks')->fetchColumn(),
             'pending_tasks' => (int)$this->database->query("SELECT COUNT(*) FROM tasks WHERE status = 'pending'")->fetchColumn(),
-            'overdue_tasks' => (int)$this->database->query("SELECT COUNT(*) FROM tasks WHERE due_date < CURDATE() AND status = 'pending'")->fetchColumn(),
+            'overdue_tasks' => (int)$this->database->query("SELECT COUNT(*) FROM tasks WHERE due_date < CURRENT_DATE AND status = 'pending'")->fetchColumn(),
             'total_files' => (int)$this->database->query('SELECT COUNT(*) FROM files')->fetchColumn(),
         ];
     }

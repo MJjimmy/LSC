@@ -114,13 +114,17 @@ final class TaskRepository
             return [];
         }
         $placeholders = implode(',', array_fill(0, count($groupIds), '?'));
+        // Calendar month/year functions differ per database; the dialect
+        // supplies the right expression for Postgres, MySQL and SQLite.
+        $monthExpression = \LSC\Core\SqlDialect::monthExpression($this->database, 't.due_date');
+        $yearExpression = \LSC\Core\SqlDialect::yearExpression($this->database, 't.due_date');
         $statement = $this->database->prepare(<<<SQL
             SELECT t.task_id, t.title, t.due_date, t.status, sg.group_name
             FROM tasks t
             JOIN study_groups sg ON t.group_id = sg.group_id
             WHERE t.group_id IN ({$placeholders})
-              AND MONTH(t.due_date) = ?
-              AND YEAR(t.due_date) = ?
+              AND {$monthExpression} = ?
+              AND {$yearExpression} = ?
             ORDER BY t.due_date ASC
             SQL);
         $statement->execute(array_merge($groupIds, [$month, $year]));
