@@ -4,10 +4,22 @@ services:
     Runtime: docker
     dockerfilePath: deploy/railpack/Dockerfile.railway
     envVars:
-      - fromService:
-          name: lsc-db
-          type: DATABASE
-      - KEY: value
+      - key: PGHOST
+        value: {host}
+      - key: PGPORT
+        value: 5432
+      - key: PGDATABASE
+        value: lsc
+      - key: PGUSER
+        value: {user}
+      - key: PGPASSWORD
+        value: {password}
+      - key: APP_ENV
+        value: production
+      - key: APP_URL
+        value: https://{webServiceName}.onrender.com
+      - key: APP_DEBUG
+        value: '0'
     databases:
       - name: lsc-db
-        engine: MYSQL
+        engine: POSTGRES

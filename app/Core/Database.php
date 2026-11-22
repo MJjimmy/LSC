@@ -17,11 +17,11 @@ final class Database
             return self::$connection;
         }
 
-        $host = getenv('MYSQLHOST');
-        $port = getenv('MYSQLPORT');
-        $database = getenv('MYSQLDATABASE');
-        $username = getenv('MYSQLUSER');
-        $password = getenv('MYSQLPASSWORD');
+        $host = getenv('PGHOST');
+        $port = getenv('PGPORT');
+        $database = getenv('PGDATABASE');
+        $username = getenv('PGUSER');
+        $password = getenv('PGPASSWORD');
 
         if (!$host || !$port || !$database || !$username || !$password) {
             self::unavailable('required environment variables are missing');
@@ -29,7 +29,7 @@ final class Database
 
         try {
             self::$connection = new PDO(
-                "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4",
+                "pgsql:host={$host};port={$port};dbname={$database};sslmode=require",
                 $username,
                 $password,
                 [

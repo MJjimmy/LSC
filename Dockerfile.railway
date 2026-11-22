@@ -23,6 +23,9 @@ COPY --chmod=0755 runtime/volume-entrypoint /app/runtime/volume-entrypoint
 COPY --chmod=0755 runtime/services /app/runtime/services
 ENV APP_ENV=production APP_DEBUG=0 APP_SHOW_RESET_LINKS=0
 USER 65532:65532
+RUN apk add --no-cache --virtual .build-deps php8-pgsql \
+    && docker-php-ext-install pgsql pdo_pgsql \
+    && apk del .build-deps
 RUN ["/usr/sbin/nginx", "-V"]
 RUN ["/bin/php", "-r", "if (PHP_VERSION !== '8.5.12') { fwrite(STDERR, 'Unexpected PHP runtime version'.PHP_EOL); exit(1); } echo 'Verified PHP runtime: '.PHP_VERSION.PHP_EOL;"]
 RUN ["/bin/php", "-l", "/app/runtime/prepare.php"]
