@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: lsc-web
+   Runtime: docker
+    dockerfilePath: Dockerfile
+    envVars:
+      - fromService:
+          name: lsc-db
+          type: DATABASE
+      - KEY: value
+    databases:
+      - name: lsc-db
+        engine: MYSQL
