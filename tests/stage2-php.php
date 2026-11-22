@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 // Synthetic CLI fixtures only: no bootstrap, real sessions, DB, provider or mail.
 $root = dirname(__DIR__);
+require $root . '/app/Core/SqlDialect.php';
 require $root . '/app/Tasks/TaskController.php';
 $checks = 0;
 function check(bool $ok, string $message): void

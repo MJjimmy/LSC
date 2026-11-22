@@ -4,7 +4,7 @@ declare(strict_types=1);
 if (PHP_SAPI !== 'cli' || !isset($argv[1])) { exit(2); }
 $config = json_decode(base64_decode($argv[1], true), true, 32, JSON_THROW_ON_ERROR);
 $root = dirname(__DIR__);
-foreach (['Core/Auth', 'Core/Csrf', 'Core/UploadStorage', 'Users/UserRepository', 'Users/ProfileController'] as $class) {
+foreach (['Core/Auth', 'Core/Csrf', 'Core/SqlDialect', 'Core/UploadStorage', 'Users/UserRepository', 'Users/ProfileController'] as $class) {
     require $root . '/app/' . $class . '.php';
 }
 $temp = getenv('RUNNER_TEMP') ?: getenv('TMPDIR');
