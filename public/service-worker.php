@@ -28,6 +28,17 @@ self.addEventListener('activate', event => {
     );
 });
 
+// Handle messages from the page, e.g. "clear all LSC caches on logout"
+self.addEventListener('message', event => {
+    if (event.data?.type === 'lsc:clear-cache') {
+        caches.keys().then(keys => Promise.all(
+            keys.filter(key => key.startsWith('lsc-')).map(key => caches.delete(key))
+        )).then(() => {
+            event.ports?.[0]?.postMessage?.({ type: 'lsc:cache-cleared' });
+        });
+    }
+});
+
 self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);

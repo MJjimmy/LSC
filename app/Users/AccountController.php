@@ -206,7 +206,7 @@ final class AccountController
 
         Csrf::verify();
         $this->auth->logout();
-        header('Location: login.php');
+        header('Location: login.php?clear-sw-cache=1');
         exit;
     }
 

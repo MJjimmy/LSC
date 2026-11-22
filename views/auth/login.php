@@ -56,7 +56,7 @@
 <script>
 function togglePassword() {
     const input = document.getElementById('password');
-    const icon  = document.getElementById('eyeIcon');
+    const icon = document.getElementById('eyeIcon');
     if (input.type === 'password') {
         input.type = 'text';
         icon.className = 'bi bi-eye-slash';
@@ -65,6 +65,17 @@ function togglePassword() {
         icon.className = 'bi bi-eye';
     }
 }
+
+// After logout, the previous session's service worker may still hold cached
+// pages. If this login page was reached with ?clear-sw-cache=1, ask the
+// service worker to purge every lsc-* cache immediately.
+(function clearSWCached() {
+    if (new URLSearchParams(window.location.search).has('clear-sw-cache')) {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: 'lsc:clear-cache' });
+        }
+    }
+})();
 </script>
 
 <?php
