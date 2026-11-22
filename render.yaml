@@ -1,25 +1,24 @@
 services:
   - type: web
     name: lsc-web
-    Runtime: docker
-    dockerfilePath: deploy/railpack/Dockerfile.railway
+    runtime: docker
+    dockerfilePath: ./Dockerfile.railway
+    dockerContext: .
+    healthCheckPath: /healthz
     envVars:
       - key: PGHOST
-        value: {host}
+        sync: false
       - key: PGPORT
-        value: 5432
+        value: "5432"
       - key: PGDATABASE
-        value: lsc
+        value: lsc_db
       - key: PGUSER
-        value: {user}
+        value: lsc_db_user
       - key: PGPASSWORD
-        value: {password}
+        sync: false
+      - key: APP_URL
+        sync: false
       - key: APP_ENV
         value: production
-      - key: APP_URL
-        value: https://{webServiceName}.onrender.com
       - key: APP_DEBUG
-        value: '0'
-    databases:
-      - name: lsc-db
-        engine: POSTGRES
+        value: "0"
