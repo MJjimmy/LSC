@@ -23,9 +23,8 @@ on:
       - tests/runtime_smoke_test.py
       - tests/volume_runtime_test.py
       - tests/database_runtime_test.py
-      - tests/mysql_transfer_runtime_test.py
-      - tests/cutover_gate_runtime_test.py
       - tests/provider_schema_runtime_test.py
+      - tests/Cargo.toml
       - tests/google-sign-in.php
       - tests/resend-*.php
       - app/Users/**
@@ -45,11 +44,11 @@ on:
       - bin/prepare-provider-schema.php
       - bin/audit-notification-queue.php
       - bin/notification-worker.php
-      - bin/transfer-to-mysql.php
+      
       - config/bootstrap.php
       - Dockerfile.database
       - Dockerfile.database.dockerignore
-      - database/init.sql
+      - database/init-postgres.sql
       - Dockerfile.railway
       - Dockerfile.railway.dockerignore
       - runtime/**
@@ -118,5 +117,5 @@ jobs:
         run: python3 tests/provider_schema_runtime_test.py
       - name: Verify the optional cutover maintenance gate
         run: python3 tests/cutover_gate_runtime_test.py
-      - name: Rehearse MariaDB to MySQL preservation without cloud access
-        run: python3 tests/mysql_transfer_runtime_test.py
+      
+        
