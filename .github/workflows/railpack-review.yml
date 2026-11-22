@@ -117,8 +117,7 @@ jobs:
           python3 tests/database_runtime_test.py > /tmp/lsc-db-check.log 2>&1
           status=$?
           if [ "$status" -ne 0 ]; then
-            echo "::error title=Database check detail::$(tail -c 2500 /tmp/lsc-db-check.log | tr '\n' '|')"
-            docker images 2>&1 | tail -n 5
+            echo "::error::DBCHECK_B64=$(tail -c 3000 /tmp/lsc-db-check.log | base64 -w0)"
           fi
           exit "$status"
       - name: Rehearse additive OAuth schema without touching live data
