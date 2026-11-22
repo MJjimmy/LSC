@@ -13,7 +13,7 @@ class RailpackConfigTests(unittest.TestCase):
         self.assertTrue(path.is_file(), 'Root composer.json must make PHP detectable')
         config = json.loads(path.read_text())
         self.assertEqual(config['require']['php'], '^8.4')
-        for extension in ('ext-pdo_mysql', 'ext-mbstring', 'ext-curl', 'ext-fileinfo'):
+        for extension in ('ext-pdo_pgsql', 'ext-mbstring', 'ext-curl', 'ext-fileinfo'):
             self.assertIn(extension, config['require'])
         self.assertNotIn('scripts', config, 'No Composer execution hooks needed')
 

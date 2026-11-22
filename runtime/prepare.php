@@ -9,7 +9,7 @@ try {
     if ($port === false) {
         throw new RuntimeException('PORT must be an integer between 1 and 65535.');
     }
-    foreach (['pdo_mysql', 'mbstring', 'curl'] as $extension) {
+    foreach (['pdo_pgsql', 'mbstring', 'curl'] as $extension) {
         if (!extension_loaded($extension)) {
             throw new RuntimeException('A required PHP extension is unavailable.');
         }
