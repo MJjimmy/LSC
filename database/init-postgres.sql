@@ -70,7 +70,7 @@ CREATE TABLE messages (
 -- Table structure for table notification_queue
 CREATE TABLE notification_queue (
     queue_id SERIAL PRIMARY KEY,
-    user_id integer REFERENCES users(user_id) ON DELETE SET NULL,
+    user_id integer,
     channel varchar(20) NOT NULL DEFAULT 'email' CHECK (channel IN ('email','sms')),
     recipient varchar(190) NOT NULL,
     subject varchar(190) DEFAULT NULL,
@@ -225,6 +225,9 @@ ALTER TABLE group_members
 ALTER TABLE messages
     ADD CONSTRAINT fk_messages_group FOREIGN KEY (group_id) REFERENCES study_groups(group_id) ON DELETE CASCADE,
     ADD CONSTRAINT fk_messages_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
+
+ALTER TABLE notification_queue
+    ADD CONSTRAINT fk_notification_queue_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL;
 
 ALTER TABLE notifications
     ADD CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
