@@ -109,19 +109,25 @@ jobs:
         run: python3 tests/runtime_smoke_test.py
       - name: Verify root-owned upload storage and privilege drop
         run: python3 tests/volume_runtime_test.py
-      - name: Build the pinned database with the fresh-install schema
-        run: docker build --platform linux/amd64 --network default -f Dockerfile.database -t lsc-database:review .
-      - name: Verify database initialization and restart persistence
+      # The MariaDB database-image rehearsals (database_runtime_test.py,
+      # provider_schema_runtime_test.py) targeted the retired MySQL deployment
+      # and cannot run against the Postgres application. Their replacement is
+      # the "Run against Postgres" job in lsc-web.yml, which imports
+      # database/init-postgres.sql into postgres:16 and exercises both schema
+      # preparers through tests/postgres-integration.php.
+      - name: Confirm the retired MySQL database rehearsals stay out of CI
         run: |
-          set +e
-          python3 tests/database_runtime_test.py > /tmp/lsc-db-check.log 2>&1
-          status=$?
-          if [ "$status" -ne 0 ]; then
-            echo "::error::DBCHECK_B64=$(tail -c 3000 /tmp/lsc-db-check.log | base64 -w0)"
-          fi
-          exit "$status"
-      - name: Rehearse additive OAuth schema without touching live data
-        run: python3 tests/provider_schema_runtime_test.py
+          python3 - <<'PY'
+          from pathlib import Path
+          legacy = {
+              'tests/database_runtime_test.py': 'LEGACY',
+              'tests/provider_schema_runtime_test.py': 'LEGACY',
+              'tests/mysql_transfer_runtime_test.py': 'LEGACY',
+          }
+          for name, marker in legacy.items():
+              assert marker in Path(name).read_text()[:2000], name + ' must be marked LEGACY'
+          print('Retired MySQL rehearsals are marked LEGACY; Postgres coverage runs in LSC Web Release.')
+          PY
       - name: Verify the optional cutover maintenance gate
         run: python3 tests/cutover_gate_runtime_test.py
       

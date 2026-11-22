@@ -1,4 +1,10 @@
-"""Disposable MariaDB -> MySQL preservation test; never targets Railway."""
+"""LEGACY: rehearses the retired MySQL/MariaDB deployment.
+
+LSC deploys on Postgres, so this rehearsal no longer matches the application and
+is intentionally not executed in CI. Postgres coverage lives in
+tests/postgres-integration.php (release-gate job "Run against Postgres").
+Kept as a record of the previous deployment model.
+"""
 from pathlib import Path
 import json, os, secrets, subprocess, time, uuid
 ROOT=Path(__file__).resolve().parents[1]
