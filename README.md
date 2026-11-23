@@ -217,6 +217,7 @@ no second pipeline to keep in sync.
 | Task | Command / setting |
 |---|---|
 | Schema + readiness check | `php bin/prepare-deployment.php` |
+| Why Google sign-in is disabled | `php bin/provider-readiness.php` |
 | Queue and clock audit (JSON) | `php bin/audit-notification-queue.php` |
 | Notification worker | `NOTIFICATION_PROCESSOR_ENABLED=1` starts it under s6; it sends one email per cycle with advisory-lock single-writer protection, a three-attempt ceiling and a 23-hour age cap |
 | Maintenance window | `LSC_DB_CUTOVER_MAINTENANCE=1`, then wait for the previous instance to drain |
@@ -311,6 +312,7 @@ preparers, all against real Postgres.
 | `403 Invalid CSRF token` | Stale tab, or a session cookie dropped by a scheme/host change | Reload, sign in again, keep one canonical origin |
 | `SQLSTATE[42P01]` / missing table | Schema not imported or alignment migration not run | Import `init-postgres.sql`, then run the alignment script |
 | Emails never arrive | `EMAIL_DELIVERY_ENABLED` or worker switches off | Check `php bin/audit-notification-queue.php` |
+| "Google sign-in is currently unavailable" | `APP_URL`, `GOOGLE_CLIENT_ID` or `GOOGLE_CLIENT_SECRET` missing or invalid | `php bin/provider-readiness.php` names the blocker |
 
 ## Contributing
 

@@ -10,7 +10,23 @@ Use a Google OAuth **Web application** client. Server environment variables:
 - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` (keep server-side; never commit values)
 - Authorized redirect URI must match exactly: `https://lsc.example.ac.za/oauth.php?provider=google`
 
-HTTPS is required except localhost/127.0.0.1 in non-production. The button is disabled if configuration is missing. Google consent-screen testing/publication and allowed test users must be configured in the Google project as appropriate. No credential value needs to be printed to verify this deployment.
+HTTPS is required except localhost/127.0.0.1 in non-production. The button is disabled if configuration is missing.
+
+### Why the button says "currently unavailable"
+
+`OAuthProvider::enabled()` is a single gate over three things: a valid `APP_URL`
+(absolute, https, no query/fragment/credentials), a non-empty `GOOGLE_CLIENT_ID`
+and a non-empty `GOOGLE_CLIENT_SECRET`. The sign-in page hides the reason, so ask
+the deployment instead:
+
+```bash
+php bin/provider-readiness.php
+```
+
+It prints the origin, whether each credential is present, whether the
+`oauth_identities` table exists, the exact redirect URI to register, and one line
+per blocking problem — then exits non-zero while anything is missing. It prints
+no credential values, so its output is safe to paste into an issue or a deploy log. Google consent-screen testing/publication and allowed test users must be configured in the Google project as appropriate. No credential value needs to be printed to verify this deployment.
 
 ## Additive schema prerequisite
 
