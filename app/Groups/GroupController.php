@@ -89,17 +89,18 @@ final class GroupController
 
         $groupFlash = $_SESSION['group_flash'] ?? null;
         unset($_SESSION['group_flash']);
-        $tab = (string)($_GET['tab'] ?? 'tasks');
+        $tab = (string)($_GET['tab'] ?? 'overview');
         $members = $this->groups->members($groupId);
         $tasks = $this->tasks->forGroup($groupId);
         $files = $this->files->forGroup($groupId);
         $messages = $this->messages->forGroup($groupId);
         $pendingJoinRequests = $canManageGroup ? $this->groups->pendingRequests($groupId) : [];
         $tabs = [
+            'overview' => ['icon' => 'bi-grid-1x2-fill', 'label' => 'Overview'],
             'tasks' => ['icon' => 'bi-check2-square', 'label' => 'Tasks'],
+            'chat' => ['icon' => 'bi-chat-dots-fill', 'label' => 'Chat'],
             'members' => ['icon' => 'bi-people-fill', 'label' => 'Members'],
             'files' => ['icon' => 'bi-folder-fill', 'label' => 'Files'],
-            'chat' => ['icon' => 'bi-chat-dots-fill', 'label' => 'Chat'],
         ];
 
         ob_start();
