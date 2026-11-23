@@ -1,0 +1,10 @@
+{
+  "description": "A setup utility for Figma Make projects that bootstraps imported apps and verifies deployment and preview configurations.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
