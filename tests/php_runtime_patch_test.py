@@ -8,12 +8,12 @@ PIN = 'cgr.dev/chainguard/php@sha256:8cdaa7a48161331e1de2df8cce48c02d2b67890aaf6
 
 class PhpRuntimePatch(unittest.TestCase):
     def test_php_image_is_exact_signature_verified_8512_fpm_release(self):
-        source = (ROOT / 'Dockerfile.railway').read_text()
+        source = (ROOT / 'Dockerfile').read_text()
         images = re.findall(r'^FROM\s+(\S+)', source, re.M)
         self.assertEqual(images[-1], PIN, 'Replace the pre-security-release PHP image before executing it')
 
     def test_build_fails_closed_unless_php_is_exactly_8512(self):
-        source = (ROOT / 'Dockerfile.railway').read_text()
+        source = (ROOT / 'Dockerfile').read_text()
         self.assertIn("PHP_VERSION !== '8.5.12'", source)
         self.assertIn('Verified PHP runtime: ', source)
 

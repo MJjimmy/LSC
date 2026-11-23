@@ -1,7 +1,7 @@
 # Deploying LSC on Render (Postgres)
 
 This is the supported production path: a Render web service built from
-`Dockerfile.railway` (nginx, php-fpm, s6) talking to a Render managed Postgres
+`Dockerfile` (nginx, php-fpm, s6) talking to a Render managed Postgres
 database. `render.yaml` describes the whole stack, so **New → Blueprint** in the
 Render dashboard provisions it in one step.
 
@@ -12,7 +12,7 @@ Render dashboard provisions it in one step.
 | Resource | Detail |
 |---|---|
 | `lsc-db` | Managed Postgres 16, database `lsc_db`, user `lsc_db_user` |
-| `lsc-web` | Docker service from `Dockerfile.railway`, health check `/healthz` |
+| `lsc-web` | Docker service from `Dockerfile`, health check `/healthz` |
 | disk | `lsc-uploads` mounted at `/app/storage/uploads` (uploads survive deploys) |
 
 `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER` and `PGPASSWORD` are wired to the

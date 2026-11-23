@@ -1,6 +1,6 @@
 # Render blueprint for LSC.
 #
-# The web service builds Dockerfile.railway (nginx + php-fpm + s6, pdo_pgsql)
+# The web service builds ./Dockerfile (nginx + php-fpm + s6, pdo_pgsql)
 # and talks to the managed Postgres database below. Import the schema once:
 #   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f database/init-postgres.sql
 # then run the two preparation scripts from the service shell:
@@ -22,7 +22,7 @@ services:
   - type: web
     name: lsc-web
     runtime: docker
-    dockerfilePath: ./Dockerfile.railway
+    dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /healthz
     plan: starter

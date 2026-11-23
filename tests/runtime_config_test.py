@@ -1,11 +1,11 @@
-"""Offline checks for the hardened Railway Docker runtime."""
+"""Offline checks for the hardened production Docker runtime."""
 from pathlib import Path
 import re
 import unittest
 ROOT=Path(__file__).resolve().parents[1]
 class RuntimeContract(unittest.TestCase):
     def test_runtime_uses_pinned_non_root_vendor_images(self):
-        path=ROOT/'Dockerfile.railway'
+        path=ROOT/'Dockerfile'
         self.assertTrue(path.exists(),'A patched production runtime is required')
         s=path.read_text()
         bases=re.findall(r'^FROM\s+(\S+)',s,re.M)
@@ -15,7 +15,7 @@ class RuntimeContract(unittest.TestCase):
         self.assertNotIn('COPY . ',s)
         self.assertNotIn('apt-get',s)
         self.assertNotIn('RUN --network=', s,
-                         'Railway does not support per-instruction network flags')
+                         'The build must not depend on per-instruction network flags')
     def test_nginx_only_serves_public_and_uses_fpm(self):
         path=ROOT/'runtime/nginx.conf.template'
         self.assertTrue(path.exists())
