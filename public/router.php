@@ -1,5 +1,5 @@
 <?php
-// Router for the PHP built-in server (used by the Railway start command).
+// Router for the PHP built-in server, used for local development.
 // Existing files are served normally (return false); anything missing gets
 // the application 404 page instead of the built-in server's plain one.
 //

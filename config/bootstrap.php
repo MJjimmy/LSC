@@ -7,8 +7,8 @@ define('LSC_STORAGE', LSC_ROOT . DIRECTORY_SEPARATOR . 'storage');
 
 /**
  * Minimal, dependency-free .env loader for local development.
- * Production hosts set environment variables natively (Railway, hPanel,
- * systemd), so a missing .env file is not an error. Variables that are
+ * Production hosts set environment variables natively (Render, systemd,
+ * hPanel, Docker), so a missing .env file is not an error. Variables that are
  * already set in the environment always take precedence over .env values.
  */
 (static function (string $path): void {

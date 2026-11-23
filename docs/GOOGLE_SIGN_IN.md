@@ -6,9 +6,9 @@ This ports the existing canonical OAuth provider/account implementation into the
 
 Use a Google OAuth **Web application** client. Server environment variables:
 
-- `APP_URL=https://lsc.up.railway.app`
+- `APP_URL=https://lsc.example.ac.za`
 - `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` (keep server-side; never commit values)
-- Authorized redirect URI must match exactly: `https://lsc.up.railway.app/oauth.php?provider=google`
+- Authorized redirect URI must match exactly: `https://lsc.example.ac.za/oauth.php?provider=google`
 
 HTTPS is required except localhost/127.0.0.1 in non-production. The button is disabled if configuration is missing. Google consent-screen testing/publication and allowed test users must be configured in the Google project as appropriate. No credential value needs to be printed to verify this deployment.
 

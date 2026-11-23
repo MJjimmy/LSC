@@ -13,7 +13,7 @@ server-rendered PHP on PostgreSQL, installable as a web app.
 |---|---|
 | **Stack** | PHP 8.4+ (production image pins 8.5.12), nginx + php-fpm + s6, no PHP runtime dependencies |
 | **Database** | PostgreSQL 14+ (Render managed Postgres) |
-| **Deploy** | `render.yaml` blueprint → Docker service from `Dockerfile.railway` |
+| **Deploy** | `render.yaml` blueprint → Docker service from `Dockerfile` |
 | **Source of truth** | branch `deploy/railpack` |
 | **Tests** | 42 files under `tests/`, gated by `.github/workflows/lsc-web.yml` |
 
@@ -111,7 +111,7 @@ app/<Feature>/  Groups, Tasks, Files, Chat, Invitations, Notifications, Users, D
 config/         bootstrap.php — .env loader, autoloader, sessions, security headers
 bin/            CLI: account recovery, schema preparation, queue audit, worker
 runtime/        production nginx/php-fpm/s6 configuration and entrypoint
-database/       init-postgres.sql (canonical), alignment migration, legacy MySQL
+database/       init-postgres.sql (canonical) + alignment migration, compose file
 tests/          PHP regression suites, Python harnesses, Node checks
 storage/uploads user files — outside the document root, persistent disk in production
 ```
@@ -193,7 +193,7 @@ The supported path is Render, described end to end in
 [`docs/POSTGRES_DEPLOY.md`](docs/POSTGRES_DEPLOY.md):
 
 1. Apply `render.yaml` (*New → Blueprint*). It creates `lsc-db` (Postgres 16),
-   the Docker web service from `Dockerfile.railway`, and a disk mounted at
+   the Docker web service from `Dockerfile`, and a disk mounted at
    `/app/storage/uploads`. `PG*` values are wired with `fromDatabase`.
 2. Set the values the blueprint cannot invent: `APP_URL`, `EMAIL_DELIVERY_ENABLED`,
    `RESEND_API_KEY`, `RESEND_FROM_EMAIL` (plus any optional integrations).
@@ -206,12 +206,11 @@ invite → upload a file → create a task → reset a password.
 Custom domain: Render → service → **Settings → Custom Domains**, then point the
 `CNAME` at the target Render shows and set `APP_URL` to the same origin.
 
-**One deploy path.** `render.yaml` + `Dockerfile.railway` is the only supported
-way to run this application. The earlier Railway/Railpack configs (`railpack.json`,
+**One deploy path.** `render.yaml` + `Dockerfile` is the only supported way to
+run this application. The configs from the earlier hosts (`railpack.json`,
 `Caddyfile`, the root `nginx.conf`) and the MariaDB image (`Dockerfile.database`)
-were deleted once Render became the target, so there is nothing left to drift.
-Any surviving Railway service needs `PG*` variables now, not `MYSQL*` — retire or
-repoint it rather than keeping it in sync.
+were deleted once Render became the target, so there is nothing left to drift and
+no second pipeline to keep in sync.
 
 ## Operations
 
@@ -272,7 +271,7 @@ workflow and the release gate — triggered on pull requests and pushes to
 | Check code | PHP lint of every file, Python syntax, deployment/runtime config, and the **dialect guard** |
 | Test website | PHP regression suites (SQLite fixtures), HTTP probes, browser and theme checks |
 | Run against Postgres | Imports `init-postgres.sql` into `postgres:16`, re-runs the alignment migration (proving it is a no-op on a fresh schema), runs `tests/postgres-integration.php` |
-| Verify web build | Builds `Dockerfile.railway`, checks PHP version and extensions, runs the runtime smoke, volume and cutover-gate tests |
+| Verify web build | Builds `Dockerfile`, checks PHP version and extensions, runs the runtime smoke, volume and cutover-gate tests |
 | Release gate | Fails the release unless all of the above succeed |
 
 Run locally:
@@ -353,12 +352,11 @@ you deploy:
 | [`docs/NOTIFICATION_WORKER.md`](docs/NOTIFICATION_WORKER.md) | Queue worker behaviour and safeguards |
 | [`docs/email-verification.md`](docs/email-verification.md) | Mailbox-proof design |
 | [`docs/GOOGLE_SIGN_IN.md`](docs/GOOGLE_SIGN_IN.md) · [`docs/ANDROID_SIGN_IN.md`](docs/ANDROID_SIGN_IN.md) | OAuth setup and the native hand-off |
-| [`docs/LSC_Project_Documentation.docx`](docs/LSC_Project_Documentation.docx) | Full architecture, user guide, release checklist |
 | [`docs/LSC_Institutional_Overview.md`](docs/LSC_Institutional_Overview.md) | Institution-facing overview |
 
-Earlier Railway/MySQL post-mortems (`MYSQL_CUTOVER`, `RAILPACK_REVIEW`,
-`RUNTIME_FIX`, `UI-FIX`) were removed in the clean-up; git history keeps them if
-you need the archaeology.
+Post-mortems and generated Word files from earlier deployments (`MYSQL_CUTOVER`,
+`RAILPACK_REVIEW`, `RUNTIME_FIX`, `UI-FIX`, the `.docx` guides) were removed in
+the clean-up; git history keeps them if you need the archaeology.
 
 ## Licence
 

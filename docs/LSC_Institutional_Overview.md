@@ -199,7 +199,7 @@ A typical institutional deployment consists of:
 - daily database backups and a tested restore procedure; and
 - institution-approved monitoring, logging and support ownership.
 
-LSC can be deployed on Railway or equivalent infrastructure, or on institution-managed hosting. The deployment should not use PHP's built-in development server for a public production service.
+LSC deploys to Render (`render.yaml`) or to equivalent container infrastructure, or to institution-managed hosting. The deployment should not use PHP's built-in development server for a public production service.
 
 ## Suggested implementation plan
 

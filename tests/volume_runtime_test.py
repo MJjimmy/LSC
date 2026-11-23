@@ -1,4 +1,4 @@
-"""Disposable Railway-style root-owned volume test; never touches existing data."""
+"""Disposable root-owned volume test for the shipped image; never touches existing data."""
 import json
 import subprocess
 import time
@@ -21,7 +21,7 @@ def start():
            '--security-opt', 'no-new-privileges:true', '--pids-limit', '128', '--memory', '512m',
            '--tmpfs', '/tmp:rw,nosuid,nodev,size=128m',
            '--mount', 'type=volume,source=' + VOLUME + ',target=/app/storage/uploads,volume-nocopy',
-           '-e', 'PORT=18765', '-e', 'RAILWAY_VOLUME_MOUNT_PATH=/app/storage/uploads', IMAGE)
+           '-e', 'PORT=18765', '-e', 'LSC_UPLOAD_VOLUME_PATH=/app/storage/uploads', IMAGE)
     for _ in range(30):
         result = docker('exec', '--user', '65532:65532', NAME, '/bin/php', '-r',
                         '$c=curl_init("http://127.0.0.1:18765/healthz");curl_setopt_array($c,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>1,CURLOPT_PROXY=>""]);curl_exec($c);exit(curl_getinfo($c,CURLINFO_HTTP_CODE)===200?0:1);', check=False)
