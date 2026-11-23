@@ -1,23 +1,23 @@
 <?php // Variables are provided by AccountController::login(). ?>
 
-<div class="auth-card-title">Welcome Back</div>
-<div class="auth-card-sub">Sign in to your account</div>
+<div class="auth-card-title">Welcome back</div>
+<div class="auth-card-sub">Sign in to continue to your academic workspace.</div>
 
 <?php if (isset($_GET['registered'])): ?>
-    <div class="auth-alert auth-alert-success"><i class="bi bi-check-circle" style="margin-right:6px;"></i>Account created. Verify your email before signing in.</div>
+    <div class="auth-alert auth-alert-success" role="status"><i class="bi bi-check-circle" aria-hidden="true"></i><span>Account created. Verify your email before signing in.</span></div>
 <?php endif; ?>
 
 <?php if (isset($_GET['deactivated'])): ?>
-    <div class="auth-alert auth-alert-error"><i class="bi bi-exclamation-circle" style="margin-right:6px;"></i>Your account is inactive. Contact an administrator.</div>
+    <div class="auth-alert auth-alert-error" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i><span>Your account is inactive. Contact an administrator.</span></div>
 <?php endif; ?>
 
 <?php if (isset($_GET['expired'])): ?>
-    <div class="auth-alert auth-alert-error"><i class="bi bi-exclamation-circle" style="margin-right:6px;"></i>Your session expired. Please sign in again.</div>
+    <div class="auth-alert auth-alert-error" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i><span>Your session expired. Please sign in again.</span></div>
 <?php endif; ?>
 
 <?php if ($error): ?>
-    <div class="auth-alert auth-alert-error">
-        <i class="bi bi-exclamation-circle" style="margin-right:6px;"></i><?= htmlspecialchars($error) ?>
+    <div class="auth-alert auth-alert-error" role="alert">
+        <i class="bi bi-exclamation-circle" aria-hidden="true"></i><span><?= htmlspecialchars($error) ?></span>
     </div>
 <?php endif; ?>
 
@@ -26,43 +26,50 @@
     <input type="hidden" name="next" value="<?= htmlspecialchars($_GET['next'] ?? '') ?>">
 
     <div class="auth-field">
+        <label for="login-email">Email address</label>
         <input type="email" name="email" placeholder="Email address"
-               class="auth-input" required autocomplete="email"
+               id="login-email" class="auth-input" required autocomplete="email"
                value="<?= htmlspecialchars($_POST['email'] ?? '') ?>">
     </div>
 
     <div class="auth-field auth-pw-wrap">
+        <label for="password">Password</label>
         <input type="password" name="password" id="password"
-               placeholder="Password" class="auth-input" required>
-        <button type="button" class="auth-pw-toggle" onclick="togglePassword()">
-            <i id="eyeIcon" class="bi bi-eye"></i>
+               placeholder="Enter your password" class="auth-input" required autocomplete="current-password">
+        <button type="button" class="auth-pw-toggle" onclick="togglePassword()" aria-label="Show password" aria-pressed="false">
+            <i id="eyeIcon" class="bi bi-eye" aria-hidden="true"></i>
         </button>
     </div>
 
-    <div style="text-align:right;margin:-4px 0 14px;font-size:12px;">
-        <a href="forgot-password.php" style="color:var(--brand-dark);text-decoration:none;">Forgot password?</a>
+    <div class="auth-form-meta">
+        <a href="forgot-password.php">Forgot your password?</a>
     </div>
 
-    <button type="submit" class="auth-btn">Sign In</button>
+    <button type="submit" class="auth-btn">Sign in <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
 
 </form>
 
 <?php require LSC_ROOT . '/views/auth/google.php'; ?>
 
 <div class="auth-footer">
-    Don't have an account? <a href="register.php<?= !empty($_GET['next']) ? '?next=' . rawurlencode($_GET['next']) : '' ?>">Register</a>
+    New to LSC? <a href="register.php<?= !empty($_GET['next']) ? '?next=' . rawurlencode($_GET['next']) : '' ?>">Create an account</a>
 </div>
 
 <script>
 function togglePassword() {
     const input = document.getElementById('password');
     const icon = document.getElementById('eyeIcon');
+    const button = icon.closest('button');
     if (input.type === 'password') {
         input.type = 'text';
         icon.className = 'bi bi-eye-slash';
+        button.setAttribute('aria-label', 'Hide password');
+        button.setAttribute('aria-pressed', 'true');
     } else {
         input.type = 'password';
         icon.className = 'bi bi-eye';
+        button.setAttribute('aria-label', 'Show password');
+        button.setAttribute('aria-pressed', 'false');
     }
 }
 
