@@ -1,6 +1,7 @@
 <?php
 // Shared LSC application layout.
 $current_page = basename($_SERVER['PHP_SELF'], '.php');
+$ariaCurrent = static fn(bool $active): string => $active ? ' aria-current="page"' : '';
 $unreadNotificationCount = isset($_SESSION['user_id'])
     ? (new \LSC\Notifications\NotificationRepository(
         \LSC\Core\Database::connection()
@@ -98,6 +99,9 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         display: flex;
         overflow: hidden;
     }
+    :where(a,button,input,select,textarea):focus-visible { outline:3px solid #60a5fa; outline-offset:2px; }
+    .lsc-skip-link { background:#fff; color:#123b63; font-weight:700; left:12px; padding:10px 14px; position:fixed; top:-60px; z-index:1000; }
+    .lsc-skip-link:focus { top:12px; }
 
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -1074,6 +1078,7 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 
 </head>
 <body>
+    <a class="lsc-skip-link" href="#main-content">Skip to main content</a>
 
     <!-- Dark overlay (mobile) -->
     <div class="lsc-overlay" id="lscOverlay" onclick="closeSidebar()"></div>
@@ -1096,36 +1101,41 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 
         <nav class="lsc-nav">
             <div class="lsc-nav-label">Main</div>
-            <a href="dashboard.php" onclick="closeSidebar()" class="<?= $current_page === 'dashboard' ? 'active' : '' ?>">
+            <a href="dashboard.php" onclick="closeSidebar()" class="<?= $current_page === 'dashboard' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'dashboard') ?>>
                 <i class="bi bi-grid-1x2-fill"></i> Dashboard
             </a>
-            <a href="groups.php" onclick="closeSidebar()" class="<?= in_array($current_page, ['groups','group']) ? 'active' : '' ?>">
+            <?php if (($_SESSION['user_role'] ?? '') === 'lecturer'): ?>
+            <a href="teaching.php" onclick="closeSidebar()" class="<?= $current_page === 'teaching' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'teaching') ?>>
+                <i class="bi bi-easel2-fill"></i> Teaching
+            </a>
+            <?php endif; ?>
+            <a href="groups.php" onclick="closeSidebar()" class="<?= in_array($current_page, ['groups','group']) ? 'active' : '' ?>"<?= $ariaCurrent(in_array($current_page, ['groups','group'], true)) ?>>
                 <i class="bi bi-people-fill"></i> Study Groups
             </a>
-            <a href="tasks.php" onclick="closeSidebar()" class="<?= $current_page === 'tasks' ? 'active' : '' ?>">
+            <a href="tasks.php" onclick="closeSidebar()" class="<?= $current_page === 'tasks' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'tasks') ?>>
                 <i class="bi bi-check2-square"></i> Tasks
             </a>
-            <a href="files.php" onclick="closeSidebar()" class="<?= $current_page === 'files' ? 'active' : '' ?>">
+            <a href="files.php" onclick="closeSidebar()" class="<?= $current_page === 'files' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'files') ?>>
                 <i class="bi bi-folder-fill"></i> Files
             </a>
-            <a href="calendar.php" onclick="closeSidebar()" class="<?= $current_page === 'calendar' ? 'active' : '' ?>">
+            <a href="calendar.php" onclick="closeSidebar()" class="<?= $current_page === 'calendar' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'calendar') ?>>
                 <i class="bi bi-calendar-event-fill"></i> Calendar
             </a>
-            <a href="notifications.php" onclick="closeSidebar()" class="<?= $current_page === 'notifications' ? 'active' : '' ?>">
+            <a href="notifications.php" onclick="closeSidebar()" class="<?= $current_page === 'notifications' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'notifications') ?>>
                 <i class="bi bi-bell-fill"></i> Notifications
                 <?php if ($unreadNotificationCount): ?><span style="margin-left:auto;background:var(--brand);color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;"><?= min($unreadNotificationCount, 99) ?></span><?php endif; ?>
             </a>
-            <a href="profile.php" onclick="closeSidebar()" class="<?= $current_page === 'profile' ? 'active' : '' ?>">
+            <a href="profile.php" onclick="closeSidebar()" class="<?= $current_page === 'profile' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'profile') ?>>
                 <i class="bi bi-person-circle"></i> My Profile
             </a>
 
-            <a href="help.php" onclick="closeSidebar()" class="<?= $current_page === 'help' ? 'active' : '' ?>">
+            <a href="help.php" onclick="closeSidebar()" class="<?= $current_page === 'help' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'help') ?>>
                 <i class="bi bi-question-circle"></i> Help
             </a>
 
             <?php if (($_SESSION['user_role'] ?? '') === 'admin'): ?>
             <div class="lsc-nav-label" style="margin-top:8px;">Administration</div>
-            <a href="admin.php" onclick="closeSidebar()" class="<?= $current_page === 'admin' ? 'active' : '' ?>">
+            <a href="admin.php" onclick="closeSidebar()" class="<?= $current_page === 'admin' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'admin') ?>>
                 <i class="bi bi-shield-lock-fill"></i> Admin Panel
             </a>
             <?php endif; ?>
@@ -1183,32 +1193,35 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
         </header>
 
         <!-- Page content -->
-        <div class="lsc-content">
+        <main class="lsc-content" id="main-content" tabindex="-1">
             <?= $page_content ?? '' ?>
-        </div>
+        </main>
 
     </div>
 
     <!-- ── MOBILE BOTTOM NAV ──────────────────────────────── -->
     <nav class="lsc-bottom-nav" aria-label="Mobile navigation">
         <div class="lsc-bottom-nav-inner">
-            <a href="dashboard.php" class="lsc-bnav-item <?= $current_page === 'dashboard' ? 'active' : '' ?>">
+            <a href="dashboard.php" class="lsc-bnav-item <?= $current_page === 'dashboard' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'dashboard') ?>>
                 <i class="bi bi-grid-1x2-fill"></i>
                 <span>Home</span>
             </a>
-            <a href="groups.php" class="lsc-bnav-item <?= in_array($current_page, ['groups','group']) ? 'active' : '' ?>">
+            <a href="groups.php" class="lsc-bnav-item <?= in_array($current_page, ['groups','group']) ? 'active' : '' ?>"<?= $ariaCurrent(in_array($current_page, ['groups','group'], true)) ?>>
                 <i class="bi bi-people-fill"></i>
                 <span>Groups</span>
             </a>
-            <a href="tasks.php" class="lsc-bnav-item <?= $current_page === 'tasks' ? 'active' : '' ?>">
+            <a href="tasks.php" class="lsc-bnav-item <?= $current_page === 'tasks' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'tasks') ?>>
                 <i class="bi bi-check2-square"></i>
                 <span>Tasks</span>
             </a>
-            <a href="files.php" class="lsc-bnav-item <?= $current_page === 'files' ? 'active' : '' ?>">
-                <i class="bi bi-folder-fill"></i>
-                <span>Files</span>
-            </a>
-            <a href="calendar.php" class="lsc-bnav-item <?= $current_page === 'calendar' ? 'active' : '' ?>">
+            <?php if (($_SESSION['user_role'] ?? '') === 'lecturer'): ?>
+            <a href="teaching.php" class="lsc-bnav-item <?= $current_page === 'teaching' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'teaching') ?>><i class="bi bi-easel2-fill"></i><span>Teaching</span></a>
+            <?php elseif (($_SESSION['user_role'] ?? '') === 'admin'): ?>
+            <a href="admin.php" class="lsc-bnav-item <?= $current_page === 'admin' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'admin') ?>><i class="bi bi-shield-lock-fill"></i><span>Admin</span></a>
+            <?php else: ?>
+            <a href="files.php" class="lsc-bnav-item <?= $current_page === 'files' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'files') ?>><i class="bi bi-folder-fill"></i><span>Files</span></a>
+            <?php endif; ?>
+            <a href="calendar.php" class="lsc-bnav-item <?= $current_page === 'calendar' ? 'active' : '' ?>"<?= $ariaCurrent($current_page === 'calendar') ?>>
                 <i class="bi bi-calendar-event-fill"></i>
                 <span>Calendar</span>
             </a>

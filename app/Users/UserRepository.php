@@ -22,7 +22,7 @@ final class UserRepository
     {
         $statement = $this->database->prepare(<<<'SQL'
             SELECT u.user_id, u.name, u.email, u.role, u.bio, u.institution,
-                   u.course, u.avatar_path, u.created_at,
+                   u.course, u.avatar_path, u.created_at, u.email_verified_at,
                    u.phone_number, u.notify_email, u.notify_sms, u.is_active,
                    (SELECT COUNT(*) FROM group_members gm WHERE gm.user_id = u.user_id) AS group_count,
                    (SELECT COUNT(*) FROM files f WHERE f.uploaded_by = u.user_id) AS file_count,

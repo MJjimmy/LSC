@@ -8,8 +8,8 @@ $roleConfig = match ($role) {
         'eyebrow' => 'Teaching overview',
         'headline' => 'Guide your groups with a clearer view.',
         'summary' => 'Review participation, upcoming work and access requests across the groups you manage.',
-        'actionHref' => 'groups.php',
-        'actionLabel' => 'Manage groups',
+        'actionHref' => 'teaching.php',
+        'actionLabel' => 'Open teaching workspace',
         'actionIcon' => 'bi-people-fill',
     ],
     'admin' => [

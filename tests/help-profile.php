@@ -19,10 +19,14 @@ $profile = ['user_id'=>1, 'name'=>'Fixture <learner>', 'role'=>'student',
     'created_at'=>'2026-01-01 00:00:00', 'phone_number'=>null, 'notify_email'=>1, 'notify_sms'=>0];
 $error = $success = '';
 foreach ([true, false] as $isOwnProfile) {
-    ob_start();
-    ob_start(); // Profile view consumes the inner buffer and renders its real layout.
-    require LSC_ROOT . '/views/users/profile.php';
-    $html = ob_get_clean();
+    $html = '';
+    foreach ($isOwnProfile ? ['overview', 'profile', 'notifications', 'security'] : ['overview'] as $tab) {
+        $_GET = ['tab' => $tab];
+        ob_start();
+        ob_start(); // Profile view consumes the inner buffer and renders its real layout.
+        require LSC_ROOT . '/views/users/profile.php';
+        $html .= ob_get_clean();
+    }
     checkUi(!str_contains($html, 'id="lsc-consent"'), 'Profile renders without the cookie popup');
     checkUi(!str_contains($html, 'oauth.php?provider=google'), 'Profile has no Google form');
     checkUi(!str_contains($html, 'Connect Google') && !str_contains($html, 'Continue with Google'), 'Profile has no extra Google button');
