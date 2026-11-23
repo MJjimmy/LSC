@@ -6,8 +6,7 @@
     "php": "^8.4",
     "ext-pdo_pgsql": "*",
     "ext-mbstring": "*",
-    "ext-curl": "*",
-    "ext-fileinfo": "*"
+    "ext-curl": "*"
   },
   "config": {
     "allow-plugins": false

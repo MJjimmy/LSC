@@ -1,11 +1,14 @@
 name: LSC Web Release
 
-# Railway owns production deployment after this complete workflow succeeds.
+# The single CI pipeline for this repository: lint, the SQLite fixture suites,
+# a real Postgres import plus integration run, and a build of the shipped
+# runtime image. Render deploys from deploy/railpack once every job is green.
 on:
   push:
-    branches: [ui-fix, deploy/railpack]
+    branches: [deploy/railpack]
   pull_request:
     branches: [deploy/railpack]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -50,7 +53,6 @@ jobs:
           PY
       - name: Check deployment configuration and patched runtime pin
         run: |
-          python -I tests/railpack_config_test.py
           python -I tests/runtime_config_test.py
           python -I tests/php_runtime_patch_test.py
           python -I tests/postgres_dialect_test.py

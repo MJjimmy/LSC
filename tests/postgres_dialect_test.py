@@ -48,8 +48,6 @@ LEGACY_ALLOWANCES = {
     "app/Users/EmailVerificationSchema.php": {"DATABASE()": 1, "ENGINE=InnoDB": 1},
     # MySQL branch of the provider schema preparation.
     "bin/prepare-provider-schema.php": {"DATABASE()": 1, "ENGINE=InnoDB": 2},
-    # A dedicated MySQL export tool: MySQL SQL is its entire purpose.
-    "bin/transfer-to-mysql.php": {"*": None},
 }
 
 REQUIRED_PG_SCHEMA = [

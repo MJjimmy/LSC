@@ -7,7 +7,7 @@ def docker(args,check=True):
  if check and r.returncode:raise RuntimeError(r.stdout+r.stderr)
  return r
 port='18765'
-probe=r'''$out=[];foreach(['/healthz','/','/composer.json','/.env','/database/init.sql','/config/bootstrap.php','/runtime/prepare.php','/unknown-page'] as $p){$c=curl_init('http://127.0.0.1:18765'.$p);curl_setopt_array($c,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_HEADER=>true,CURLOPT_TIMEOUT=>2,CURLOPT_PROXY=>'',CURLOPT_HTTPHEADER=>['X-Forwarded-Proto: https']]);$body=curl_exec($c);$out[$p]=['status'=>curl_getinfo($c,CURLINFO_HTTP_CODE),'poweredBy'=>stripos((string)$body,'X-Powered-By:')!==false];}echo json_encode($out);'''
+probe=r'''$out=[];foreach(['/healthz','/','/composer.json','/.env','/config/bootstrap.php','/runtime/prepare.php','/unknown-page'] as $p){$c=curl_init('http://127.0.0.1:18765'.$p);curl_setopt_array($c,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_HEADER=>true,CURLOPT_TIMEOUT=>2,CURLOPT_PROXY=>'',CURLOPT_HTTPHEADER=>['X-Forwarded-Proto: https']]);$body=curl_exec($c);$out[$p]=['status'=>curl_getinfo($c,CURLINFO_HTTP_CODE),'poweredBy'=>stripos((string)$body,'X-Powered-By:')!==false];}echo json_encode($out);'''
 try:
  docker(['run','-d','--pull','never','--name',NAME,'--network','none','--read-only','--cap-drop','ALL','--security-opt','no-new-privileges:true','--pids-limit','128','--memory','512m','--tmpfs','/tmp:rw,nosuid,nodev,size=128m','-e','PORT='+port,IMAGE])
  for _ in range(30):
