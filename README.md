@@ -312,6 +312,7 @@ preparers, all against real Postgres.
 | `403 Invalid CSRF token` | Stale tab, or a session cookie dropped by a scheme/host change | Reload, sign in again, keep one canonical origin |
 | `SQLSTATE[42P01]` / missing table | Schema not imported or alignment migration not run | Import `init-postgres.sql`, then run the alignment script |
 | Emails never arrive | `EMAIL_DELIVERY_ENABLED` or worker switches off | Check `php bin/audit-notification-queue.php` |
+| `LSC_QUEUE_AUDIT failed:` | The audit cannot read `notification_queue`, `group_invitations` or `users` | The line names the SQLSTATE and the missing table or column |
 | "Google sign-in is currently unavailable" | `APP_URL`, `GOOGLE_CLIENT_ID` or `GOOGLE_CLIENT_SECRET` missing or invalid | `php bin/provider-readiness.php` names the blocker |
 
 ## Contributing

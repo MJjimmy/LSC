@@ -27,4 +27,16 @@ try {
         $q->execute([$minimum,$cutoff]);$out['eligible_email_count']=(int)$q->fetchColumn();
     }
     echo 'LSC_QUEUE_AUDIT '.json_encode($out,JSON_THROW_ON_ERROR)."\n";
-} catch(Throwable $e) { fwrite(STDERR,'LSC_QUEUE_AUDIT failed: '.get_class($e)."\n");exit(1); }
+} catch(Throwable $e) {
+    // The class name alone is not actionable: an operator who reads only
+    // "PDOException" has to guess which table or column is absent, and this
+    // runs on hosts with no interactive database client. Print the SQLSTATE
+    // and the driver message, which name the missing object.
+    $code=(string)$e->getCode();
+    $reason=trim($e->getMessage());
+    if($reason==='')$reason='(no message)';
+    fwrite(STDERR,'LSC_QUEUE_AUDIT failed: '.get_class($e).($code!==''?' ['.$code.']':'').' '.$reason."\n");
+    if($code==='42P01')fwrite(STDERR,"Hint: the queue audit reads a table that does not exist; compare the database with database/init-postgres.sql.\n");
+    if($code==='42703')fwrite(STDERR,"Hint: the queue audit reads a column that does not exist; apply database/2026_11_22_postgres_alignment.sql.\n");
+    exit(1);
+}
