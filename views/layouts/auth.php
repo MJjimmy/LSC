@@ -1,6 +1,9 @@
 <?php
 $pageTitle = $pageTitle ?? 'LSC | Learn. Share. Connect.';
 $isAndroid = ($_GET['app'] ?? '') === 'android';
+$authStoryTitle = $authStoryTitle ?? 'A clearer place for academic work to move forward.';
+$authStoryCopy = $authStoryCopy ?? 'Bring tasks, deadlines, files and group conversation into one focused workspace.';
+$authStoryBadge = $authStoryBadge ?? 'Your work stays connected';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -277,6 +280,13 @@ textarea {
     margin-bottom: 8px;
 }
 
+.auth-field-note {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+    margin-top: 7px;
+}
+
 .auth-input {
     background: var(--surface);
     border: 1px solid #cfd9e3;
@@ -474,6 +484,33 @@ select.auth-input {
     text-align: center;
 }
 
+.auth-legal {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.55;
+    margin-top: 16px;
+    text-align: center;
+}
+
+.auth-legal a,
+.auth-verification-link a {
+    color: var(--blue-700);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.auth-legal a:hover,
+.auth-verification-link a:hover {
+    color: var(--green-700);
+}
+
+.auth-verification-link {
+    color: var(--slate);
+    font-size: 12px;
+    margin-top: 18px;
+    text-align: center;
+}
+
 .auth-support {
     border-top: 1px solid var(--line);
     color: var(--muted);
@@ -565,10 +602,10 @@ select.auth-input {
         <div class="auth-story-content">
             <div class="auth-story-image">
                 <img src="/images/home-students.png" alt="University students collaborating around a laptop">
-                <div class="auth-story-badge"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Your work stays connected</div>
+                <div class="auth-story-badge"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> <?= htmlspecialchars($authStoryBadge) ?></div>
             </div>
-            <h1>Return to the work your group is moving forward.</h1>
-            <p class="auth-story-copy">Your tasks, deadlines, files and conversations are ready where you left them.</p>
+            <h1><?= htmlspecialchars($authStoryTitle) ?></h1>
+            <p class="auth-story-copy"><?= htmlspecialchars($authStoryCopy) ?></p>
         </div>
 
         <p class="auth-story-footer"><i class="bi bi-shield-check" aria-hidden="true"></i> Secure access for focused academic collaboration</p>

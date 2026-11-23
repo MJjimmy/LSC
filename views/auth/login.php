@@ -88,5 +88,8 @@ function togglePassword() {
 <?php
 $auth_content = ob_get_clean();
 $pageTitle = 'Login | LSC';
+$authStoryTitle = 'Return to the work your group is moving forward.';
+$authStoryCopy = 'Your tasks, deadlines, files and conversations are ready where you left them.';
+$authStoryBadge = 'Your work stays connected';
 require LSC_ROOT . '/views/layouts/auth.php';
 ?>
