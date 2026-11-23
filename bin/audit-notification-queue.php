@@ -38,5 +38,9 @@ try {
     fwrite(STDERR,'LSC_QUEUE_AUDIT failed: '.get_class($e).($code!==''?' ['.$code.']':'').' '.$reason."\n");
     if($code==='42P01')fwrite(STDERR,"Hint: the queue audit reads a table that does not exist; compare the database with database/init-postgres.sql.\n");
     if($code==='42703')fwrite(STDERR,"Hint: the queue audit reads a column that does not exist; apply database/2026_11_22_postgres_alignment.sql.\n");
+    // Postgres reports "operator does not exist: boolean = integer" as 42883,
+    // the same code as a missing function, so the raw message is easy to
+    // misread as a database that lacks an extension.
+    if($code==='42883')fwrite(STDERR,"Hint: a flag column is probably boolean while the application compares it to 0/1; apply database/2026_11_22_postgres_alignment.sql.\n");
     exit(1);
 }
