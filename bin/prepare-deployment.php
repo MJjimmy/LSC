@@ -3,7 +3,6 @@ declare(strict_types=1);
 if (PHP_SAPI !== 'cli') { http_response_code(404); exit; }
 require __DIR__ . '/prepare-provider-schema.php';
 require __DIR__ . '/prepare-email-verification.php';
-require __DIR__ . '/audit-notification-queue.php';
 
 // Read-only sign-in readiness check. Never changes data and never alters the
 // exit code of the preparation steps above; it exists so an operator running
@@ -24,3 +23,8 @@ try {
 } catch (Throwable) {
     fwrite(STDOUT, "Sign-in readiness check skipped (database unavailable).\n");
 }
+
+// Last, deliberately: the audit exits non-zero when the queue schema is
+// incomplete, and the sign-in summary above must still reach the operator
+// before the command stops.
+require __DIR__ . '/audit-notification-queue.php';
