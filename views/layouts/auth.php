@@ -81,15 +81,14 @@ textarea {
 }
 
 .auth-story::after {
-    background-image: radial-gradient(rgba(255, 255, 255, .25) 1px, transparent 1px);
-    background-size: 22px 22px;
+    border: 34px solid rgba(255, 255, 255, .045);
+    border-radius: 50%;
     content: '';
-    height: 210px;
-    opacity: .3;
+    height: 180px;
     position: absolute;
     right: -60px;
     top: -45px;
-    width: 250px;
+    width: 180px;
 }
 
 .auth-brand {

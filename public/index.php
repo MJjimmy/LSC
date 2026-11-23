@@ -234,15 +234,14 @@ $pageDescription = 'Bring study groups, tasks, deadlines, shared files and conve
         }
 
         .hero::after {
-            background-image: radial-gradient(#b9c7d5 1px, transparent 1px);
-            background-size: 22px 22px;
+            border: 36px solid rgba(18, 61, 102, .06);
+            border-radius: 50%;
             content: '';
-            height: 270px;
-            opacity: .32;
+            height: 210px;
             position: absolute;
             right: -50px;
             top: -30px;
-            width: 330px;
+            width: 210px;
         }
 
         .hero-grid {

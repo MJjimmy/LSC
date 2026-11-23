@@ -20,9 +20,10 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <!-- Clean, readable interface typeface -->
+    <!-- Product typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
 
     <style>
     /* ── TOKENS ─────────────────────────────────────────────── */
@@ -716,6 +717,356 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 
         .btn-primary { font-size: 12px; padding: 8px 14px; }
     }
+
+    /* ── MODERN ACADEMIC SYSTEM ─────────────────────────────── */
+    :root {
+        --sidebar: #0b2b4b;
+        --sidebar-border: rgba(255,255,255,.12);
+        --sidebar-hover: rgba(255,255,255,.08);
+        --primary: #1756a9;
+        --primary-dark: #10488e;
+        --primary-soft: #eef6ff;
+        --primary-border: #c8def4;
+        --brand: var(--primary);
+        --brand-dark: var(--primary-dark);
+        --brand-dim: rgba(36,104,197,.11);
+        --brand-border: rgba(36,104,197,.28);
+        --cream: #f7f9fb;
+        --card: #ffffff;
+        --border: #dce4ec;
+        --border-soft: #eaf0f5;
+        --text-primary: #142233;
+        --text-secondary: #546579;
+        --text-muted: #78889a;
+        --text-sidebar: #c8d7e4;
+        --green: #16734b;
+        --green-bg: #edf9f3;
+        --green-border: #b9e2ce;
+        --red: #a4362e;
+        --red-bg: #fff3f1;
+        --red-border: #efc7c3;
+        --amber: #9b5b12;
+        --amber-bg: #fff8eb;
+        --amber-border: #eed7ae;
+    }
+
+    body {
+        font-family: 'DM Sans', system-ui, sans-serif;
+        font-size: 14px;
+        line-height: 1.55;
+    }
+
+    .lsc-sidebar {
+        box-shadow: 10px 0 32px rgba(7,29,50,.08);
+        width: 254px;
+    }
+
+    .lsc-logo {
+        align-items: center;
+        min-height: 76px;
+        padding: 16px 18px;
+    }
+
+    .lsc-logo > div {
+        align-items: center;
+        display: flex;
+        gap: 11px;
+    }
+
+    .lsc-logo-mark {
+        align-items: center;
+        background: #fff;
+        border-radius: 9px;
+        color: var(--sidebar);
+        display: inline-flex;
+        font-family: 'Manrope', sans-serif;
+        font-size: 18px;
+        height: 40px;
+        justify-content: center;
+        width: 40px;
+    }
+
+    .lsc-logo-mark span { color: inherit; }
+
+    .lsc-logo-copy {
+        display: grid;
+    }
+
+    .lsc-logo-name {
+        color: #fff;
+        font-family: 'Manrope', sans-serif;
+        font-size: 19px;
+        font-weight: 800;
+        letter-spacing: -.04em;
+        line-height: 1;
+    }
+
+    .lsc-logo-sub {
+        color: #91a8bc;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: .12em;
+        margin-top: 6px;
+        text-transform: uppercase;
+    }
+
+    .lsc-nav {
+        gap: 3px;
+        padding: 20px 13px;
+    }
+
+    .lsc-nav-label {
+        color: #7892a8;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: .14em;
+        padding: 18px 11px 7px;
+    }
+
+    .lsc-nav a {
+        border-radius: 7px;
+        font-size: 13px;
+        gap: 11px;
+        min-height: 42px;
+        padding: 9px 11px;
+    }
+
+    .lsc-nav a .bi {
+        color: #8fa6ba;
+        font-size: 16px;
+        width: 18px;
+    }
+
+    .lsc-nav a.active {
+        background: #fff;
+        border-color: #fff;
+        color: var(--sidebar);
+        font-weight: 700;
+    }
+
+    .lsc-nav a.active .bi { color: var(--primary); }
+
+    .lsc-user {
+        background: rgba(0,0,0,.08);
+        padding: 15px 16px 17px;
+    }
+
+    .lsc-avatar {
+        background: #fff;
+        border-color: rgba(255,255,255,.55);
+        color: var(--sidebar);
+        height: 38px;
+        width: 38px;
+    }
+
+    .lsc-user-name { font-size: 12.5px; }
+    .lsc-user-role { color: #8fa6ba; }
+
+    .lsc-signout {
+        border-color: rgba(255,255,255,.14);
+        border-radius: 7px;
+        color: #b4c5d4;
+        min-height: 36px;
+    }
+
+    .lsc-topbar {
+        height: 72px;
+        padding: 0 30px;
+    }
+
+    .lsc-topbar-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: -.025em;
+    }
+
+    .lsc-icon-btn {
+        border-radius: 8px;
+        height: 38px;
+        width: 38px;
+    }
+
+    .lsc-content {
+        padding: 32px 36px 42px;
+    }
+
+    .card {
+        border-radius: 9px;
+        box-shadow: 0 8px 24px rgba(12,39,65,.045);
+    }
+
+    .page-hero {
+        background: var(--sidebar);
+        border: 1px solid #123d66;
+        border-radius: 10px;
+        padding: 32px 34px;
+    }
+
+    .page-hero::after {
+        border: 30px solid rgba(255,255,255,.045);
+        border-radius: 50%;
+        content: '';
+        height: 145px;
+        position: absolute;
+        right: -20px;
+        top: -40px;
+        width: 145px;
+    }
+
+    .page-hero-eyebrow {
+        color: #79d5a9;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .13em;
+    }
+
+    .page-hero-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 32px;
+        letter-spacing: -.045em;
+    }
+
+    .page-hero-sub {
+        color: #b6c8d7;
+        font-size: 13px;
+        max-width: 680px;
+    }
+
+    .hero-action-btn {
+        background: #fff;
+        border-color: #fff;
+        border-radius: 8px;
+        color: var(--sidebar);
+        z-index: 2;
+    }
+
+    .hero-action-btn:hover { background: var(--primary-soft); }
+
+    .stat-card {
+        border-radius: 9px;
+        min-height: 112px;
+        padding: 20px 22px;
+    }
+
+    .stat-card-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .025em;
+        text-transform: uppercase;
+    }
+
+    .stat-card-value {
+        font-family: 'Manrope', sans-serif;
+        font-size: 32px;
+        letter-spacing: -.045em;
+    }
+
+    .btn-primary,
+    .btn-ghost {
+        align-items: center;
+        border-radius: 8px;
+        display: inline-flex;
+        font-family: 'DM Sans', system-ui, sans-serif;
+        font-weight: 700;
+        justify-content: center;
+        min-height: 40px;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        padding: 9px 16px;
+    }
+
+    .btn-primary:hover { background: var(--primary-dark); }
+
+    .btn-ghost {
+        background: var(--card);
+        padding: 8px 15px;
+    }
+
+    .pill {
+        border-radius: 5px;
+        font-size: 10px;
+        letter-spacing: .02em;
+        padding: 4px 8px;
+        text-transform: uppercase;
+    }
+
+    .lsc-input {
+        border-color: #cfd9e3;
+        border-radius: 7px;
+        font-family: 'DM Sans', system-ui, sans-serif;
+        min-height: 44px;
+    }
+
+    textarea.lsc-input { padding-top: 11px; }
+
+    .lsc-label {
+        color: var(--text-primary);
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .panel-header { padding: 18px 21px; }
+    .panel-title { font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 800; }
+    .panel-link { color: var(--primary); }
+
+    .lsc-table th {
+        background: #f3f6f9;
+        font-size: 9.5px;
+        letter-spacing: .1em;
+        padding: 13px 20px;
+    }
+
+    .lsc-table td { padding: 15px 20px; }
+    .lsc-table tbody tr:hover td { background: #f8fafc; }
+
+    .lsc-modal-bg {
+        background: rgba(7,29,50,.68);
+        backdrop-filter: blur(5px);
+    }
+
+    .lsc-modal {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: 0 28px 80px rgba(7,29,50,.25);
+    }
+
+    .lsc-modal-title {
+        font-family: 'Manrope', sans-serif;
+        letter-spacing: -.03em;
+    }
+
+    .empty-state {
+        padding: 64px 24px;
+    }
+
+    .lsc-bottom-nav {
+        background: rgba(11,43,75,.98);
+        height: 68px;
+    }
+
+    .lsc-bnav-item {
+        border-radius: 7px;
+        color: #8fa6ba;
+    }
+
+    .lsc-bnav-item.active { color: #fff; }
+    .lsc-bnav-item.active .bi { color: #79d5a9; }
+
+    @media (max-width: 900px) {
+        .lsc-content { padding: 24px 20px 88px; }
+        .lsc-topbar { height: 64px; padding: 0 18px; }
+        .page-hero { padding: 26px 24px; }
+    }
+
+    @media (max-width: 540px) {
+        .lsc-content { padding: 16px 12px 86px; }
+        .page-hero { border-radius: 8px; }
+        .page-hero-title { font-size: 25px; }
+        .card, .stat-card { border-radius: 8px; }
+    }
     </style>
 
 <?php require LSC_ROOT . '/views/layouts/pwa.php'; ?>
@@ -732,8 +1083,11 @@ $unreadNotificationCount = isset($_SESSION['user_id'])
 
         <div class="lsc-logo">
             <div>
-                <a href="dashboard.php" class="lsc-logo-mark">LS<span>C</span></a>
-                <div class="lsc-logo-sub">Learn · Share · Connect</div>
+                <a href="dashboard.php" class="lsc-logo-mark" aria-label="LSC dashboard"><i class="bi bi-mortarboard-fill" aria-hidden="true"></i></a>
+                <span class="lsc-logo-copy">
+                    <span class="lsc-logo-name">LSC</span>
+                    <span class="lsc-logo-sub">Learn · Share · Connect</span>
+                </span>
             </div>
             <button class="lsc-close-btn" onclick="closeSidebar()" aria-label="Close menu">
                 <i class="bi bi-x-lg"></i>
