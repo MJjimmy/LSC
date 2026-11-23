@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+php_root="${HOME}/.local/share/figma-make/php-8.4"
+php_bin="${php_root}/usr/bin/php8.4"
+extension_dir="${php_root}/usr/lib/php/20240924"
+library_dir="${php_root}/usr/lib/x86_64-linux-gnu"
+
+if [[ -x "${php_bin}" ]] && LD_LIBRARY_PATH="${library_dir}" "${php_bin}" -n \
+  -d "extension_dir=${extension_dir}" \
+  -d extension=pdo \
+  -d extension=pdo_pgsql \
+  -d extension=curl \
+  -d extension=mbstring \
+  -d extension=fileinfo \
+  -r 'exit(PHP_VERSION_ID >= 80400 ? 0 : 1);'
+then
+  exit 0
+fi
+
+cache_root="${HOME}/.cache/figma-make-apt"
+lists_dir="${cache_root}/lists"
+packages_dir="${cache_root}/packages"
+mkdir -p "${lists_dir}/partial" "${packages_dir}/partial" "${php_root}"
+
+apt-get \
+  -o "Dir::State::lists=${lists_dir}" \
+  -o APT::Get::List-Cleanup=0 \
+  update
+
+(
+  cd "${packages_dir}"
+  apt-get \
+    -o "Dir::State::lists=${lists_dir}" \
+    download \
+    php8.4-cli php8.4-common php8.4-opcache php8.4-readline \
+    php8.4-pgsql php8.4-mbstring php8.4-curl \
+    libargon2-1 libedit2 libsodium23 libssl3t64 libxml2 libffi8 \
+    libcurl4t64 libonig5 libpq5
+)
+
+for package in "${packages_dir}"/*.deb; do
+  dpkg-deb -x "${package}" "${php_root}"
+done

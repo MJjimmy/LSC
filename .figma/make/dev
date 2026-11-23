@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+php_root="${HOME}/.local/share/figma-make/php-8.4"
+extension_dir="${php_root}/usr/lib/php/20240924"
+library_dir="${php_root}/usr/lib/x86_64-linux-gnu"
+
+exec env LD_LIBRARY_PATH="${library_dir}" \
+  "${php_root}/usr/bin/php8.4" -n \
+  -d "extension_dir=${extension_dir}" \
+  -d extension=pdo \
+  -d extension=pdo_pgsql \
+  -d extension=curl \
+  -d extension=mbstring \
+  -d extension=fileinfo \
+  -d session.save_path=/tmp \
+  -S "0.0.0.0:${PORT}" -t public public/router.php
