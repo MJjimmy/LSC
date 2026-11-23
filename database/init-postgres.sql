@@ -1,8 +1,8 @@
 -- LSC (Learn Share Connect) — Postgres schema (Render)
 --
 -- This is the canonical schema for the shipped deployment. It is the Postgres
--- port of database/init.sql (MySQL, legacy) and already contains everything the
--- individual MySQL migrations add: chat-file links, group invitations,
+-- port of the former MySQL schema and already contains everything the
+-- individual MySQL migrations added: chat-file links, group invitations,
 -- notifications, password-reset tokens, profile fields, join requests, the
 -- lecturer role, the outbound notification queue, rate limits, mailbox-proof
 -- tokens, OAuth identities and native app sign-in codes.

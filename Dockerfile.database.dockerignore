@@ -1,6 +1,0 @@
-**
-!Dockerfile.database
-!database
-!database/init.sql
-!runtime
-!runtime/database-entrypoint

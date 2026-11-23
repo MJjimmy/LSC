@@ -15,11 +15,11 @@ server-rendered PHP on PostgreSQL, installable as a web app.
 | **Database** | PostgreSQL 14+ (Render managed Postgres) |
 | **Deploy** | `render.yaml` blueprint → Docker service from `Dockerfile.railway` |
 | **Source of truth** | branch `deploy/railpack` |
-| **Tests** | 46 files under `tests/`, gated by `.github/workflows/lsc-web.yml` |
+| **Tests** | 42 files under `tests/`, gated by `.github/workflows/lsc-web.yml` |
 
-> MySQL is **not** a supported target. `database/init.sql` and the dated
-> `database/2026_*.sql` migrations are kept for historical reference only; a
-> database created from them will not run this application.
+> MySQL is **not** a supported target. The MySQL schema and its dated
+> migrations were removed in the clean-up; `database/init-postgres.sql` is the
+> only schema, and it is the one CI imports. The old files remain in git history.
 
 ## Contents
 
@@ -206,13 +206,12 @@ invite → upload a file → create a task → reset a password.
 Custom domain: Render → service → **Settings → Custom Domains**, then point the
 `CNAME` at the target Render shows and set `APP_URL` to the same origin.
 
-**Legacy deployment assets.** `railpack.json`, `Caddyfile`, `nginx.conf` and
-`Dockerfile.database` are leftovers from earlier Railway/Railpack attempts and
-from the retired MariaDB database image; the Render path uses none of them.
-`railpack.json` still references a `/start-container.sh` that is not in this
-repository. Treat `deploy/railpack` as the single source of truth and retire or
-repoint anything else that deploys — any surviving Railway service needs `PG*`
-variables now, not `MYSQL*`.
+**One deploy path.** `render.yaml` + `Dockerfile.railway` is the only supported
+way to run this application. The earlier Railway/Railpack configs (`railpack.json`,
+`Caddyfile`, the root `nginx.conf`) and the MariaDB image (`Dockerfile.database`)
+were deleted once Render became the target, so there is nothing left to drift.
+Any surviving Railway service needs `PG*` variables now, not `MYSQL*` — retire or
+repoint it rather than keeping it in sync.
 
 ## Operations
 
@@ -264,7 +263,9 @@ for scripts and styles; uploads are signature-checked but not run through
 
 ## Tests and CI
 
-`LSC Web Release` (`.github/workflows/lsc-web.yml`) is the release gate. Jobs:
+`LSC Web Release` (`.github/workflows/lsc-web.yml`) is the repository's only
+workflow and the release gate — triggered on pull requests and pushes to
+`deploy/railpack`, or manually from the Actions tab (**Run workflow**). Jobs:
 
 | Job | What it proves |
 |---|---|
@@ -355,9 +356,9 @@ you deploy:
 | [`docs/LSC_Project_Documentation.docx`](docs/LSC_Project_Documentation.docx) | Full architecture, user guide, release checklist |
 | [`docs/LSC_Institutional_Overview.md`](docs/LSC_Institutional_Overview.md) | Institution-facing overview |
 
-`docs/MYSQL_CUTOVER.md`, `docs/RAILPACK_REVIEW.md` and
-`docs/RUNTIME_FIX.md` are historical records of the earlier Railway/MySQL
-deployment and are marked as such.
+Earlier Railway/MySQL post-mortems (`MYSQL_CUTOVER`, `RAILPACK_REVIEW`,
+`RUNTIME_FIX`, `UI-FIX`) were removed in the clean-up; git history keeps them if
+you need the archaeology.
 
 ## Licence
 
