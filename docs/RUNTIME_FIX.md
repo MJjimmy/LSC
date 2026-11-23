@@ -1,5 +1,9 @@
 # LSC runtime replacement — local runtime, database and storage verification
 
+> **Historical.** This documents the Railway/MariaDB runtime and the
+> `Dockerfile.database` image. LSC now deploys on Render with managed Postgres
+> and the MariaDB image is no longer used; see [`POSTGRES_DEPLOY.md`](POSTGRES_DEPLOY.md).
+
 This supersedes the runtime described in `RAILPACK_REVIEW.md`. The application code and database are not rewritten or deleted. The replacement uses a dedicated **Dockerfile.railway**, not the old local Dockerfile and not the earlier Railpack image.
 
 ## What changed
