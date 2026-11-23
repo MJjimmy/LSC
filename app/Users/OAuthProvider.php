@@ -28,22 +28,95 @@ final class OAuthProvider
         ];
     }
 
+    /**
+     * The public origin, or the reason it cannot be trusted.
+     *
+     * @return array{base: ?string, problem: ?string}
+     */
+    private static function publicOrigin(): array
+    {
+        $base = rtrim(trim((string)getenv('APP_URL')), '/');
+        if ($base === '') {
+            return ['base' => null, 'problem' => 'APP_URL is not set'];
+        }
+        $parts = parse_url($base);
+        if (!is_array($parts) || empty($parts['host'])) {
+            return ['base' => null, 'problem' => 'APP_URL is not an absolute URL'];
+        }
+        if (isset($parts['query']) || isset($parts['fragment'])) {
+            return ['base' => null, 'problem' => 'APP_URL must not contain a query or fragment'];
+        }
+        if (isset($parts['user']) || isset($parts['pass'])) {
+            return ['base' => null, 'problem' => 'APP_URL must not contain credentials'];
+        }
+        $local = in_array($parts['host'], ['localhost', '127.0.0.1'], true)
+            && strtolower((string)getenv('APP_ENV')) !== 'production';
+        $scheme = strtolower((string)($parts['scheme'] ?? ''));
+        if (!in_array($scheme, $local ? ['http', 'https'] : ['https'], true)) {
+            return [
+                'base' => null,
+                'problem' => $local ? 'APP_URL must use http or https' : 'APP_URL must use https',
+            ];
+        }
+
+        return ['base' => $base, 'problem' => null];
+    }
+
     public static function enabled(string $provider): bool
     {
-        $base = (string)getenv('APP_URL');
-        $parts = parse_url($base);
-        $local = is_array($parts) && in_array($parts['host'] ?? '', ['localhost', '127.0.0.1'], true)
-            && strtolower((string)getenv('APP_ENV')) !== 'production';
-        if (!is_array($parts) || empty($parts['host']) || isset($parts['query']) || isset($parts['fragment'])
-            || isset($parts['user']) || !in_array($parts['scheme'] ?? '', $local ? ['http', 'https'] : ['https'], true)) {
+        if (self::publicOrigin()['base'] === null) {
             return false;
         }
         try {
             $config = self::configuration($provider);
-            return $config['client_id'] !== '' && $config['client_secret'] !== '';
         } catch (RuntimeException) {
             return false;
         }
+
+        return $config['client_id'] !== '' && $config['client_secret'] !== '';
+    }
+
+    /**
+     * Why sign-in with a provider is or is not usable, for operators.
+     *
+     * Reports presence and the public callback only: it never returns or logs a
+     * credential, so it is safe to paste into an issue or a deployment log.
+     *
+     * @return array{provider: string, enabled: bool, app_url: ?string, client_id: bool,
+     *               client_secret: bool, redirect_uri: ?string, problems: list<string>}
+     */
+    public static function readiness(string $provider): array
+    {
+        $origin = self::publicOrigin();
+        $problems = $origin['problem'] !== null ? [$origin['problem']] : [];
+        $config = null;
+        try {
+            $config = self::configuration($provider);
+        } catch (RuntimeException) {
+            $problems[] = 'Unsupported sign-in provider.';
+        }
+        $clientId = $config !== null && $config['client_id'] !== '';
+        $clientSecret = $config !== null && $config['client_secret'] !== '';
+        $prefix = strtoupper($provider);
+        if ($config !== null && !$clientId) {
+            $problems[] = $prefix . '_CLIENT_ID is not set';
+        }
+        if ($config !== null && !$clientSecret) {
+            $problems[] = $prefix . '_CLIENT_SECRET is not set';
+        }
+
+        return [
+            'provider' => $provider,
+            'enabled' => $origin['base'] !== null && $clientId && $clientSecret,
+            'app_url' => $origin['base'],
+            'client_id' => $clientId,
+            'client_secret' => $clientSecret,
+            // No callback URI for an unknown provider: there is nothing to register.
+            'redirect_uri' => ($origin['base'] === null || $config === null)
+                ? null
+                : $origin['base'] . '/oauth.php?provider=' . $provider,
+            'problems' => $problems,
+        ];
     }
 
     public static function allowAuthorizationRedirect(): void

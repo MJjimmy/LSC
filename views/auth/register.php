@@ -15,8 +15,12 @@
         <i class="bi bi-envelope-check" aria-hidden="true"></i>
         <span><?= htmlspecialchars($success) ?></span>
     </div>
-    <p class="auth-verification-link">Did not receive it? <a href="verify-email.php">Request another verification email</a></p>
 <?php endif; ?>
+
+<?php /* The account exists after a rejected delivery too: the controller's error
+         message tells the reader to use the link below, so it must render on
+         both paths. */ ?>
+<p class="auth-verification-link">Did not receive it? <a href="verify-email.php">Request another verification email</a></p>
 
 <?php if (!$success): ?>
 <form method="POST">
