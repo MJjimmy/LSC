@@ -35,7 +35,8 @@ $recentFiles = array_slice($files, 0, 5);
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
                     <button type="submit" name="delete_group" class="group-danger-btn">Delete group</button>
                 </form>
-            <?php elseif ($isMember): ?>
+            <?php endif; ?>
+            <?php if ($isMember): ?>
                 <form method="POST" onsubmit="return confirm('Leave this group? Shared tasks, files and messages will be kept.');">
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
                     <button type="submit" name="leave_group" class="btn-ghost" <?= $isGroupCreator ? 'disabled aria-describedby="leave-group-note" style="opacity:.55;cursor:not-allowed;"' : '' ?>><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Leave group</button>
