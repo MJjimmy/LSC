@@ -49,6 +49,9 @@ $_SESSION['csrf_token'] = 'synthetic-admin-csrf';
 $_SERVER['REQUEST_METHOD'] = $config['method'] ?? 'GET';
 $_SERVER['PHP_SELF'] = '/profile.php';
 $_GET = ['user_id' => (string)($config['target'] ?? 2)];
+if (isset($config['tab'])) {
+    $_GET['tab'] = (string)$config['tab'];
+}
 $_POST = $config['post'] ?? [];
 $_FILES = [];
 set_error_handler(static function (int $severity, string $message, string $file, int $line): never {

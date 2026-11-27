@@ -130,9 +130,10 @@ adminCheck($edited['protected_fields_unchanged'], 'Profile edit cannot change au
 $adminView = profileFixture(['actor' => 1, 'target' => 2]);
 adminCheck(str_contains($adminView['html'], 'target@example.invalid')
     && str_contains($adminView['html'], '+27820000002'), 'Administrator sees the target email and phone');
-adminCheck(str_contains($adminView['html'], 'name="update_profile"'), 'Administrator receives working profile edit controls');
 adminCheck(!str_contains($adminView['html'], 'name="update_notifications"'), 'Administrator cannot edit another user notification consent');
 adminCheck(!str_contains($adminView['html'], 'synthetic-not-a-password-hash'), 'Credential material never enters the profile HTML');
+$adminEditView = profileFixture(['actor' => 1, 'target' => 2, 'tab' => 'profile']);
+adminCheck(str_contains($adminEditView['html'], 'name="update_profile"'), 'Administrator receives working profile edit controls');
 $inactive = profileFixture(['actor' => 1, 'target' => 4]);
 adminCheck($inactive['status'] === 200 && str_contains($inactive['html'], 'Inactive learner'),
     'Administrator can inspect an inactive account without reactivating it');
@@ -214,10 +215,22 @@ try {
         && str_contains($html, 'name="csrf_token"'), 'Administrator group discovery exposes a deliberate CSRF-protected direct-join form');
     adminCheck((int)$discoveryDb->query('SELECT COUNT(*) FROM group_members')->fetchColumn() === 0,
         'Reading discovery and rendering forms does not join groups');
-    $stats = ['total_users' => 1, 'total_groups' => 0, 'total_tasks' => 0, 'total_files' => 0];
-    $html = adminRender('users/admin', ['stats' => $stats, 'users' => [[
+    $targetUser = [
         'user_id' => 2, 'name' => 'Target learner', 'email' => 'target@example.invalid', 'role' => 'student', 'is_active' => 1,
-    ]]]);
+    ];
+    $html = adminRender('users/admin', [
+        'stats' => ['total_users' => 1, 'total_groups' => 0, 'pending_tasks' => 0, 'total_files' => 0],
+        'operations' => [
+            'queue_failed' => 0, 'students' => 1, 'lecturers' => 0, 'unverified_users' => 0,
+            'inactive_users' => 0, 'public_groups' => 0, 'private_groups' => 0, 'queue_pending' => 0,
+        ],
+        'recentGroups' => [],
+        'users' => [$targetUser],
+        'query' => '',
+        'roleFilter' => 'all',
+        'statusFilter' => 'all',
+        'filteredUsers' => [$targetUser],
+    ]);
     adminCheck(str_contains($html, 'href="profile.php?user_id=2"'), 'Admin user management links directly to the correct learner profile');
 } finally {
     unlink($viewRoot . '/views/layouts/app.php'); rmdir($viewRoot . '/views/layouts');
